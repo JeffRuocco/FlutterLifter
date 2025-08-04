@@ -1,0 +1,18 @@
+- [x] Create login page
+  - [x] Unit test
+  - [ ] Extract to separate login_screen.dart
+- [x] Create home page
+  - [ ] Unit test
+- [x] Create programs page
+  - [ ] Unit test
+- [ ] Create workout page
+  - [ ] Unit test
+- [ ] Create exercise list page
+  - [ ] Unit test
+- [ ] Create progress page
+  - [ ] Unit test
+- [ ] Create program creation pages
+  - [ ] Unit test
+- [ ] Implement user authentication
+  - [ ] Unit test
+- [ ] Choose font (Inter?)

@@ -1,0 +1,5 @@
+# Theme
+
+Create a modern and appealing color scheme for a mobile application focused on workout tracking. Provide colors for the following:
+Primary, primary light, primary dark, secondary, secondary light, secondary dark, surface, surface variant, on primary, on secondary, text primary, text secondary, text hint, on surface, border, border light, border dark
+Make sure the colors selected offer a good balance between readability, accessibility, and appealing design

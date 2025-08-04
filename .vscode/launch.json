@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "FlutterLifter (Debug)",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "FlutterLifter (Profile)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "FlutterLifter (Release)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "FlutterLifter (Web - Chrome)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome"
+        }
+    ]
+}
