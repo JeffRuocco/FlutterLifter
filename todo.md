@@ -15,4 +15,3 @@
   - [ ] Unit test
 - [ ] Implement user authentication
   - [ ] Unit test
-- [ ] Choose font (Inter?)
