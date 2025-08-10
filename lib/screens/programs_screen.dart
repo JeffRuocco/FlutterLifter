@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/models/workout_models.dart';
-import 'package:flutter_lifter/utils/mock_data.dart';
+import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
@@ -8,19 +8,49 @@ import '../core/theme/theme_utils.dart';
 import 'create_program_screen.dart';
 
 class ProgramsScreen extends StatefulWidget {
-  // TODO: get programs from data source
-  final MockPrograms mockPrograms = MockPrograms();
-  late final List<Program> programs;
+  final ProgramRepository programRepository;
 
-  ProgramsScreen({super.key, List<Program>? programs}) {
-    this.programs = programs ?? mockPrograms.programs;
-  }
+  const ProgramsScreen({
+    super.key,
+    required this.programRepository,
+  });
 
   @override
   State<ProgramsScreen> createState() => _ProgramsScreenState();
 }
 
 class _ProgramsScreenState extends State<ProgramsScreen> {
+  List<Program> _programs = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrograms();
+  }
+
+  Future<void> _loadPrograms() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      final programs = await widget.programRepository.getPrograms();
+
+      setState(() {
+        _programs = programs;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to load programs: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,36 +99,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
               const SizedBox(height: AppSpacing.md),
 
               Expanded(
-                child: ListView(
-                  children: [
-                    ...widget.programs.map((program) => Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                          child: _ProgramCard(
-                            program: program,
-                            duration: _getProgramDuration(program),
-                            onTap: () => _selectProgram(program.id),
-                          ),
-                        )),
-
-                    const SizedBox(height: AppSpacing.xl),
-
-                    // Custom Program Section
-                    Text(
-                      'Custom Programs',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: context.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-
-                    // Create Custom Program Card
-                    _CreateProgramCard(
-                      onTap: () => _createCustomProgram(),
-                    ),
-
-                    const SizedBox(height: AppSpacing.xxl),
-                  ],
-                ),
+                child: _buildProgramsList(),
               ),
             ],
           ),
@@ -107,29 +108,128 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
     );
   }
 
-  String _getProgramDuration(Program program) {
-    // For now, we'll return a default duration based on difficulty
-    // In the future, this could be based on the program's scheduled sessions
-    switch (program.difficulty) {
-      case ProgramDifficulty.beginner:
-        return '3 days/week';
-      case ProgramDifficulty.intermediate:
-        return '4 days/week';
-      case ProgramDifficulty.advanced:
-        return '6 days/week';
-      case ProgramDifficulty.expert:
-        return '6 days/week';
+  Widget _buildProgramsList() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
     }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              HugeIcons.strokeRoundedAlert02,
+              size: 48,
+              color: context.errorColor,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Oops! Something went wrong',
+              style: AppTextStyles.titleMedium.copyWith(
+                color: context.textPrimary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              _errorMessage!,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: context.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            ElevatedButton(
+              onPressed: _loadPrograms,
+              child: const Text('Try Again'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_programs.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              HugeIcons.strokeRoundedDumbbell01,
+              size: 48,
+              color: context.textSecondary,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'No Programs Available',
+              style: AppTextStyles.titleMedium.copyWith(
+                color: context.textPrimary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Create your first program to get started',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadPrograms,
+      child: ListView(
+        children: [
+          // Program cards
+          ..._programs.map((program) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: _ProgramCard(
+                  program: program,
+                  duration: program.frequencyDescription,
+                  onTap: () => _selectProgram(program.id),
+                ),
+              )),
+
+          const SizedBox(height: AppSpacing.xl),
+
+          // Custom Program Section
+          Text(
+            'Custom Programs',
+            style: AppTextStyles.titleMedium.copyWith(
+              color: context.textPrimary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Create Custom Program Card
+          _CreateProgramCard(
+            onTap: () => _createCustomProgram(),
+          ),
+
+          const SizedBox(height: AppSpacing.xxl),
+        ],
+      ),
+    );
   }
 
   /// Handles the selection of a program by its ID.
-  void _selectProgram(String programId) {
-    // TODO: Navigate to program details or start program
-    var program = widget.mockPrograms.getProgramById(programId);
-    if (program != null) {
-      showSuccessMessage(context, 'Starting program: ${program.name}');
-    } else {
-      showErrorMessage(context, 'Program not found: $programId');
+  void _selectProgram(String programId) async {
+    try {
+      final program = await widget.programRepository.getProgramById(programId);
+      if (!mounted) return;
+
+      if (program != null) {
+        showSuccessMessage(context, 'Starting program: ${program.name}');
+        // TODO: Navigate to program details or start program
+      } else {
+        showErrorMessage(context, 'Program not found');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showErrorMessage(context, 'Failed to load program: $e');
     }
   }
 
@@ -146,17 +246,11 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
 class _ProgramCard extends StatelessWidget {
   final Program program;
   final String duration;
-  // final IconData icon;
-  // final Color color;
   final VoidCallback onTap;
 
   const _ProgramCard({
     required this.program,
-    // required this.title,
-    // required this.description,
     required this.duration,
-    // required this.icon,
-    // required this.color,
     required this.onTap,
   });
 
@@ -173,7 +267,6 @@ class _ProgramCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  // color: color.withValues(alpha: 0.1),
                   color: program.getColor(context).withValues(alpha: 0.1),
                   borderRadius:
                       BorderRadius.circular(AppDimensions.borderRadiusMedium),

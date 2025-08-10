@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lifter/utils/mock_data.dart';
+import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
@@ -7,12 +7,14 @@ import '../core/theme/theme_utils.dart';
 import '../models/workout_models.dart';
 
 class AddExerciseBottomSheet extends StatefulWidget {
+  final ProgramRepository programRepository;
   final Function(WorkoutExercise exercise) onExerciseAdded;
   final bool isSwapping;
   final WorkoutExercise? currentExercise;
 
   const AddExerciseBottomSheet({
     super.key,
+    required this.programRepository,
     required this.onExerciseAdded,
     this.isSwapping = false,
     this.currentExercise,
@@ -30,6 +32,7 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
 
   @override
   void initState() {
+    // TODO: update with future builder? (see workout_screen.dart)
     super.initState();
     _initializeExercises();
     _searchController.addListener(_filterExercises);
@@ -41,11 +44,9 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
     super.dispose();
   }
 
-  void _initializeExercises() {
-    // Sample exercises - in a real app, this would come from a database
-    // TODO: initialize from database
+  Future<void> _initializeExercises() async {
     // TODO: support pre-defined exercises and user's custom exercises
-    _allExercises = MockExercises.exercises;
+    _allExercises = await widget.programRepository.getExercises();
     _filteredExercises = List.from(_allExercises);
   }
 

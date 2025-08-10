@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/data/repositories/program_repository.dart';
+import 'package:flutter_lifter/models/workout_models.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
@@ -9,9 +11,64 @@ import 'workout_screen.dart';
 // TODO: get current program and in-progress or next workout
 // when user clicks "Workouts" action card, continue in progress workout or start next workout
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  final ProgramRepository programRepository;
 
+  const HomeScreen({super.key})
+      : programRepository = const _DefaultProgramRepository();
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _DefaultProgramRepository implements ProgramRepository {
+  const _DefaultProgramRepository();
+
+  // TODO: initialize program repository from API (add production impl)
+  static final ProgramRepository _instance =
+      ProgramRepositoryImpl.development();
+
+  @override
+  Future<List<Program>> getPrograms() => _instance.getPrograms();
+
+  @override
+  Future<Program?> getProgramById(String id) => _instance.getProgramById(id);
+
+  @override
+  Future<void> createProgram(Program program) =>
+      _instance.createProgram(program);
+
+  @override
+  Future<void> updateProgram(Program program) =>
+      _instance.updateProgram(program);
+
+  @override
+  Future<void> deleteProgram(String id) => _instance.deleteProgram(id);
+
+  @override
+  Future<List<Program>> searchPrograms(String query) =>
+      _instance.searchPrograms(query);
+
+  @override
+  Future<List<Program>> getProgramsByDifficulty(ProgramDifficulty difficulty) =>
+      _instance.getProgramsByDifficulty(difficulty);
+
+  @override
+  Future<List<Program>> getProgramsByType(ProgramType type) =>
+      _instance.getProgramsByType(type);
+
+  @override
+  Future<void> refreshCache() => _instance.refreshCache();
+
+  @override
+  Future<List<Exercise>> getExercises() => _instance.getExercises();
+
+  @override
+  Future<Exercise?> getExerciseByName(String name) =>
+      _instance.getExerciseByName(name);
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +143,8 @@ class HomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ProgramsScreen(),
+                            builder: (context) => ProgramsScreen(
+                                programRepository: widget.programRepository),
                           ),
                         );
                       },
@@ -101,6 +159,7 @@ class HomeScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => WorkoutScreen(
+                              programRepository: widget.programRepository,
                               programName: 'Upper/Lower',
                             ),
                           ),

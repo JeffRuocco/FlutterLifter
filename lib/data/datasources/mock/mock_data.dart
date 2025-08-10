@@ -5,7 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 class MockPrograms {
   /// Retrieves a program by its ID.
   /// Returns null if the program is not found.
-  Program? getProgramById(String id) {
+  static Program? getProgramById(String id) {
     try {
       return programs.firstWhere(
         (program) => program.id.toLowerCase() == id.toLowerCase(),
@@ -18,7 +18,7 @@ class MockPrograms {
 
   /// Retrieves a program by name.
   /// Returns null if the program is not found.
-  Program? getProgramByName(String name) {
+  static Program? getProgramByName(String name) {
     try {
       return programs.firstWhere(
         (program) => program.name.toLowerCase() == name.toLowerCase(),
@@ -29,7 +29,7 @@ class MockPrograms {
     }
   }
 
-  List<Program> programs = [
+  static List<Program> programs = [
     Program(
       id: 'upper_lower',
       name: 'Upper/Lower',
@@ -37,6 +37,8 @@ class MockPrograms {
           'Train upper body and lower body on alternating days. Perfect for intermediate lifters.',
       type: ProgramType.general,
       difficulty: ProgramDifficulty.intermediate,
+      periodicity: const WorkoutPeriodicity.weekly(
+          [1, 2, 4, 5]), // Mon, Tue, Thu, Fri - 4 days/week
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
       metadata: {
@@ -51,6 +53,8 @@ class MockPrograms {
           'Train all major muscle groups in a single session. Ideal for beginners and those with limited time.',
       type: ProgramType.general,
       difficulty: ProgramDifficulty.beginner,
+      periodicity: const WorkoutPeriodicity.weekly(
+          [1, 3, 5]), // Mon, Wed, Fri - 3 days/week
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
       metadata: {
@@ -65,6 +69,8 @@ class MockPrograms {
           'Split training by movement patterns: push, pull, and legs. Great for advanced lifters.',
       type: ProgramType.general,
       difficulty: ProgramDifficulty.advanced,
+      periodicity: const WorkoutPeriodicity.cyclic(
+          workoutDays: 3, restDays: 1), // 3 days on, 1 day rest
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
       metadata: {
