@@ -1,0 +1,218 @@
+name: Deploy FlutterLifter
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: 'Deployment target'
+        required: true
+        default: 'web'
+        type: choice
+        options:
+          - web
+          - android
+          - windows
+          - all
+
+env:
+  FLUTTER_VERSION: '3.24.x'
+
+jobs:
+  # Job 1: Build and deploy web version
+  deploy-web:
+    if: github.event_name == 'push' || github.event.inputs.deploy_target == 'web' || github.event.inputs.deploy_target == 'all'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build web app
+        run: |
+          flutter build web --release --web-renderer html --base-href "/${{ github.event.repository.name }}/"
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          force_orphan: true
+
+  # Job 2: Build Android APK
+  build-android:
+    if: github.event_name == 'release' || github.event.inputs.deploy_target == 'android' || github.event.inputs.deploy_target == 'all'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build Android APK
+        run: |
+          flutter build apk --release --split-per-abi
+
+      - name: Build Android App Bundle
+        run: |
+          flutter build appbundle --release
+
+      # Note: APK signing requires Android signing secrets to be configured
+      # Uncomment and configure secrets for production releases
+      # - name: Sign APK
+      #   if: github.event_name == 'release'
+      #   uses: r0adkll/sign-android-release@v1
+      #   with:
+      #     releaseDirectory: build/app/outputs/flutter-apk
+      #     signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
+      #     alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+      #     keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      #     keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/bundle/release/*.aab
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/bundle/release/*.aab
+
+  # Job 3: Build Windows executable
+  build-windows:
+    if: github.event_name == 'release' || github.event.inputs.deploy_target == 'windows' || github.event.inputs.deploy_target == 'all'
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build Windows app
+        run: |
+          flutter build windows --release
+
+      - name: Create Windows installer
+        run: |
+          # Create a simple zip package
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "FlutterLifter-Windows-x64.zip"
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-executable
+          path: |
+            FlutterLifter-Windows-x64.zip
+            build/windows/x64/runner/Release/
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: FlutterLifter-Windows-x64.zip
+
+  # Job 4: Notify deployment status
+  notify-deployment:
+    needs: [deploy-web, build-android, build-windows]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Status | Link |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|------|" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.deploy-web.result }}" == "success" ]]; then
+            echo "| 🌐 Web | ✅ Success | [Live Demo](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}) |" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.deploy-web.result }}" == "skipped" ]]; then
+            echo "| 🌐 Web | ⏭️ Skipped | - |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🌐 Web | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.build-android.result }}" == "success" ]]; then
+            echo "| 📱 Android | ✅ Success | [Download APK](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-android.result }}" == "skipped" ]]; then
+            echo "| 📱 Android | ⏭️ Skipped | - |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 📱 Android | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.build-windows.result }}" == "success" ]]; then
+            echo "| 🖥️ Windows | ✅ Success | [Download EXE](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-windows.result }}" == "skipped" ]]; then
+            echo "| 🖥️ Windows | ⏭️ Skipped | - |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🖥️ Windows | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Build Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Flutter Version:** ${{ env.FLUTTER_VERSION }}" >> $GITHUB_STEP_SUMMARY
