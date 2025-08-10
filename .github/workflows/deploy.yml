@@ -19,6 +19,15 @@ on:
           - windows
           - all
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 env:
   FLUTTER_VERSION: '3.32.x'
 
@@ -57,6 +66,9 @@ jobs:
     needs: ci-checks
     if: github.event_name == 'push' || github.event.inputs.deploy_target == 'web' || github.event.inputs.deploy_target == 'all'
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
       - name: Checkout repository
@@ -85,13 +97,18 @@ jobs:
         run: |
           flutter build web --release --base-href "/${{ github.event.repository.name }}/"
 
+      - name: Add .nojekyll file
+        run: touch build/web/.nojekyll
+
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        id: deployment
+        uses: peaceiris/actions-gh-pages@v4
         if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
           force_orphan: true
+          # cname: # Add your custom domain here if you have one
 
   # Job 2: Build Android APK
   build-android:
