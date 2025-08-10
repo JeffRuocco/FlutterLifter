@@ -23,6 +23,8 @@ The app will be available on the iOS and Android platforms through the Apple App
 - Ensure compatibility with mobile platforms (iOS and Android) as well as PWA for web support
 - Maintain a consistent theme and styling system across the app
 - Use context-aware theming for colors and styles to support light/dark mode
+- Implement optimistic UI updates for better user experience
+- Implement offline-first support using a Stream where applicable
 
 ## Code Quality
 - Use meaningful variable and function names

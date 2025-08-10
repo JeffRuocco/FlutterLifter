@@ -58,6 +58,9 @@ class ProgramRepositoryImpl implements ProgramRepository {
     );
   }
 
+  // TODO: implement data Streams for reading from multiple sources
+  // https://docs.flutter.dev/app-architecture/design-patterns/offline-first#using-a-stream
+
   @override
   Future<List<Program>> getPrograms() async {
     if (useMockData && mockDataSource != null) {

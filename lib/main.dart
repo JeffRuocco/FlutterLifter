@@ -11,9 +11,6 @@ class FlutterLifterApp extends StatelessWidget {
 
   // TODO: route to login page if user is not authenticated
 
-  // TODO: research best practice for managing local + cloud data synchronization
-  // Update locally and queue API update? What if API update continually fails?
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

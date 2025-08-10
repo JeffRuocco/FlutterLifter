@@ -295,7 +295,7 @@ class VSpace extends AppSpacingWidget {
   const VSpace.lg({super.key}) : super.vertical(AppSpacing.lg);
   const VSpace.xl({super.key}) : super.vertical(AppSpacing.xl);
   const VSpace.xxl({super.key}) : super.vertical(AppSpacing.xxl);
-  const VSpace(double size, {super.key}) : super.vertical(size);
+  const VSpace(super.size, {super.key}) : super.vertical();
 }
 
 class HSpace extends AppSpacingWidget {
@@ -305,7 +305,7 @@ class HSpace extends AppSpacingWidget {
   const HSpace.lg({super.key}) : super.horizontal(AppSpacing.lg);
   const HSpace.xl({super.key}) : super.horizontal(AppSpacing.xl);
   const HSpace.xxl({super.key}) : super.horizontal(AppSpacing.xxl);
-  const HSpace(double size, {super.key}) : super.horizontal(size);
+  const HSpace(super.size, {super.key}) : super.horizontal();
 }
 
 /// Helper methods for showing themed status messages

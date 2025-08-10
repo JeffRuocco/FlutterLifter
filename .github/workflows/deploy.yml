@@ -20,7 +20,7 @@ on:
           - all
 
 env:
-  FLUTTER_VERSION: '3.24.x'
+  FLUTTER_VERSION: '3.32.x'
 
 jobs:
   # Job 0: Run CI checks first
