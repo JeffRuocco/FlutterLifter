@@ -170,7 +170,7 @@ jobs:
       #     keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: Upload APK artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: |
@@ -224,7 +224,7 @@ jobs:
           Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "FlutterLifter-Windows-x64.zip"
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-executable
           path: |
