@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/mock_data.dart';
 import 'package:flutter_lifter/utils/utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
@@ -58,9 +59,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   List<WorkoutExercise> _getSampleExercises() {
     return [
       WorkoutExercise.create(
-        name: 'Barbell Back Squat',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Quadriceps', 'Glutes', 'Hamstrings'],
+        exercise: MockExercises.getExerciseByName('Barbell Back Squat') ??
+            MockExercises.exercises[0],
         sets: [
           ExerciseSet.create(targetReps: 8, targetWeight: 135),
           ExerciseSet.create(targetReps: 8, targetWeight: 155),
@@ -70,9 +70,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         notes: 'Focus on depth and form',
       ),
       WorkoutExercise.create(
-        name: 'Bench Press',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Chest', 'Triceps', 'Shoulders'],
+        exercise: MockExercises.getExerciseByName('Bench Press') ??
+            MockExercises.exercises[1],
         sets: [
           ExerciseSet.create(targetReps: 10, targetWeight: 135),
           ExerciseSet.create(targetReps: 8, targetWeight: 155),
@@ -81,9 +80,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         notes: 'Pause at chest, control the negative',
       ),
       WorkoutExercise.create(
-        name: 'Bent-Over Barbell Row',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Lats', 'Rhomboids', 'Rear Delts'],
+        exercise: MockExercises.getExerciseByName('Bent-Over Barbell Row') ??
+            MockExercises.exercises[4],
         sets: [
           ExerciseSet.create(targetReps: 10, targetWeight: 115),
           ExerciseSet.create(targetReps: 8, targetWeight: 135),

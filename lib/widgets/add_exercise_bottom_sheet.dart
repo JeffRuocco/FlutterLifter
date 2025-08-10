@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/mock_data.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
@@ -23,8 +24,8 @@ class AddExerciseBottomSheet extends StatefulWidget {
 
 class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
   final TextEditingController _searchController = TextEditingController();
-  List<ExerciseTemplate> _allExercises = [];
-  List<ExerciseTemplate> _filteredExercises = [];
+  List<Exercise> _allExercises = [];
+  List<Exercise> _filteredExercises = [];
   ExerciseCategory? _selectedCategory;
 
   @override
@@ -44,99 +45,7 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
     // Sample exercises - in a real app, this would come from a database
     // TODO: initialize from database
     // TODO: support pre-defined exercises and user's custom exercises
-    _allExercises = [
-      ExerciseTemplate(
-        id: 'squat',
-        name: 'Barbell Back Squat',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Quadriceps', 'Glutes', 'Hamstrings'],
-        defaultSets: 4,
-        defaultReps: 8,
-        defaultRestTimeSeconds: 180,
-      ),
-      ExerciseTemplate(
-        id: 'bench',
-        name: 'Bench Press',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Chest', 'Triceps', 'Shoulders'],
-        defaultSets: 3,
-        defaultReps: 8,
-        defaultRestTimeSeconds: 120,
-      ),
-      ExerciseTemplate(
-        id: 'deadlift',
-        name: 'Deadlift',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Hamstrings', 'Glutes', 'Back'],
-        defaultSets: 3,
-        defaultReps: 5,
-        defaultRestTimeSeconds: 180,
-      ),
-      ExerciseTemplate(
-        id: 'ohp',
-        name: 'Overhead Press',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Shoulders', 'Triceps', 'Core'],
-        defaultSets: 3,
-        defaultReps: 8,
-        defaultRestTimeSeconds: 120,
-      ),
-      ExerciseTemplate(
-        id: 'row',
-        name: 'Bent-Over Barbell Row',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Lats', 'Rhomboids', 'Rear Delts'],
-        defaultSets: 3,
-        defaultReps: 8,
-        defaultRestTimeSeconds: 90,
-      ),
-      ExerciseTemplate(
-        id: 'pullup',
-        name: 'Pull-ups',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Lats', 'Biceps', 'Rhomboids'],
-        defaultSets: 3,
-        defaultReps: 10,
-        defaultRestTimeSeconds: 90,
-      ),
-      ExerciseTemplate(
-        id: 'dips',
-        name: 'Dips',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Triceps', 'Chest', 'Shoulders'],
-        defaultSets: 3,
-        defaultReps: 12,
-        defaultRestTimeSeconds: 90,
-      ),
-      ExerciseTemplate(
-        id: 'lunges',
-        name: 'Lunges',
-        category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Quadriceps', 'Glutes', 'Hamstrings'],
-        defaultSets: 3,
-        defaultReps: 12,
-        defaultRestTimeSeconds: 60,
-      ),
-      ExerciseTemplate(
-        id: 'plank',
-        name: 'Plank',
-        category: ExerciseCategory.flexibility,
-        targetMuscleGroups: ['Core', 'Shoulders'],
-        defaultSets: 3,
-        defaultReps: 30,
-        defaultRestTimeSeconds: 60,
-      ),
-      ExerciseTemplate(
-        id: 'running',
-        name: 'Running',
-        category: ExerciseCategory.cardio,
-        targetMuscleGroups: ['Legs', 'Cardiovascular'],
-        defaultSets: 1,
-        defaultReps: 30,
-        defaultRestTimeSeconds: 0,
-      ),
-    ];
-
+    _allExercises = MockExercises.exercises;
     _filteredExercises = List.from(_allExercises);
   }
 
@@ -156,11 +65,9 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
     });
   }
 
-  void _selectExercise(ExerciseTemplate template) {
+  void _selectExercise(Exercise template) {
     final workoutExercise = WorkoutExercise.create(
-      name: template.name,
-      category: template.category,
-      targetMuscleGroups: template.targetMuscleGroups,
+      exercise: template,
       sets: List.generate(
         template.defaultSets,
         (index) => ExerciseSet.create(
@@ -170,7 +77,6 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
       ),
       restTime: Duration(seconds: template.defaultRestTimeSeconds),
       notes: template.notes,
-      instructions: template.instructions,
     );
 
     widget.onExerciseAdded(workoutExercise);
@@ -300,7 +206,7 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
     );
   }
 
-  Widget _buildExerciseListItem(ExerciseTemplate exercise) {
+  Widget _buildExerciseListItem(Exercise exercise) {
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: ListTile(
@@ -391,33 +297,4 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
       ),
     );
   }
-}
-
-/// Template for creating workout exercises
-class ExerciseTemplate {
-  final String id;
-  final String name;
-  final ExerciseCategory category;
-  final List<String> targetMuscleGroups;
-  final int defaultSets;
-  final int defaultReps;
-  final double? defaultWeight;
-  final int defaultRestTimeSeconds; // seconds
-  final String? notes;
-  final String? instructions;
-  final String? imageUrl;
-
-  ExerciseTemplate({
-    required this.id,
-    required this.name,
-    required this.category,
-    required this.targetMuscleGroups,
-    required this.defaultSets,
-    required this.defaultReps,
-    this.defaultWeight,
-    required this.defaultRestTimeSeconds,
-    this.notes,
-    this.instructions,
-    this.imageUrl,
-  });
 }

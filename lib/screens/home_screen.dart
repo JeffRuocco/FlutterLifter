@@ -6,6 +6,9 @@ import '../core/theme/theme_utils.dart';
 import 'programs_screen.dart';
 import 'workout_screen.dart';
 
+// TODO: get current program and in-progress or next workout
+// when user clicks "Workouts" action card, continue in progress workout or start next workout
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -83,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ProgramsScreen(),
+                            builder: (context) => ProgramsScreen(),
                           ),
                         );
                       },

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/models/workout_models.dart';
+import 'package:flutter_lifter/utils/mock_data.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
@@ -6,7 +8,13 @@ import '../core/theme/theme_utils.dart';
 import 'create_program_screen.dart';
 
 class ProgramsScreen extends StatefulWidget {
-  const ProgramsScreen({super.key});
+  // TODO: get programs from data source
+  final MockPrograms mockPrograms = MockPrograms();
+  late final List<Program> programs;
+
+  ProgramsScreen({super.key, List<Program>? programs}) {
+    this.programs = programs ?? mockPrograms.programs;
+  }
 
   @override
   State<ProgramsScreen> createState() => _ProgramsScreenState();
@@ -63,45 +71,14 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
               Expanded(
                 child: ListView(
                   children: [
-                    // Upper/Lower Program
-                    _ProgramCard(
-                      title: 'Upper/Lower Split',
-                      description:
-                          'Train upper body and lower body on alternating days. Perfect for intermediate lifters.',
-                      duration: '4 days/week',
-                      difficulty: 'Intermediate',
-                      icon: HugeIcons.strokeRoundedDumbbell01,
-                      color: context.primaryColor,
-                      onTap: () => _selectProgram('Upper/Lower Split'),
-                    ),
-
-                    const SizedBox(height: AppSpacing.md),
-
-                    // Full Body Program
-                    _ProgramCard(
-                      title: 'Full Body',
-                      description:
-                          'Complete full-body workouts that target all major muscle groups in each session.',
-                      duration: '3 days/week',
-                      difficulty: 'Beginner',
-                      icon: HugeIcons.strokeRoundedBodyPartMuscle,
-                      color: context.successColor,
-                      onTap: () => _selectProgram('Full Body'),
-                    ),
-
-                    const SizedBox(height: AppSpacing.md),
-
-                    // Push/Pull/Legs Program
-                    _ProgramCard(
-                      title: 'Push/Pull/Legs',
-                      description:
-                          'Split training by movement patterns. Push, pull, and leg focused workouts.',
-                      duration: '6 days/week',
-                      difficulty: 'Advanced',
-                      icon: HugeIcons.strokeRoundedFire,
-                      color: context.warningColor,
-                      onTap: () => _selectProgram('Push/Pull/Legs'),
-                    ),
+                    ...widget.programs.map((program) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: _ProgramCard(
+                            program: program,
+                            duration: _getProgramDuration(program),
+                            onTap: () => _selectProgram(program.id),
+                          ),
+                        )),
 
                     const SizedBox(height: AppSpacing.xl),
 
@@ -130,9 +107,30 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
     );
   }
 
-  void _selectProgram(String programName) {
-    showSuccessMessage(context, 'Selected: $programName');
+  String _getProgramDuration(Program program) {
+    // For now, we'll return a default duration based on difficulty
+    // In the future, this could be based on the program's scheduled sessions
+    switch (program.difficulty) {
+      case ProgramDifficulty.beginner:
+        return '3 days/week';
+      case ProgramDifficulty.intermediate:
+        return '4 days/week';
+      case ProgramDifficulty.advanced:
+        return '6 days/week';
+      case ProgramDifficulty.expert:
+        return '6 days/week';
+    }
+  }
+
+  /// Handles the selection of a program by its ID.
+  void _selectProgram(String programId) {
     // TODO: Navigate to program details or start program
+    var program = widget.mockPrograms.getProgramById(programId);
+    if (program != null) {
+      showSuccessMessage(context, 'Starting program: ${program.name}');
+    } else {
+      showErrorMessage(context, 'Program not found: $programId');
+    }
   }
 
   void _createCustomProgram() {
@@ -146,21 +144,19 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
 }
 
 class _ProgramCard extends StatelessWidget {
-  final String title;
-  final String description;
+  final Program program;
   final String duration;
-  final String difficulty;
-  final IconData icon;
-  final Color color;
+  // final IconData icon;
+  // final Color color;
   final VoidCallback onTap;
 
   const _ProgramCard({
-    required this.title,
-    required this.description,
+    required this.program,
+    // required this.title,
+    // required this.description,
     required this.duration,
-    required this.difficulty,
-    required this.icon,
-    required this.color,
+    // required this.icon,
+    // required this.color,
     required this.onTap,
   });
 
@@ -177,13 +173,14 @@ class _ProgramCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  // color: color.withValues(alpha: 0.1),
+                  color: program.getColor(context).withValues(alpha: 0.1),
                   borderRadius:
                       BorderRadius.circular(AppDimensions.borderRadiusMedium),
                 ),
                 child: HugeIcon(
-                  icon: icon,
-                  color: color,
+                  icon: program.icon,
+                  color: program.getColor(context),
                   size: AppDimensions.iconMedium,
                 ),
               ),
@@ -193,7 +190,7 @@ class _ProgramCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      program.name,
                       style: AppTextStyles.titleMedium.copyWith(
                         color: context.textPrimary,
                       ),
@@ -207,8 +204,9 @@ class _ProgramCard extends StatelessWidget {
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         _InfoChip(
-                          label: difficulty,
-                          color: _getDifficultyColor(context, difficulty),
+                          label: program.difficulty.displayName,
+                          color: _getDifficultyColor(
+                              context, program.difficulty.displayName),
                         ),
                       ],
                     ),
@@ -227,7 +225,7 @@ class _ProgramCard extends StatelessWidget {
 
           // Description
           Text(
-            description,
+            program.description ?? '',
             style: AppTextStyles.bodyMedium.copyWith(
               color: context.textSecondary,
             ),
