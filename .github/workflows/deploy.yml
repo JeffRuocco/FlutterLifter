@@ -66,6 +66,10 @@ jobs:
     needs: ci-checks
     if: github.event_name == 'push' || github.event.inputs.deploy_target == 'web' || github.event.inputs.deploy_target == 'all'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -101,7 +105,7 @@ jobs:
         run: touch build/web/.nojekyll
 
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -110,7 +114,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
 
   # Job 2: Build Android APK
   build-android:
