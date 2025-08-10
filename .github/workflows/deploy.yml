@@ -23,15 +23,12 @@ env:
   FLUTTER_VERSION: '3.24.x'
 
 jobs:
-  # Job 1: Build and deploy web version
-  deploy-web:
-    if: github.event_name == 'push' || github.event.inputs.deploy_target == 'web' || github.event.inputs.deploy_target == 'all'
+  # Job 0: Run CI checks first
+  ci-checks:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+      
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -41,11 +38,48 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze code
-        run: flutter analyze
+      - name: Analyze project source
+        run: flutter analyze --fatal-infos
 
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+        
       - name: Run tests
-        run: flutter test
+        run: flutter test --coverage
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+
+  # Job 1: Build and deploy web version
+  deploy-web:
+    needs: ci-checks
+    if: github.event_name == 'push' || github.event.inputs.deploy_target == 'web' || github.event.inputs.deploy_target == 'all'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            build/web
+          key: flutter-web-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            flutter-web-${{ runner.os }}-
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Build web app
         run: |
@@ -61,12 +95,25 @@ jobs:
 
   # Job 2: Build Android APK
   build-android:
+    needs: ci-checks
     if: github.event_name == 'release' || github.event.inputs.deploy_target == 'android' || github.event.inputs.deploy_target == 'all'
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            build/app
+          key: flutter-android-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            flutter-android-${{ runner.os }}-
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -82,12 +129,6 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-
-      - name: Analyze code
-        run: flutter analyze
-
-      - name: Run tests
-        run: flutter test
 
       - name: Build Android APK
         run: |
@@ -127,12 +168,23 @@ jobs:
 
   # Job 3: Build Windows executable
   build-windows:
+    needs: ci-checks
     if: github.event_name == 'release' || github.event.inputs.deploy_target == 'windows' || github.event.inputs.deploy_target == 'all'
     runs-on: windows-latest
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~\AppData\Local\Pub\Cache
+            build\windows
+          key: flutter-windows-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            flutter-windows-${{ runner.os }}-
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -142,12 +194,6 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-
-      - name: Analyze code
-        run: flutter analyze
-
-      - name: Run tests
-        run: flutter test
 
       - name: Build Windows app
         run: |
