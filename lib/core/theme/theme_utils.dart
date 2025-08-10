@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_dimensions.dart';
@@ -310,7 +309,7 @@ class HSpace extends AppSpacingWidget {
 }
 
 /// Helper methods for showing themed status messages
-void showSuccessMessage(BuildContext context, String message) {
+void showSuccessMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
@@ -318,11 +317,12 @@ void showSuccessMessage(BuildContext context, String message) {
         style: TextStyle(color: context.onSuccessColor),
       ),
       backgroundColor: context.successColor,
+      duration: Duration(seconds: duration ?? 4),
     ),
   );
 }
 
-void showErrorMessage(BuildContext context, String message) {
+void showErrorMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
@@ -330,11 +330,12 @@ void showErrorMessage(BuildContext context, String message) {
         style: TextStyle(color: context.onError),
       ),
       backgroundColor: context.errorColor,
+      duration: Duration(seconds: duration ?? 4),
     ),
   );
 }
 
-void showWarningMessage(BuildContext context, String message) {
+void showWarningMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
@@ -342,11 +343,12 @@ void showWarningMessage(BuildContext context, String message) {
         style: TextStyle(color: context.onWarningColor),
       ),
       backgroundColor: context.warningColor,
+      duration: Duration(seconds: duration ?? 4),
     ),
   );
 }
 
-void showInfoMessage(BuildContext context, String message) {
+void showInfoMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
@@ -354,6 +356,7 @@ void showInfoMessage(BuildContext context, String message) {
         style: TextStyle(color: context.onInfoColor),
       ),
       backgroundColor: context.infoColor,
+      duration: Duration(seconds: duration ?? 4),
     ),
   );
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// App Colors - Centralized color palette for FlutterLifter
-class AppColors_bak {
+class AppColorsBak {
   // Primary Colors
   static const Color primary = Color(0xFF6750A4); // Deep Purple
   static const Color primaryLight = Color(0xFF9A82DB);

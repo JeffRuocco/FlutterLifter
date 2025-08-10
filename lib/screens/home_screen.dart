@@ -4,6 +4,7 @@ import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
 import 'programs_screen.dart';
+import 'workout_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -93,7 +94,14 @@ class HomeScreen extends StatelessWidget {
                       icon: HugeIcons.strokeRoundedPlay,
                       color: context.successColor,
                       onTap: () {
-                        showInfoMessage(context, 'Workouts coming soon!');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WorkoutScreen(
+                              programName: 'Upper/Lower',
+                            ),
+                          ),
+                        );
                       },
                     ),
                     _ActionCard(

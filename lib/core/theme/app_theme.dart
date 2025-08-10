@@ -64,6 +64,8 @@ class AppTheme {
     onSecondary: AppColors.onSecondary,
     onSurface: AppColors.onSurface,
     onError: Colors.white,
+    outline: AppColors.outline,
+    outlineVariant: AppColors.outlineVariant,
   );
 
   static const ColorScheme _darkColorScheme = ColorScheme.dark(
@@ -78,6 +80,8 @@ class AppTheme {
     onSecondary: AppColors.onSecondary,
     onSurface: AppColors.onSurfaceLight,
     onError: Colors.white,
+    outline: AppColors.outlineDark,
+    outlineVariant: AppColors.outlineVariantDark,
   );
 
   // Text Theme

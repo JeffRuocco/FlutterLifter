@@ -1,6 +1,6 @@
 - [x] Create login page
   - [x] Unit test
-  - [ ] Extract to separate login_screen.dart
+  - [x] Extract to separate login_screen.dart
 - [x] Create home page
   - [ ] Unit test
 - [x] Create programs page

@@ -100,7 +100,7 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
               decoration: BoxDecoration(
                 color: isActive
                     ? context.primaryColor
-                    : context.outlineColor.withOpacity(0.3),
+                    : context.outlineColor.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -176,7 +176,7 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: AppCard(
-        color: isSelected ? context.primaryColor.withOpacity(0.1) : null,
+        color: isSelected ? context.primaryColor.withValues(alpha: 0.1) : null,
         onTap: () {
           setState(() {
             _programGoal = goal;
@@ -303,7 +303,7 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: AppCard(
-        color: isSelected ? context.primaryColor.withOpacity(0.1) : null,
+        color: isSelected ? context.primaryColor.withValues(alpha: 0.1) : null,
         onTap: () {
           setState(() {
             _experienceLevel = level;
