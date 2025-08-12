@@ -83,7 +83,7 @@ class MockProgramDataSource implements ProgramDataSource {
   /// Get active programs only
   Future<List<Program>> getActivePrograms() async {
     await Future.delayed(const Duration(milliseconds: 200));
-    return _programs.where((program) => program.isActive).toList();
+    return _programs.where((program) => program.activeCycle != null).toList();
   }
 
   /// Get programs with periodicity

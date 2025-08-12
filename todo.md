@@ -1,17 +1,14 @@
-- [x] Create login page
-  - [x] Unit test
-  - [x] Extract to separate login_screen.dart
-- [x] Create home page
-  - [ ] Unit test
-- [x] Create programs page
-  - [ ] Unit test
-- [ ] Create workout page
-  - [ ] Unit test
-- [ ] Create exercise list page
-  - [ ] Unit test
+- [ ] Fix page refreshing when finishing sets
+- [ ] Fix UI errors on Android PWA
+- [ ] Add program cycles
+  - [ ] Finish analyzing `Program` vs `ProgramCycle` and move logic to it's proper place
+- [ ] Add SQLite for local storage
+- [ ] Start program functionality
+  - [ ] Start new program and end any previous ones
+  - [ ] 
+- [ ] Create exercises page
 - [ ] Create progress page
-  - [ ] Unit test
 - [ ] Create program creation pages
-  - [ ] Unit test
 - [ ] Implement user authentication
-  - [ ] Unit test
+- [ ] Add unit tests for all pages
+- [ ] Decide on API vs. Firebase

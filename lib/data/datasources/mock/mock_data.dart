@@ -37,7 +37,7 @@ class MockPrograms {
           'Train upper body and lower body on alternating days. Perfect for intermediate lifters.',
       type: ProgramType.general,
       difficulty: ProgramDifficulty.intermediate,
-      periodicity: const WorkoutPeriodicity.weekly(
+      defaultPeriodicity: const WorkoutPeriodicity.weekly(
           [1, 2, 4, 5]), // Mon, Tue, Thu, Fri - 4 days/week
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
@@ -53,7 +53,7 @@ class MockPrograms {
           'Train all major muscle groups in a single session. Ideal for beginners and those with limited time.',
       type: ProgramType.general,
       difficulty: ProgramDifficulty.beginner,
-      periodicity: const WorkoutPeriodicity.weekly(
+      defaultPeriodicity: const WorkoutPeriodicity.weekly(
           [1, 3, 5]), // Mon, Wed, Fri - 3 days/week
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
@@ -69,7 +69,7 @@ class MockPrograms {
           'Split training by movement patterns: push, pull, and legs. Great for advanced lifters.',
       type: ProgramType.general,
       difficulty: ProgramDifficulty.advanced,
-      periodicity: const WorkoutPeriodicity.cyclic(
+      defaultPeriodicity: const WorkoutPeriodicity.cyclic(
           workoutDays: 3, restDays: 1), // 3 days on, 1 day rest
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
