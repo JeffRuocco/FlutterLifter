@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
-import 'package:flutter_lifter/models/workout_models.dart';
+import 'package:flutter_lifter/models/models.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';

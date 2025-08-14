@@ -1,4 +1,4 @@
-import '../../../models/workout_models.dart';
+import 'package:flutter_lifter/models/program_models.dart';
 
 /// Local data source for program-related operations (SQLite, Hive, etc.)
 abstract class ProgramLocalDataSource {

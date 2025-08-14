@@ -1,6 +1,6 @@
-import '../../../models/workout_models.dart';
-
 // TODO: Implement Firebase instead of traditional APIs?
+
+import 'package:flutter_lifter/models/program_models.dart';
 
 /// Remote API data source for program-related operations
 abstract class ProgramApiDataSource {

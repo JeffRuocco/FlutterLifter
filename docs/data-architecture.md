@@ -13,29 +13,70 @@ The app follows the **Repository Pattern** with **Clean Architecture** principle
 - **Multiple Data Sources**: Support for mock, local, and remote data sources
 - **Clean Separation**: Clear boundaries between data sources, repositories, and business logic
 - **Testability**: Each layer can be independently mocked and tested
+- **Organized Models**: Domain models structured by concern for maintainability and focused development
+
+## 🏗️ Model Organization Strategy
+
+### **Focused File Structure**
+The domain models have been organized into **focused, maintainable files** replacing the previous monolithic `workout_models.dart`:
+
+**Benefits**:
+- ✅ **Improved Maintainability**: Each file has a single, clear responsibility
+- ✅ **Better Developer Experience**: Faster file loading, easier navigation
+- ✅ **Reduced Cognitive Load**: Work with specific domains without distraction
+- ✅ **Scalable Architecture**: Room to grow each area independently
+- ✅ **Focused Code Reviews**: Review changes in specific domains
+- ✅ **Import Flexibility**: Choose specific imports or convenient barrel imports
+
+### **Migration Strategy**
+**Zero Breaking Changes**: All existing imports continue to work:
+```dart
+// ✅ New recommended approach - specific imports
+import 'package:flutter_lifter/models/exercise_models.dart';
+import 'package:flutter_lifter/models/program_models.dart';
+
+// ✅ Convenient barrel import for multiple models
+import 'package:flutter_lifter/models/models.dart';
+```
+
+### **File Responsibilities**
+| File | Responsibility | Key Classes |
+|------|----------------|-------------|
+| `shared_enums.dart` | Common types used across domains | `ExerciseCategory`, `ProgramType`, `ProgramDifficulty`, `PeriodicityType` |
+| `exercise_models.dart` | Exercise domain logic | `ExerciseSet`, `Exercise`, `WorkoutExercise` |
+| `workout_session_models.dart` | Workout session management | `WorkoutSession` |
+| `program_models.dart` | Program and scheduling logic | `WorkoutPeriodicity`, `ProgramCycle`, `Program` |
+| `models.dart` | Convenient barrel exports | All models via re-exports |
 
 ## 📁 File Structure
 
 ```
-lib/data/
-├── repositories/                    # Repository layer (business logic)
-│   └── program_repository.dart     # Program data management
-├── datasources/                    # Data source implementations
-│   ├── local/                      # Local storage (cache)
-│   │   └── program_local_datasource.dart
-│   ├── remote/                     # API/Network layer
-│   │   └── program_api_datasource.dart
-│   └── mock/                       # Mock data for development
-│       ├── mock_program_datasource.dart
-│       └── mock_data.dart
-├── models/                         # Data transfer objects
-│   └── responses/
-│       ├── api_response.dart
-│       └── program_response.dart
-└── services/                       # Service layer
-    ├── api_service.dart            # HTTP client management
-    ├── storage_service.dart        # Local storage operations
-    └── service_locator.dart        # Dependency injection
+lib/
+├── models/                         # Domain models (organized by concern)
+│   ├── models.dart                 # Barrel file - main import point
+│   ├── shared_enums.dart          # Common enums and extensions
+│   ├── exercise_models.dart       # Exercise-related models
+│   ├── workout_session_models.dart # Workout session models
+│   ├── program_models.dart        # Program and cycle models
+├── data/
+│   ├── repositories/              # Repository layer (business logic)
+│   │   └── program_repository.dart # Program data management
+│   ├── datasources/               # Data source implementations
+│   │   ├── local/                 # Local storage (cache)
+│   │   │   └── program_local_datasource.dart
+│   │   ├── remote/                # API/Network layer
+│   │   │   └── program_api_datasource.dart
+│   │   └── mock/                  # Mock data for development
+│   │       ├── mock_program_datasource.dart
+│   │       └── mock_data.dart
+│   └── models/                    # Data transfer objects
+│       └── responses/
+│           ├── api_response.dart
+│           └── program_response.dart
+└── services/                      # Service layer
+    ├── api_service.dart           # HTTP client management
+    ├── storage_service.dart       # Local storage operations
+    └── service_locator.dart       # Dependency injection
 ```
 
 ## 🔄 Data Flow Architecture
@@ -541,17 +582,42 @@ ProgramRepositoryImpl.production()
 
 ## 📊 Data Models
 
-### Core Models
-Located in [`lib/models/workout_models.dart`](lib/models/workout_models.dart):
+### Domain Models (lib/models/)
 
-- **`Program`**: Complete workout program with scheduling
-- **`WorkoutSession`**: Individual workout instance
-- **`WorkoutExercise`**: Exercise within a workout
-- **`ExerciseSet`**: Individual set tracking (weight, reps, notes)
-- **`Exercise`**: Exercise definition and metadata
+The core domain models have been **organized into focused, maintainable files** for better code organization and developer experience:
 
-### Response Models
-Located in [`lib/data/models/responses/`](lib/data/models/responses/):
+#### **`shared_enums.dart`** - Common Types
+- **`ExerciseCategory`**: Exercise classification (strength, cardio, flexibility, etc.)
+- **`ProgramDifficulty`**: Skill level indicators (beginner, intermediate, advanced, expert)
+- **`ProgramType`**: Program classifications (strength, hypertrophy, powerlifting, etc.)
+- **`PeriodicityType`**: Workout scheduling types (weekly, cyclic, interval, custom)
+
+#### **`exercise_models.dart`** - Exercise Domain
+- **`ExerciseSet`**: Individual set tracking (weight, reps, completion status, notes)
+- **`Exercise`**: Exercise definitions with metadata (category, muscle groups, defaults)
+- **`WorkoutExercise`**: Exercise instance within a workout session (sets, rest time, progress)
+
+#### **`workout_session_models.dart`** - Workout Sessions
+- **`WorkoutSession`**: Complete workout instances with timing, exercises, and progress tracking
+
+#### **`program_models.dart`** - Programs & Scheduling
+- **`WorkoutPeriodicity`**: Flexible workout scheduling system (weekly patterns, cycles, intervals)
+- **`ProgramCycle`**: Program instances with start/end dates and scheduled sessions
+- **`Program`**: Complete workout programs with cycles, metadata, and scheduling
+
+#### **Import Options**
+```dart
+// Recommended: Specific imports for focused dependencies
+import 'package:flutter_lifter/models/exercise_models.dart';
+import 'package:flutter_lifter/models/program_models.dart';
+
+// Alternative: Barrel import for convenience
+import 'package:flutter_lifter/models/models.dart';
+```
+
+### Data Transfer Objects (lib/data/models/)
+
+API-specific models for network communication:
 
 - **`ApiResponse<T>`**: Standardized API response wrapper
 - **`ProgramResponse`**: API-specific program data transfer object
@@ -587,6 +653,12 @@ final created = await repository.createProgram(newProgram);
 
 ### UI Integration Example
 ```dart
+// Import options for the new model structure
+import 'package:flutter_lifter/models/models.dart'; // Barrel import
+// OR specific imports:
+// import 'package:flutter_lifter/models/program_models.dart';
+// import 'package:flutter_lifter/models/shared_enums.dart';
+
 class ProgramsScreen extends StatefulWidget {
   final ProgramRepository programRepository;
 
@@ -627,16 +699,50 @@ final lastUpdate = await localDataSource.getLastCacheUpdate();
 ### Unit Tests
 - **Repository Layer**: Mock data sources, test cache logic
 - **Data Sources**: Test individual source implementations
-- **Models**: Validate serialization and business logic
+- **Domain Models**: Validate serialization and business logic per model file
+  - `exercise_models_test.dart`: Test exercise-related models
+  - `program_models_test.dart`: Test program and scheduling logic
+  - `workout_session_models_test.dart`: Test workout session functionality
+  - `shared_enums_test.dart`: Test enum extensions and utilities
 
 ### Integration Tests
 - **End-to-End**: Test complete data flow
 - **Cache Behavior**: Verify cache invalidation and updates
 - **Network Scenarios**: Test offline/online transitions
+- **Cross-Model Integration**: Test model interactions across files
 
 ### Example Test Structure
 ```dart
-group('ProgramRepository', () {
+// Test structure reflecting new model organization
+group('Exercise Models', () {
+  group('ExerciseSet', () {
+    test('should mark set as completed with timestamp', () {
+      final set = ExerciseSet.create(targetReps: 10, targetWeight: 135.0);
+      set.markCompleted();
+      
+      expect(set.isCompleted, isTrue);
+      expect(set.completedAt, isNotNull);
+      expect(set.actualReps, equals(10));
+      expect(set.actualWeight, equals(135.0));
+    });
+  });
+
+  group('WorkoutExercise', () {
+    test('should calculate progress percentage correctly', () {
+      final exercise = WorkoutExercise.create(
+        exercise: mockExercise,
+        sets: [
+          ExerciseSet.create()..markCompleted(),
+          ExerciseSet.create(), // Not completed
+        ],
+      );
+      
+      expect(exercise.progressPercentage, equals(0.5));
+    });
+  });
+});
+
+group('Program Repository', () {
   late MockProgramLocalDataSource mockLocal;
   late MockProgramRemoteDataSource mockRemote;
   late ProgramRepositoryImpl repository;
@@ -667,7 +773,7 @@ group('ProgramRepository', () {
 
 ## 🔮 Future Enhancements
 
-### Planned Improvements
+### Planned Data Layer Improvements
 
 1. **SQLite Integration**: Replace in-memory cache with persistent SQLite storage
 2. **Offline Sync**: Queue changes for sync when network returns
@@ -678,12 +784,28 @@ group('ProgramRepository', () {
 7. **Background Sync**: Periodic data synchronization
 8. **Conflict Resolution**: Handle data conflicts during sync
 
+### Model Layer Enhancements
+
+**Completed ✅**:
+- **Organized Model Structure**: Focused files by domain concern
+- **Backward Compatibility**: Zero-breaking-change migration
+- **Flexible Imports**: Specific and barrel import options
+
+**Future Model Improvements**:
+1. **Model Validation**: Enhanced validation with custom validators
+2. **Model Versioning**: Support for model schema migrations
+3. **Computed Properties**: Cached expensive calculations
+4. **Model Events**: Observable model changes for reactive UI
+5. **Serialization Options**: Protocol Buffers for performance-critical data
+6. **Model Documentation**: Enhanced inline documentation with examples
+
 ### Performance Optimizations
 
 1. **Lazy Loading**: Load program details on demand
 2. **Image Caching**: Efficient workout image management
 3. **Incremental Updates**: Delta sync for changed data only
 4. **Memory Management**: Optimized cache size and cleanup
+5. **Model Tree Shaking**: Import only needed model classes
 
 ## 📈 Monitoring & Analytics
 

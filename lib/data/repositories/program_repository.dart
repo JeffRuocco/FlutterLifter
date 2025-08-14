@@ -1,4 +1,7 @@
-import '../../models/workout_models.dart';
+import 'package:flutter_lifter/models/exercise_models.dart';
+import 'package:flutter_lifter/models/program_models.dart';
+import 'package:flutter_lifter/models/shared_enums.dart';
+
 import '../datasources/local/program_local_datasource.dart';
 import '../datasources/remote/program_api_datasource.dart';
 import '../datasources/mock/mock_program_datasource.dart';

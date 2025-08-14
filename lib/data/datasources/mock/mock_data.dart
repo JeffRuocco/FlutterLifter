@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lifter/models/workout_models.dart';
+import 'package:flutter_lifter/models/models.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 class MockPrograms {

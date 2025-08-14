@@ -1,6 +1,8 @@
 // ignore_for_file: avoid_print
 
-import 'lib/models/workout_models.dart';
+import 'package:flutter_lifter/models/shared_enums.dart';
+
+import 'package:flutter_lifter/models/program_models.dart';
 
 void main() {
   print("Testing periodicity ownership changes...\n");

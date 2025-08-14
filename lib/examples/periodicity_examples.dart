@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 
-import 'package:flutter_lifter/models/workout_models.dart';
+import 'package:flutter_lifter/models/models.dart';
 
 /// Examples demonstrating how to use the WorkoutPeriodicity system
 class PeriodicityExamples {

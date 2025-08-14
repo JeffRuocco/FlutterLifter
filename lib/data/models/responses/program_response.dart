@@ -1,4 +1,5 @@
-import '../../../models/workout_models.dart';
+import 'package:flutter_lifter/models/program_models.dart';
+
 import 'api_response.dart';
 
 /// Response model for program-related API calls
