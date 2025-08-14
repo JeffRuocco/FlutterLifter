@@ -9,8 +9,6 @@ import '../core/theme/theme_utils.dart';
 import '../widgets/exercise_card.dart';
 import '../widgets/add_exercise_bottom_sheet.dart';
 
-// TODO: screen refreshing when marking sets completed
-
 class WorkoutScreen extends StatefulWidget {
   // TODO: create and pass in program model
   final ProgramRepository programRepository;
@@ -33,13 +31,17 @@ class WorkoutScreen extends StatefulWidget {
 }
 
 class _WorkoutScreenState extends State<WorkoutScreen> {
-  late Future<WorkoutSession> _workoutSessionFuture;
+  // Using direct state variables instead of FutureBuilder to prevent unnecessary rebuilds
+  // when updating workout data (sets, exercises, etc.)
+  WorkoutSession? _workoutSession;
+  bool _isLoading = true;
+  String? _errorMessage;
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _workoutSessionFuture = _initializeWorkout();
+    _initializeWorkout();
   }
 
   @override
@@ -48,16 +50,28 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     super.dispose();
   }
 
-  Future<WorkoutSession> _initializeWorkout() async {
-    // Initialize with sample exercises based on program
-    // In a real app, this would come from the selected program
-    // TODO: Fetch exercises from program
-    return WorkoutSession.create(
-      programId: widget.programId,
-      programName: widget.programName,
-      exercises: await _getSampleExercises(),
-      date: widget.workoutDate,
-    );
+  Future<void> _initializeWorkout() async {
+    try {
+      // Initialize with sample exercises based on program
+      // In a real app, this would come from the selected program
+      // TODO: Fetch exercises from program
+      final workoutSession = WorkoutSession.create(
+        programId: widget.programId,
+        programName: widget.programName,
+        exercises: await _getSampleExercises(),
+        date: widget.workoutDate,
+      );
+
+      setState(() {
+        _workoutSession = workoutSession;
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        _errorMessage = error.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   Future<List<WorkoutExercise>> _getSampleExercises() async {
@@ -105,8 +119,6 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   void _startWorkout(WorkoutSession workoutSession) {
     setState(() {
       workoutSession.start();
-      // Update the future to reflect the change
-      _workoutSessionFuture = Future.value(workoutSession);
     });
     showSuccessMessage(context, 'Workout started! Let\'s go! 💪');
   }
@@ -169,8 +181,6 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         onExerciseAdded: (exercise) {
           setState(() {
             workoutSession.exercises.add(exercise);
-            // Update the future to reflect the change
-            _workoutSessionFuture = Future.value(workoutSession);
           });
           showSuccessMessage(context, 'Exercise added!');
         },
@@ -208,8 +218,6 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             onPressed: () {
               setState(() {
                 workoutSession.exercises.removeAt(index);
-                // Update the future to reflect the change
-                _workoutSessionFuture = Future.value(workoutSession);
               });
               Navigator.pop(context);
               showInfoMessage(context, 'Exercise removed');
@@ -238,8 +246,6 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         onExerciseAdded: (exercise) {
           setState(() {
             workoutSession.exercises[index] = exercise;
-            // Update the future to reflect the change
-            _workoutSessionFuture = Future.value(workoutSession);
           });
           showSuccessMessage(context, 'Exercise swapped!');
         },
@@ -263,89 +269,84 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<WorkoutSession>(
-      future: _workoutSessionFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            backgroundColor: context.backgroundColor,
-            appBar: AppBar(
-              title: Text(
-                widget.programName,
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: context.onSurface,
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: context.backgroundColor,
+        appBar: AppBar(
+          title: Text(
+            widget.programName,
+            style: AppTextStyles.titleMedium.copyWith(
+              color: context.onSurface,
+            ),
+          ),
+          backgroundColor: context.surfaceColor,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                color: context.primaryColor,
+              ),
+              const VSpace.md(),
+              Text(
+                'Loading workout...',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: context.textSecondary,
                 ),
               ),
-              backgroundColor: context.surfaceColor,
-              elevation: 0,
-            ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    color: context.primaryColor,
-                  ),
-                  const VSpace.md(),
-                  Text(
-                    'Loading workout...',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: context.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
+            ],
+          ),
+        ),
+      );
+    }
 
-        if (snapshot.hasError) {
-          return Scaffold(
-            backgroundColor: context.backgroundColor,
-            appBar: AppBar(
-              title: Text(
-                widget.programName,
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: context.onSurface,
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: context.backgroundColor,
+        appBar: AppBar(
+          title: Text(
+            widget.programName,
+            style: AppTextStyles.titleMedium.copyWith(
+              color: context.onSurface,
+            ),
+          ),
+          backgroundColor: context.surfaceColor,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedAlert02,
+                color: context.errorColor,
+                size: AppDimensions.iconXLarge,
+              ),
+              const VSpace.md(),
+              Text(
+                'Error loading workout',
+                style: AppTextStyles.headlineSmall.copyWith(
+                  color: context.textPrimary,
                 ),
               ),
-              backgroundColor: context.surfaceColor,
-              elevation: 0,
-            ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    color: context.errorColor,
-                    size: AppDimensions.iconXLarge,
-                  ),
-                  const VSpace.md(),
-                  Text(
-                    'Error loading workout',
-                    style: AppTextStyles.headlineSmall.copyWith(
-                      color: context.textPrimary,
-                    ),
-                  ),
-                  const VSpace.sm(),
-                  Text(
-                    snapshot.error.toString(),
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: context.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+              const VSpace.sm(),
+              Text(
+                _errorMessage!,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: context.textSecondary,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-          );
-        }
+            ],
+          ),
+        ),
+      );
+    }
 
-        final workoutSession = snapshot.data!;
-        return _buildWorkoutScreen(workoutSession);
-      },
-    );
+    final workoutSession = _workoutSession!;
+    return _buildWorkoutScreen(workoutSession);
   }
 
   Widget _buildWorkoutScreen(WorkoutSession workoutSession) {
@@ -512,9 +513,6 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                             setState(() {
                               workoutSession.exercises[index].sets[setIndex]
                                   .toggleCompleted();
-                              // Update the future to reflect the change
-                              _workoutSessionFuture =
-                                  Future.value(workoutSession);
                             });
                           },
                           onSetUpdated:
@@ -526,16 +524,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                                       reps: reps,
                                       notes: notes,
                                       markAsCompleted: markAsCompleted);
-                              // Update the future to reflect the change
-                              _workoutSessionFuture =
-                                  Future.value(workoutSession);
                             });
                           },
                           onAddSet: () => setState(() {
                             workoutSession.exercises[index].addSet();
-                            // Update the future to reflect the change
-                            _workoutSessionFuture =
-                                Future.value(workoutSession);
                           }),
                         ),
                       );
