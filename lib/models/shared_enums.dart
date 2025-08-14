@@ -1,4 +1,5 @@
 /// Shared enums and types used across multiple model files
+library shared_enums;
 
 /// Enum for exercise categories
 enum ExerciseCategory {
