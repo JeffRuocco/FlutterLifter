@@ -49,6 +49,7 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
     // TODO: support pre-defined exercises and user's custom exercises
     _allExercises = await widget.programRepository.getExercises();
     _filteredExercises = List.from(_allExercises);
+    setState(() {});
   }
 
   void _filterExercises() {
