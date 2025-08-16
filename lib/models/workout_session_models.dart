@@ -5,7 +5,7 @@ import 'package:flutter_lifter/utils/utils.dart';
 class WorkoutSession {
   final String id;
   final String? programId;
-  final String? programName;
+  final String? programName; // TODO: is this needed?
   final DateTime date;
   final List<WorkoutExercise> exercises;
   DateTime? startTime;

@@ -297,7 +297,8 @@ class WorkoutPeriodicity {
 /// Represents a cycle of a program with specific start and end dates
 class ProgramCycle {
   final String id;
-  final String programId;
+  final String
+      programId; // TODO: Reference program id, or entire object? Accessor function to get program details?
   final int cycleNumber;
   final DateTime startDate;
   final DateTime? endDate;

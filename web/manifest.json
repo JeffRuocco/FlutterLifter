@@ -1,13 +1,15 @@
 {
-    "name": "flutter_lifter",
-    "short_name": "flutter_lifter",
+    "name": "FlutterLifter - Fitness Tracker",
+    "short_name": "FlutterLifter",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#1E1E1E",
+    "theme_color": "#6366F1",
+    "description": "Comprehensive fitness and workout tracking app for iOS, Android, and web.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "categories": ["fitness", "health", "lifestyle"],
+    "lang": "en-US",
     "icons": [
         {
             "src": "icons/Icon-192.png",

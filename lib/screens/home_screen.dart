@@ -69,6 +69,29 @@ class _DefaultProgramRepository implements ProgramRepository {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  ProgramCycle? _activeProgramCycle;
+
+  @override
+  void initState() {
+    super.initState();
+    _findActiveProgramCycle();
+  }
+
+  Future<void> _findActiveProgramCycle() async {
+    // TODO: Implement logic to find the active program + cycle
+    // For now, we'll just set a dummy value
+    setState(() {
+      _activeProgramCycle = ProgramCycle(
+        id: '1',
+        programId: '1',
+        cycleNumber: 1,
+        createdAt: DateTime.now(),
+        startDate: DateTime.now().subtract(Duration(days: 30)),
+        endDate: DateTime.now().add(Duration(days: 30)),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,99 +120,124 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Welcome Section
-              Text(
-                'Welcome back!',
-                style: AppTextStyles.headlineLarge.copyWith(
-                  color: context.textPrimary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Ready to crush your fitness goals?',
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: context.textSecondary,
-                ),
-              ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Adjust layout based on screen size
+              final isSmallScreen = constraints.maxHeight < 600;
 
-              const SizedBox(height: AppSpacing.xl),
-
-              // Quick Actions
-              Text(
-                'Quick Actions',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: context.textPrimary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              // Action Cards Grid
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: AppSpacing.md,
-                  mainAxisSpacing: AppSpacing.md,
-                  childAspectRatio: 1.2,
-                  children: [
-                    _ActionCard(
-                      title: 'Programs',
-                      subtitle: 'Browse workout programs',
-                      icon: HugeIcons.strokeRoundedDumbbell01,
-                      color: context.primaryColor,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProgramsScreen(
-                                programRepository: widget.programRepository),
-                          ),
-                        );
-                      },
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Welcome Section
+                  Text(
+                    'Welcome back!',
+                    style: AppTextStyles.headlineLarge.copyWith(
+                      color: context.textPrimary,
                     ),
-                    _ActionCard(
-                      title: 'Workouts',
-                      subtitle: 'Start a workout',
-                      icon: HugeIcons.strokeRoundedPlay,
-                      color: context.successColor,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => WorkoutScreen(
-                              programRepository: widget.programRepository,
-                              programName: 'Upper/Lower',
+                  ),
+                  SizedBox(
+                      height: isSmallScreen ? AppSpacing.xs : AppSpacing.xs),
+                  Text(
+                    'Ready to crush your fitness goals?',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: context.textSecondary,
+                    ),
+                  ),
+
+                  SizedBox(
+                      height: isSmallScreen ? AppSpacing.lg : AppSpacing.xl),
+
+                  // Quick Actions
+                  Text(
+                    'Quick Actions',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: context.textPrimary,
+                    ),
+                  ),
+                  SizedBox(
+                      height: isSmallScreen ? AppSpacing.sm : AppSpacing.md),
+
+                  // Action Cards Grid
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, gridConstraints) {
+                        // Calculate if we have enough space for the current layout
+                        final cardWidth =
+                            (gridConstraints.maxWidth - AppSpacing.md) / 2;
+                        final shouldUseCompactLayout = cardWidth < 120;
+
+                        return GridView.count(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: AppSpacing.md,
+                          mainAxisSpacing: AppSpacing.md,
+                          childAspectRatio: shouldUseCompactLayout
+                              ? 0.85
+                              : (isSmallScreen ? 0.9 : 1.0),
+                          children: [
+                            _ActionCard(
+                              title: 'Programs',
+                              subtitle: 'Browse programs',
+                              icon: HugeIcons.strokeRoundedDumbbell01,
+                              color: context.primaryColor,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProgramsScreen(
+                                        programRepository:
+                                            widget.programRepository),
+                                  ),
+                                );
+                              },
                             ),
-                          ),
+                            _ActionCard(
+                              title: 'Workouts',
+                              subtitle: 'Start workout',
+                              icon: HugeIcons.strokeRoundedPlay,
+                              color: context.successColor,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => WorkoutScreen(
+                                      programRepository:
+                                          widget.programRepository,
+                                      programId: _activeProgramCycle?.programId,
+                                      programName: 'Upper/Lower',
+                                      workoutDate: DateTime.now(),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            _ActionCard(
+                              title: 'Progress',
+                              subtitle: 'Track gains',
+                              icon: HugeIcons.strokeRoundedAnalytics01,
+                              color: context.infoColor,
+                              onTap: () {
+                                showInfoMessage(
+                                    context, 'Progress tracking coming soon!');
+                              },
+                            ),
+                            _ActionCard(
+                              title: 'Exercises',
+                              subtitle: 'Exercise library',
+                              icon: HugeIcons.strokeRoundedMenu01,
+                              color: context.warningColor,
+                              onTap: () {
+                                showInfoMessage(
+                                    context, 'Exercise library coming soon!');
+                              },
+                            ),
+                          ],
                         );
                       },
                     ),
-                    _ActionCard(
-                      title: 'Progress',
-                      subtitle: 'Track your gains',
-                      icon: HugeIcons.strokeRoundedAnalytics01,
-                      color: context.infoColor,
-                      onTap: () {
-                        showInfoMessage(
-                            context, 'Progress tracking coming soon!');
-                      },
-                    ),
-                    _ActionCard(
-                      title: 'Exercises',
-                      subtitle: 'Exercise library',
-                      icon: HugeIcons.strokeRoundedMenu01,
-                      color: context.warningColor,
-                      onTap: () {
-                        showInfoMessage(
-                            context, 'Exercise library coming soon!');
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -216,38 +264,57 @@ class _ActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.all(
+            AppSpacing.sm), // Add padding for better spacing
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center, // Center align content
+          children: [
+            Container(
+              padding: const EdgeInsets.all(
+                  AppSpacing.sm), // Reduced padding for mobile
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: HugeIcon(
+                icon: icon,
+                color: color,
+                size: AppDimensions
+                    .iconMedium, // Reduced from iconLarge for mobile
+              ),
             ),
-            child: HugeIcon(
-              icon: icon,
-              color: color,
-              size: AppDimensions.iconLarge,
+            const SizedBox(height: AppSpacing.sm),
+            Flexible(
+              // Use Flexible to prevent overflow
+              child: Text(
+                title,
+                style: AppTextStyles.titleSmall.copyWith(
+                  color: context.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1, // Limit to 1 line
+                overflow:
+                    TextOverflow.ellipsis, // Handle overflow with ellipsis
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            title,
-            style: AppTextStyles.titleSmall.copyWith(
-              color: context.textPrimary,
+            const SizedBox(height: AppSpacing.xs),
+            Flexible(
+              // Use Flexible to prevent overflow
+              child: Text(
+                subtitle,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: context.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2, // Allow up to 2 lines for subtitle
+                overflow:
+                    TextOverflow.ellipsis, // Handle overflow with ellipsis
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            subtitle,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: context.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
