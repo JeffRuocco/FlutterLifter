@@ -108,36 +108,39 @@ class _ExerciseCardState extends State<ExerciseCard> {
                     style: AppTextStyles.titleMedium.copyWith(
                       color: context.textPrimary,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const VSpace.xs(),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 2,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         widget.exercise.primaryMuscleGroupsText,
                         style: AppTextStyles.bodySmall.copyWith(
                           color: context.textSecondary,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      ...[
-                        Text(
-                          ' • ',
-                          style: AppTextStyles.bodySmall.copyWith(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedClock01,
                             color: context.textSecondary,
+                            size: 12,
                           ),
-                        ),
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedClock01,
-                          color: context.textSecondary,
-                          size: 12,
-                        ),
-                        const HSpace.xs(),
-                        Text(
-                          widget.exercise.formattedRestTime,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: context.textSecondary,
+                          const SizedBox(width: 2),
+                          Text(
+                            widget.exercise.formattedRestTime,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: context.textSecondary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ],
                   ),
                 ],

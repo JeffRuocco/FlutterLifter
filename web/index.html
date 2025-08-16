@@ -30,8 +30,48 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>flutter_lifter</title>
+  <title>FlutterLifter</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Improve text rendering for mobile PWA */
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    
+    /* Prevent text selection on UI elements */
+    .flutter-view {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    /* Improve touch targets */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Ensure proper viewport behavior */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    /* Loading indicator styling */
+    .loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: inherit;
+      color: #666;
+    }
+  </style>
 
   <script>
     // The value below is injected by flutter build, do not touch.

@@ -10,7 +10,10 @@ import '../widgets/exercise_card.dart';
 import '../widgets/add_exercise_bottom_sheet.dart';
 
 class WorkoutScreen extends StatefulWidget {
-  // TODO: create and pass in program model
+  // TODO: Suport existing workout sessions and program cycles
+  // Pass in program id and pull details from programRepository?
+  // Pass in program cycle?
+  // Pass in workout session?
   final ProgramRepository programRepository;
   final String programId;
   final String programName;
@@ -31,8 +34,6 @@ class WorkoutScreen extends StatefulWidget {
 }
 
 class _WorkoutScreenState extends State<WorkoutScreen> {
-  // Using direct state variables instead of FutureBuilder to prevent unnecessary rebuilds
-  // when updating workout data (sets, exercises, etc.)
   WorkoutSession? _workoutSession;
   bool _isLoading = true;
   String? _errorMessage;
