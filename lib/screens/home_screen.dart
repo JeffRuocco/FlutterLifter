@@ -265,55 +265,60 @@ class _ActionCard extends StatelessWidget {
     return AppCard(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(
-            AppSpacing.sm), // Add padding for better spacing
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center, // Center align content
-          children: [
-            Container(
-              padding: const EdgeInsets.all(
-                  AppSpacing.sm), // Reduced padding for mobile
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: HugeIcon(
-                icon: icon,
-                color: color,
-                size: AppDimensions
-                    .iconMedium, // Reduced from iconLarge for mobile
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Flexible(
-              // Use Flexible to prevent overflow
-              child: Text(
-                title,
-                style: AppTextStyles.titleSmall.copyWith(
-                  color: context.textPrimary,
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        child: LayoutBuilder(
+          builder: (context, cardConstraints) {
+            // Adjust icon size and spacing based on available space
+            final isVerySmallCard = cardConstraints.maxWidth < 150;
+
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(
+                    isVerySmallCard ? AppSpacing.xs : AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: HugeIcon(
+                    icon: icon,
+                    color: color,
+                    size: AppDimensions.iconMedium,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 1, // Limit to 1 line
-                overflow:
-                    TextOverflow.ellipsis, // Handle overflow with ellipsis
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Flexible(
-              // Use Flexible to prevent overflow
-              child: Text(
-                subtitle,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: context.textSecondary,
+                SizedBox(
+                    height: isVerySmallCard ? AppSpacing.xs : AppSpacing.sm),
+                Flexible(
+                  child: Text(
+                    title,
+                    style: AppTextStyles.titleSmall.copyWith(
+                      color: context.textPrimary,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2, // Allow up to 2 lines for subtitle
-                overflow:
-                    TextOverflow.ellipsis, // Handle overflow with ellipsis
-              ),
-            ),
-          ],
+                SizedBox(height: AppSpacing.xs),
+                Flexible(
+                  flex: 2, // Give more space to subtitle
+                  child: Text(
+                    subtitle,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: context.textSecondary,
+                      height: 1.2, // Tighter line height for better fit
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
