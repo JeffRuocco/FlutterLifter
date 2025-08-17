@@ -66,6 +66,14 @@ class _DefaultProgramRepository implements ProgramRepository {
   @override
   Future<Exercise?> getExerciseByName(String name) =>
       _instance.getExerciseByName(name);
+
+  @override
+  Future<ProgramCycle?> getProgramCycleWithProgram(String cycleId) =>
+      _instance.getProgramCycleWithProgram(cycleId);
+
+  @override
+  Future<List<ProgramCycle>> getProgramCyclesWithProgram(String programId) =>
+      _instance.getProgramCyclesWithProgram(programId);
 }
 
 class _HomeScreenState extends State<HomeScreen> {

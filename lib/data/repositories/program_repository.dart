@@ -20,6 +20,10 @@ abstract class ProgramRepository {
   Future<void> refreshCache();
   Future<List<Exercise>> getExercises();
   Future<Exercise?> getExerciseByName(String name);
+
+  // Program cycle methods
+  Future<ProgramCycle?> getProgramCycleWithProgram(String cycleId);
+  Future<List<ProgramCycle>> getProgramCyclesWithProgram(String programId);
 }
 
 /// Implementation of ProgramRepository
@@ -270,6 +274,39 @@ class ProgramRepositoryImpl implements ProgramRepository {
     }
 
     return null;
+  }
+
+  @override
+  Future<ProgramCycle?> getProgramCycleWithProgram(String cycleId) async {
+    // First, we need to find which program contains this cycle
+    final programs = await getPrograms();
+
+    for (final program in programs) {
+      for (final cycle in program.cycles) {
+        if (cycle.id == cycleId) {
+          // Set the program reference on the cycle
+          cycle.setProgram(program);
+          return cycle;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @override
+  Future<List<ProgramCycle>> getProgramCyclesWithProgram(
+      String programId) async {
+    final program = await getProgramById(programId);
+    if (program == null) return [];
+
+    // Return cycles with program references loaded
+    final cyclesWithProgram = <ProgramCycle>[];
+    for (final cycle in program.cycles) {
+      cycle.setProgram(program);
+      cyclesWithProgram.add(cycle);
+    }
+    return cyclesWithProgram;
   }
 }
 

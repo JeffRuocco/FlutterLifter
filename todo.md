@@ -1,7 +1,7 @@
 - [x] Fix page refreshing when finishing sets
-- [ ] Fix UI errors on Android PWA
-- [ ] Add program cycles
-  - [ ] Finish analyzing `Program` vs `ProgramCycle` and move logic to it's proper place
+- [x] Fix UI errors on Android PWA
+- [x] Add program cycles
+  - [x] Finish analyzing `Program` vs `ProgramCycle` and move logic to it's proper place
 - [ ] Add SQLite for local storage
 - [ ] Start program functionality
   - [ ] Start new program and end any previous ones

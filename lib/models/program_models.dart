@@ -296,19 +296,41 @@ class WorkoutPeriodicity {
 
 /// Represents a cycle of a program with specific start and end dates
 class ProgramCycle {
+  /// The unique identifier for this cycle
   final String id;
-  final String
-      programId; // TODO: Reference program id, or entire object? Accessor function to get program details?
+
+  /// The program associated with this cycle
+  final String programId;
+
+  /// The cycle number within the program
   final int cycleNumber;
+
+  /// The start date of the cycle
   final DateTime startDate;
+
+  /// The end date of the cycle
   final DateTime? endDate;
+
+  /// Whether the cycle is currently active
   final bool isActive;
+
+  /// Whether the cycle has been completed
   final bool isCompleted;
+
+  /// The list of scheduled workout sessions
   final List<WorkoutSession> scheduledSessions;
+
+  /// The periodicity of workouts in this cycle
   final WorkoutPeriodicity? periodicity;
+
+  /// Any additional notes for this cycle
   final String? notes;
-  final Map<String, dynamic>? metadata;
+
+  /// The date when this cycle was created
   final DateTime createdAt;
+
+  /// Optional reference to the full program (not stored, only for runtime use)
+  Program? _program;
 
   ProgramCycle({
     required this.id,
@@ -321,7 +343,6 @@ class ProgramCycle {
     this.scheduledSessions = const [],
     this.periodicity,
     this.notes,
-    this.metadata,
     required this.createdAt,
   });
 
@@ -336,7 +357,6 @@ class ProgramCycle {
     this.scheduledSessions = const [],
     this.periodicity,
     this.notes,
-    this.metadata,
   })  : id = Utils.generateId(),
         createdAt = DateTime.now();
 
@@ -357,9 +377,42 @@ class ProgramCycle {
   bool get isCurrentlyActive {
     if (!isActive || isCompleted) return false;
     final now = DateTime.now();
-    if (now.isBefore(startDate)) return false;
-    if (endDate != null && now.isAfter(endDate!)) return false;
-    return true;
+    return isWithinDateRange(now);
+  }
+
+  /// Checks if a date is within this cycle's date range
+  bool isWithinDateRange(DateTime date) {
+    final effectiveEndDate =
+        endDate ?? startDate.add(const Duration(days: 365));
+    return !date.isBefore(startDate) && !date.isAfter(effectiveEndDate);
+  }
+
+  /// Checks if this cycle can be activated on the given date
+  bool canBeActivatedOn(DateTime date) {
+    return isWithinDateRange(date) && !isCompleted;
+  }
+
+  /// Gets the effective end date (actual end date or default)
+  DateTime get effectiveEndDate {
+    return endDate ?? startDate.add(const Duration(days: 365));
+  }
+
+  /// Sets the program reference for runtime use (not persisted)
+  void setProgram(Program program) {
+    if (program.id == programId) {
+      _program = program;
+    }
+  }
+
+  /// Gets the cached program reference (may be null)
+  Program? get program => _program;
+
+  /// Loads the program from a repository if not already cached
+  Future<Program?> loadProgram(
+      Future<Program?> Function(String) programLoader) async {
+    if (_program != null) return _program;
+    _program = await programLoader(programId);
+    return _program;
   }
 
   /// Returns the total number of scheduled workouts in this cycle
@@ -508,17 +561,16 @@ class ProgramCycle {
     );
   }
 
-  /// Marks the cycle as completed
-  ProgramCycle markCompleted() {
-    return copyWith(
-      isCompleted: true,
-      isActive: false,
-      endDate: endDate ?? DateTime.now(),
-    );
-  }
+  /// Starts the cycle (only if not completed and within date range)
+  ProgramCycle start({DateTime? currentDate}) {
+    final now = currentDate ?? DateTime.now();
+    if (isCompleted) {
+      throw StateError('Cannot start a completed cycle');
+    }
+    if (!canBeActivatedOn(now)) {
+      throw StateError('Cycle cannot be started: outside valid date range');
+    }
 
-  /// Starts the cycle
-  ProgramCycle start() {
     return copyWith(
       isActive: true,
       isCompleted: false,
@@ -527,15 +579,21 @@ class ProgramCycle {
 
   /// Stops/pauses the cycle
   ProgramCycle stop() {
+    return copyWith(isActive: false);
+  }
+
+  /// Completes the cycle (alias for markCompleted for consistency)
+  ProgramCycle complete() {
     return copyWith(
+      isCompleted: true,
       isActive: false,
+      endDate: endDate ?? DateTime.now(),
     );
   }
 
   /// Creates a copy of this cycle with updated values
   ProgramCycle copyWith({
     String? id,
-    String? programId,
     int? cycleNumber,
     DateTime? startDate,
     DateTime? endDate,
@@ -547,9 +605,9 @@ class ProgramCycle {
     Map<String, dynamic>? metadata,
     DateTime? createdAt,
   }) {
-    return ProgramCycle(
+    final copy = ProgramCycle(
       id: id ?? this.id,
-      programId: programId ?? this.programId,
+      programId: programId,
       cycleNumber: cycleNumber ?? this.cycleNumber,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
@@ -558,9 +616,13 @@ class ProgramCycle {
       scheduledSessions: scheduledSessions ?? this.scheduledSessions,
       periodicity: periodicity ?? this.periodicity,
       notes: notes ?? this.notes,
-      metadata: metadata ?? this.metadata,
       createdAt: createdAt ?? this.createdAt,
     );
+    // Preserve the program reference if it exists
+    if (_program != null) {
+      copy.setProgram(_program!);
+    }
+    return copy;
   }
 
   /// Creates a ProgramCycle from JSON
@@ -582,7 +644,6 @@ class ProgramCycle {
           ? WorkoutPeriodicity.fromJson(json['periodicity'])
           : null,
       notes: json['notes'],
-      metadata: json['metadata'],
       createdAt: DateTime.parse(json['createdAt']),
     );
   }
@@ -601,7 +662,6 @@ class ProgramCycle {
           scheduledSessions.map((session) => session.toJson()).toList(),
       'periodicity': periodicity?.toJson(),
       'notes': notes,
-      'metadata': metadata,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -674,11 +734,6 @@ class Program {
   })  : id = Utils.generateId(),
         createdAt = DateTime.now();
 
-  /// Returns the current active cycle (only one allowed at a time)
-  ProgramCycle? get currentCycle {
-    return activeCycle;
-  }
-
   /// Returns the most recently completed cycle
   ProgramCycle? get lastCompletedCycle {
     return cycles.where((cycle) => cycle.isCompleted).fold<ProgramCycle?>(null,
@@ -721,45 +776,84 @@ class Program {
   int get activeCyclesCount =>
       allCycles.where((cycle) => cycle.isActive).length;
 
-  /// Creates a new cycle for this program (deactivates any existing active cycle)
-  Program createNewCycle({
+  /// Validates that a new cycle's date range doesn't overlap with existing cycles
+  bool _validateCycleDateRange(DateTime startDate, DateTime? endDate) {
+    final effectiveEndDate =
+        endDate ?? startDate.add(const Duration(days: 365));
+
+    return !cycles.any((existingCycle) {
+      final existingEnd = existingCycle.endDate ??
+          existingCycle.startDate.add(const Duration(days: 365));
+
+      // Check for overlap: new cycle starts before existing ends AND new cycle ends after existing starts
+      return startDate.isBefore(existingEnd) &&
+          effectiveEndDate.isAfter(existingCycle.startDate);
+    });
+  }
+
+  /// Gets cycles that should be active based on current date
+  List<ProgramCycle> _getCyclesValidForActivation({DateTime? currentDate}) {
+    final now = currentDate ?? DateTime.now();
+    return cycles.where((cycle) {
+      if (cycle.isCompleted) return false;
+      final effectiveEndDate =
+          cycle.endDate ?? cycle.startDate.add(const Duration(days: 365));
+      return !cycle.startDate.isAfter(now) && !effectiveEndDate.isBefore(now);
+    }).toList();
+  }
+
+  /// Updates cycle activation status based on date ranges
+  Program _updateCycleActivationByDate({DateTime? currentDate}) {
+    final now = currentDate ?? DateTime.now();
+    final validCycles = _getCyclesValidForActivation(currentDate: now);
+
+    final updatedCycles = cycles.map((cycle) {
+      final shouldBeActive = validCycles.contains(cycle) && !cycle.isCompleted;
+      if (cycle.isActive != shouldBeActive && !cycle.isCompleted) {
+        return shouldBeActive ? cycle.start(currentDate: now) : cycle.stop();
+      }
+      return cycle;
+    }).toList();
+
+    return copyWith(cycles: updatedCycles);
+  }
+
+  /// Adds a cycle to this program with date range validation
+  /// Throws ArgumentError if date ranges overlap
+  Program addCycle(ProgramCycle cycle) {
+    // Validate date range
+    if (!_validateCycleDateRange(cycle.startDate, cycle.endDate)) {
+      throw ArgumentError('Cycle date range overlaps with existing cycle');
+    }
+
+    final updatedCycles = [...cycles, cycle];
+    return copyWith(cycles: updatedCycles)._updateCycleActivationByDate();
+  }
+
+  /// Creates and adds a new cycle to this program with date range validation
+  /// Throws ArgumentError if date ranges overlap
+  Program createCycle({
     required DateTime startDate,
     DateTime? endDate,
     WorkoutPeriodicity? periodicity,
     String? notes,
     Map<String, dynamic>? metadata,
   }) {
-    // Deactivate any existing active cycles
-    final updatedCycles =
-        cycles.map((cycle) => cycle.isActive ? cycle.stop() : cycle).toList();
+    // Validate date range
+    if (!_validateCycleDateRange(startDate, endDate)) {
+      throw ArgumentError('Cycle date range overlaps with existing cycle');
+    }
 
     final newCycle = ProgramCycle.create(
       programId: id,
       cycleNumber: nextCycleNumber,
       startDate: startDate,
       endDate: endDate,
-      periodicity: periodicity ??
-          defaultPeriodicity, // Use provided or default periodicity
+      periodicity: periodicity ?? defaultPeriodicity,
       notes: notes,
-      metadata: metadata,
     );
 
-    return copyWith(cycles: [...updatedCycles, newCycle]);
-  }
-
-  /// Adds an existing cycle to this program (deactivates other cycles if this one is active)
-  Program addCycle(ProgramCycle cycle) {
-    List<ProgramCycle> updatedCycles = List.from(cycles);
-
-    // If the new cycle is active, deactivate all existing cycles
-    if (cycle.isActive) {
-      updatedCycles = updatedCycles
-          .map((existingCycle) =>
-              existingCycle.isActive ? existingCycle.stop() : existingCycle)
-          .toList();
-    }
-
-    return copyWith(cycles: [...updatedCycles, cycle]);
+    return addCycle(newCycle);
   }
 
   /// Removes a cycle from this program
@@ -769,58 +863,33 @@ class Program {
     );
   }
 
-  /// Updates a cycle in this program (enforces single active cycle constraint)
+  /// Updates a cycle in this program and refreshes activation based on dates
   Program updateCycle(ProgramCycle updatedCycle) {
     final updatedCycles = cycles.map((cycle) {
-      if (cycle.id == updatedCycle.id) {
-        return updatedCycle;
-      } else {
-        // If the updated cycle is being set to active, deactivate all other cycles
-        if (updatedCycle.isActive && cycle.isActive) {
-          return cycle.stop();
-        }
-        return cycle;
-      }
+      return cycle.id == updatedCycle.id ? updatedCycle : cycle;
     }).toList();
 
-    return copyWith(cycles: updatedCycles);
+    return copyWith(cycles: updatedCycles)._updateCycleActivationByDate();
   }
 
-  /// Starts a new cycle and deactivates any current active cycle
-  Program startNewCycle({
-    DateTime? startDate,
-    DateTime? endDate,
-    String? notes,
-    Map<String, dynamic>? metadata,
-  }) {
-    // Deactivate any currently active cycles
-    final updatedCycles =
-        cycles.map((cycle) => cycle.isActive ? cycle.stop() : cycle).toList();
+  /// Forces activation of a specific cycle if it's within valid date range
+  /// Returns the program unchanged if the cycle cannot be activated
+  Program activateCycle(String cycleId, {DateTime? currentDate}) {
+    final now = currentDate ?? DateTime.now();
+    final targetCycle = cycles.firstWhere(
+      (cycle) => cycle.id == cycleId,
+      orElse: () => throw ArgumentError('Cycle not found: $cycleId'),
+    );
 
-    // Create and start new cycle
-    final newCycle = ProgramCycle.create(
-      programId: id,
-      cycleNumber: nextCycleNumber,
-      startDate: startDate ?? DateTime.now(),
-      endDate: endDate,
-      periodicity: defaultPeriodicity, // Use the program's default periodicity
-      notes: notes,
-      metadata: metadata,
-    ).start();
+    // Check if cycle is within valid date range for activation
+    final effectiveEndDate = targetCycle.endDate ??
+        targetCycle.startDate.add(const Duration(days: 365));
 
-    return copyWith(cycles: [...updatedCycles, newCycle]);
-  }
+    if (targetCycle.startDate.isAfter(now) || effectiveEndDate.isBefore(now)) {
+      throw ArgumentError(
+          'Cycle cannot be activated: outside valid date range');
+    }
 
-  /// Completes the current active cycle
-  Program completeCurrentCycle() {
-    if (activeCycle == null) return this;
-
-    final completedCycle = activeCycle!.markCompleted();
-    return updateCycle(completedCycle);
-  }
-
-  /// Activates a specific cycle by ID, deactivating any other active cycles
-  Program activateCycle(String cycleId) {
     final updatedCycles = cycles.map((cycle) {
       if (cycle.id == cycleId) {
         return cycle.start();
@@ -831,6 +900,45 @@ class Program {
     }).toList();
 
     return copyWith(cycles: updatedCycles);
+  }
+
+  /// Updates all cycle activation statuses based on their date ranges
+  Program refreshCycleActivation({DateTime? currentDate}) {
+    return _updateCycleActivationByDate(currentDate: currentDate);
+  }
+
+  /// Completes the current active cycle
+  Program completeCurrentCycle() {
+    if (activeCycle == null) return this;
+
+    final completedCycle = activeCycle!.complete();
+    return updateCycle(completedCycle);
+  }
+
+  /// Creates a new cycle starting immediately (convenience method)
+  Program startImmediateCycle({
+    DateTime? endDate,
+    WorkoutPeriodicity? periodicity,
+    String? notes,
+    Map<String, dynamic>? metadata,
+  }) {
+    return createCycle(
+      startDate: DateTime.now(),
+      endDate: endDate,
+      periodicity: periodicity,
+      notes: notes,
+      metadata: metadata,
+    );
+  }
+
+  /// Gets cycles that are eligible for activation (within date range)
+  List<ProgramCycle> getActivatableCycles({DateTime? currentDate}) {
+    return _getCyclesValidForActivation(currentDate: currentDate);
+  }
+
+  /// Checks if a cycle with the given date range would overlap with existing cycles
+  bool wouldCycleOverlap(DateTime startDate, DateTime? endDate) {
+    return !_validateCycleDateRange(startDate, endDate);
   }
 
   /// Returns the expected frequency description from default periodicity
@@ -874,6 +982,12 @@ class Program {
     return context.primaryColor;
   }
 
+  /// Stores the program color in metadata
+  Program storeColor(Color color) {
+    var updatedMetadata = {...?metadata, 'color': color};
+    return copyWith(metadata: updatedMetadata);
+  }
+
   /// Returns the program icon, falling back to a default icon
   IconData get icon {
     if (metadata != null && metadata!.containsKey('icon')) {
@@ -881,6 +995,12 @@ class Program {
     }
     // Return a default icon
     return HugeIcons.strokeRoundedDumbbell01;
+  }
+
+  /// Stores the program icon in metadata
+  Program storeIcon(IconData icon) {
+    var updatedMetadata = {...?metadata, 'icon': icon};
+    return copyWith(metadata: updatedMetadata);
   }
 
   /// Creates a copy of this program with updated values
@@ -978,6 +1098,6 @@ class Program {
   String toString() {
     return 'Program{id: $id, name: $name, type: $type, '
         'difficulty: $difficulty, defaultPeriodicity: ${defaultPeriodicity?.description}, '
-        'cyclesCount: ${cycles.length}, activeCycle: ${currentCycle?.cycleNumber ?? 'None'}}';
+        'cyclesCount: ${cycles.length}, activeCycle: ${activeCycle?.cycleNumber ?? 'None'}}';
   }
 }
