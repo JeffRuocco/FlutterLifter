@@ -131,7 +131,7 @@ class ProgramCycleManagementExample {
       notes: "Cycle 1",
     );
     print(
-        'Added Cycle 1: ${baseDate} to ${baseDate.add(const Duration(days: 30))}');
+        'Added Cycle 1: $baseDate to ${baseDate.add(const Duration(days: 30))}');
 
     // Try overlapping cycles (should fail)
     final testCases = [

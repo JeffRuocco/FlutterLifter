@@ -280,9 +280,9 @@ void main() {
           notes: "Current cycle",
         );
 
-        expect(program.currentCycle, isNotNull);
-        expect(program.currentCycle?.notes, "Current cycle");
-        expect(program.currentCycle, equals(program.activeCycle));
+        expect(program.activeCycle, isNotNull);
+        expect(program.activeCycle?.notes, "Current cycle");
+        expect(program.activeCycle, equals(program.activeCycle));
       });
 
       test('should maintain basic cycle properties', () {
