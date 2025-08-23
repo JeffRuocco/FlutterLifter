@@ -10,6 +10,11 @@
     "prefer_related_applications": false,
     "categories": ["fitness", "health", "lifestyle"],
     "lang": "en-US",
+    "display_override": ["window-controls-overlay", "standalone"],
+    "scope": "/",
+    "edge_side_panel": {
+        "preferred_width": 400
+    },
     "icons": [
         {
             "src": "icons/Icon-192.png",

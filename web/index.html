@@ -34,32 +34,76 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
-    /* Improve text rendering for mobile PWA */
-    body {
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-    }
-    
-    /* Prevent text selection on UI elements */
-    .flutter-view {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-    
-    /* Improve touch targets */
-    * {
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    /* Ensure proper viewport behavior */
+    /* Native app behavior for Flutter web */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
+      /* Prevent text selection globally */
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      /* Prevent context menu */
+      -webkit-touch-callout: none;
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      /* Improve text rendering for mobile PWA */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      /* Prevent pull-to-refresh on mobile browsers */
+      overscroll-behavior: none;
+    }
+    
+    /* Prevent all context menus and selections */
+    * {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      /* Remove tap highlight */
+      -webkit-tap-highlight-color: transparent;
+      /* Prevent zoom on double tap (iOS Safari) */
+      touch-action: manipulation;
+    }
+    
+    /* Allow text selection only in input fields and text areas */
+    input, textarea, [contenteditable="true"] {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      -ms-user-select: text !important;
+      user-select: text !important;
+    }
+    
+    /* Prevent drag on all images */
+    img {
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+    }
+
+    /* Use this class for images that should not receive pointer events */
+    .non-interactive-img {
+      pointer-events: none;
+    }
+    
+    /* Flutter-specific optimizations */
+    .flutter-view, flt-glass-pane {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
     }
     
     /* Loading indicator styling */
@@ -93,6 +137,29 @@
       }).then(function(appRunner) {
         return appRunner.runApp();
       });
+    });
+
+    // Prevent browser context menus and native behaviors
+    document.addEventListener('DOMContentLoaded', function() {
+      // Prevent context menu on right click
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+      });
+
+      // Prevent text selection on drag
+      document.addEventListener('selectstart', function(e) {
+        e.preventDefault();
+        return false;
+      });
+
+      // Prevent drag and drop
+      document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+        return false;
+      });
+
+
     });
   </script>
 </body>
