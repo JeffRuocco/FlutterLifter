@@ -156,29 +156,6 @@
       });
 
 
-      // Prevent F12, Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+U (optional - for production)
-      document.addEventListener('keydown', function(e) {
-        // Allow all keys in input fields
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.contentEditable === 'true') {
-          return true;
-        }
-        
-        // F12
-        if (e.key === 'F12' || e.code === 'F12') {
-          e.preventDefault();
-          return false;
-        }
-        
-        // Ctrl+Shift+I or Ctrl+Shift+C or Ctrl+U
-        if (e.ctrlKey && (
-          (e.shiftKey && (e.key === 'I' || e.key === 'C' || e.code === 'KeyI' || e.code === 'KeyC')) || 
-          e.key === 'U' || e.code === 'KeyU'
-        )) {
-          e.preventDefault();
-          return false;
-        }
-      });
-
       // Prevent pinch zoom on mobile
       document.addEventListener('touchstart', function(e) {
         if (e.touches.length > 1) {
