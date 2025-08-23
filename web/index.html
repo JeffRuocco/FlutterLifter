@@ -84,12 +84,16 @@
       user-select: text !important;
     }
     
-    /* Prevent context menu on images */
+    /* Prevent drag on all images */
     img {
       -webkit-user-drag: none;
       -khtml-user-drag: none;
       -moz-user-drag: none;
       -o-user-drag: none;
+    }
+
+    /* Use this class for images that should not receive pointer events */
+    .non-interactive-img {
       pointer-events: none;
     }
     
