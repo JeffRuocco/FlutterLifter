@@ -5,7 +5,6 @@
 - [ ] Add SQLite for local storage
 - [ ] Start program functionality
   - [ ] Start new program and end any previous ones
-  - [ ] 
 - [ ] Create exercises page
 - [ ] Create progress page
 - [ ] Create program creation pages
