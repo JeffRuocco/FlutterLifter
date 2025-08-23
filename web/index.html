@@ -164,15 +164,15 @@
         }
         
         // F12
-        if (e.keyCode === 123) {
+        if (e.key === 'F12' || e.code === 'F12') {
           e.preventDefault();
           return false;
         }
         
         // Ctrl+Shift+I or Ctrl+Shift+C or Ctrl+U
         if (e.ctrlKey && (
-          (e.shiftKey && (e.keyCode === 73 || e.keyCode === 67)) || 
-          e.keyCode === 85
+          (e.shiftKey && (e.key === 'I' || e.key === 'C' || e.code === 'KeyI' || e.code === 'KeyC')) || 
+          e.key === 'U' || e.code === 'KeyU'
         )) {
           e.preventDefault();
           return false;
