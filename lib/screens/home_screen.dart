@@ -11,6 +11,7 @@ import 'workout_screen.dart';
 // TODO: get current program and in-progress or next workout
 // when user clicks "Workouts" action card, continue in progress workout or start next workout
 
+/// The home screen and dashboard of the app.
 class HomeScreen extends StatefulWidget {
   final ProgramRepository programRepository;
 
@@ -77,7 +78,7 @@ class _DefaultProgramRepository implements ProgramRepository {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  ProgramCycle? _activeProgramCycle;
+  WorkoutSession? _currentWorkoutSession;
 
   @override
   void initState() {
@@ -87,16 +88,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _findActiveProgramCycle() async {
     // TODO: Implement logic to find the active program + cycle
-    // For now, we'll just set a dummy value
-    setState(() {
-      _activeProgramCycle = ProgramCycle(
-        id: '1',
-        programId: '1',
-        cycleNumber: 1,
-        createdAt: DateTime.now(),
-        startDate: DateTime.now().subtract(Duration(days: 30)),
-        endDate: DateTime.now().add(Duration(days: 30)),
+    // Get most recent active program
+    var programs = await widget.programRepository.getPrograms();
+    Program? activeProgram;
+    try {
+      activeProgram = programs.firstWhere(
+        (program) => program.activeCycle != null,
       );
+    } catch (e) {
+      // No active program found
+      activeProgram = null;
+    }
+
+    setState(() {
+      _currentWorkoutSession =
+          activeProgram?.activeCycle?.currentWorkoutSession;
     });
   }
 
@@ -198,26 +204,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                             ),
-                            _ActionCard(
-                              title: 'Workouts',
-                              subtitle: 'Start workout',
-                              icon: HugeIcons.strokeRoundedPlay,
-                              color: context.successColor,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => WorkoutScreen(
-                                      programRepository:
-                                          widget.programRepository,
-                                      programId: _activeProgramCycle?.programId,
-                                      programName: 'Upper/Lower',
-                                      workoutDate: DateTime.now(),
+
+                            /// Start current/next workout button
+                            if (_currentWorkoutSession != null)
+                              _ActionCard(
+                                title: 'Workouts',
+                                subtitle: 'Start workout',
+                                icon: HugeIcons.strokeRoundedPlay,
+                                color: context.successColor,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => WorkoutScreen(
+                                        programRepository:
+                                            widget.programRepository,
+                                        workoutSession: _currentWorkoutSession!,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
+                                  );
+                                },
+                              ),
                             _ActionCard(
                               title: 'Progress',
                               subtitle: 'Track gains',

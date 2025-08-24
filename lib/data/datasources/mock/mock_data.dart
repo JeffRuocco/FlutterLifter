@@ -45,6 +45,48 @@ class MockPrograms {
         'color': Colors.blue,
         'icon': HugeIcons.strokeRoundedDumbbell01,
       },
+      cycles: [
+        ProgramCycle(
+            cycleNumber: 1,
+            id: 'cycle_1',
+            programId: 'upper_lower',
+            isActive: true,
+            isCompleted: false,
+            periodicity: WorkoutPeriodicity.weekly([1, 2, 4, 5]),
+            startDate: DateTime.now().subtract(const Duration(days: 30)),
+            createdAt: DateTime.now().subtract(const Duration(days: 31)),
+            scheduledSessions: [
+              WorkoutSession(
+                id: 'session_1',
+                date: DateTime.now(),
+                exercises: [
+                  WorkoutExercise.create(
+                    exercise: MockExercises.getExerciseById('bench')!,
+                    sets: [
+                      ExerciseSet.create(targetReps: 5, targetWeight: 195),
+                      ExerciseSet.create(targetReps: 5, targetWeight: 185),
+                    ],
+                  ),
+                  WorkoutExercise.create(
+                    exercise: MockExercises.getExerciseById('ohp')!,
+                    sets: [
+                      ExerciseSet.create(targetReps: 5, targetWeight: 150),
+                      ExerciseSet.create(targetReps: 5, targetWeight: 140),
+                    ],
+                  ),
+                  WorkoutExercise.create(
+                    exercise: MockExercises.getExerciseById('row')!,
+                    sets: [
+                      ExerciseSet.create(targetReps: 5, targetWeight: 215),
+                      ExerciseSet.create(targetReps: 5, targetWeight: 205),
+                    ],
+                  ),
+                ],
+                programId: 'upper_lower',
+                programName: 'Upper/Lower',
+              ),
+            ]),
+      ],
     ),
     Program(
       id: 'full_body',

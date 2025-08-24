@@ -6,9 +6,13 @@ class WorkoutSession {
   final String id;
   final String? programId;
   final String? programName; // TODO: is this needed?
+  /// Date of the session.
   final DateTime date;
   final List<WorkoutExercise> exercises;
+  // Time session was started.
   DateTime? startTime;
+
+  /// Time session was ended.
   DateTime? endTime;
   String? notes;
   Map<String, dynamic>? metadata;

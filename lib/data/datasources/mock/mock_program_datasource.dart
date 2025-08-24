@@ -18,11 +18,24 @@ abstract class ProgramDataSource {
 class MockProgramDataSource implements ProgramDataSource {
   static final List<Program> _programs = List.from(MockPrograms.programs);
 
+  /// Gets a list of all programs, order by most recent session first.
   @override
   Future<List<Program>> getPrograms() async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
-    return List.from(_programs);
+    return List.from(_programs)
+      ..sort((a, b) {
+        final aDate = a.lastCompletedWorkoutSession?.date;
+        final bDate = b.lastCompletedWorkoutSession?.date;
+
+        // Handle null dates - programs without completed sessions go to end
+        if (bDate == null && aDate == null) return 0;
+        if (bDate == null) return -1; // a comes first (has completed session)
+        if (aDate == null) return 1; // b comes first (has completed session)
+
+        // Most recent first (descending order)
+        return bDate.compareTo(aDate);
+      });
   }
 
   @override

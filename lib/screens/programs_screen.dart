@@ -7,6 +7,7 @@ import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
 import 'create_program_screen.dart';
 
+/// The main screen for viewing and selecting workout programs.
 class ProgramsScreen extends StatefulWidget {
   final ProgramRepository programRepository;
 

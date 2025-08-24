@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
-import 'package:flutter_lifter/utils/utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
@@ -9,32 +8,26 @@ import '../core/theme/theme_utils.dart';
 import '../widgets/exercise_card.dart';
 import '../widgets/add_exercise_bottom_sheet.dart';
 
+/// The main screen for creating and managing a workout session.
 class WorkoutScreen extends StatefulWidget {
-  // TODO: Suport existing workout sessions and program cycles
-  // Pass in program id and pull details from programRepository?
-  // Pass in program cycle?
-  // Pass in workout session?
+  // TODO: Test passing in existing WorkoutSession instance
   final ProgramRepository programRepository;
-  final String programId;
-  final String programName;
-  final DateTime workoutDate;
+  final WorkoutSession workoutSession;
 
-  WorkoutScreen({
+  const WorkoutScreen({
     super.key,
     required this.programRepository,
-    String? programId,
-    String? programName,
-    DateTime? workoutDate,
-  })  : programId = programId ?? Utils.generateId(),
-        programName = programName ?? 'Custom Workout',
-        workoutDate = workoutDate ?? DateTime.now();
+    required this.workoutSession,
+  });
 
   @override
   State<WorkoutScreen> createState() => _WorkoutScreenState();
 }
 
 class _WorkoutScreenState extends State<WorkoutScreen> {
-  WorkoutSession? _workoutSession;
+  String programId = 'Custom Program';
+  String programName = 'Custom Program';
+  DateTime? workoutDate;
   bool _isLoading = true;
   String? _errorMessage;
   final ScrollController _scrollController = ScrollController();
@@ -53,18 +46,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
   Future<void> _initializeWorkout() async {
     try {
-      // Initialize with sample exercises based on program
-      // In a real app, this would come from the selected program
-      // TODO: Fetch exercises from program
-      final workoutSession = WorkoutSession.create(
-        programId: widget.programId,
-        programName: widget.programName,
-        exercises: await _getSampleExercises(),
-        date: widget.workoutDate,
-      );
-
       setState(() {
-        _workoutSession = workoutSession;
+        programId = widget.workoutSession.programId ?? programId;
+        programName = widget.workoutSession.programName ?? programName;
+        workoutDate = widget.workoutSession.date;
         _isLoading = false;
       });
     } catch (error) {
@@ -73,48 +58,6 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         _isLoading = false;
       });
     }
-  }
-
-  Future<List<WorkoutExercise>> _getSampleExercises() async {
-    final barbellBackSquat =
-        await widget.programRepository.getExerciseByName('Barbell Back Squat');
-    final benchPress =
-        await widget.programRepository.getExerciseByName('Bench Press');
-    final bentOverBarbellRow = await widget.programRepository
-        .getExerciseByName('Bent-Over Barbell Row');
-
-    return [
-      if (barbellBackSquat != null)
-        WorkoutExercise.create(
-          exercise: barbellBackSquat,
-          sets: [
-            ExerciseSet.create(targetReps: 8, targetWeight: 135),
-            ExerciseSet.create(targetReps: 8, targetWeight: 155),
-            ExerciseSet.create(targetReps: 6, targetWeight: 175),
-            ExerciseSet.create(targetReps: 6, targetWeight: 175),
-          ],
-          notes: 'Focus on depth and form',
-        ),
-      if (benchPress != null)
-        WorkoutExercise.create(
-          exercise: benchPress,
-          sets: [
-            ExerciseSet.create(targetReps: 10, targetWeight: 135),
-            ExerciseSet.create(targetReps: 8, targetWeight: 155),
-            ExerciseSet.create(targetReps: 6, targetWeight: 175),
-          ],
-          notes: 'Pause at chest, control the negative',
-        ),
-      if (bentOverBarbellRow != null)
-        WorkoutExercise.create(
-          exercise: bentOverBarbellRow,
-          sets: [
-            ExerciseSet.create(targetReps: 10, targetWeight: 115),
-            ExerciseSet.create(targetReps: 8, targetWeight: 135),
-            ExerciseSet.create(targetReps: 8, targetWeight: 135),
-          ],
-        ),
-    ];
   }
 
   void _startWorkout(WorkoutSession workoutSession) {
@@ -275,7 +218,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           title: Text(
-            widget.programName,
+            programName,
             style: AppTextStyles.titleMedium.copyWith(
               color: context.onSurface,
             ),
@@ -308,7 +251,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           title: Text(
-            widget.programName,
+            programName,
             style: AppTextStyles.titleMedium.copyWith(
               color: context.onSurface,
             ),
@@ -346,8 +289,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       );
     }
 
-    final workoutSession = _workoutSession!;
-    return _buildWorkoutScreen(workoutSession);
+    return _buildWorkoutScreen(widget.workoutSession);
   }
 
   Widget _buildWorkoutScreen(WorkoutSession workoutSession) {
@@ -358,7 +300,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.programName,
+              programName,
               style: AppTextStyles.titleMedium.copyWith(
                 color: context.onSurface,
               ),
