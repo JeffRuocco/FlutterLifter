@@ -204,27 +204,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                             ),
-
-                            /// Start current/next workout button
-                            if (_currentWorkoutSession != null)
-                              _ActionCard(
-                                title: 'Workouts',
-                                subtitle: 'Start workout',
-                                icon: HugeIcons.strokeRoundedPlay,
-                                color: context.successColor,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => WorkoutScreen(
-                                        programRepository:
-                                            widget.programRepository,
-                                        workoutSession: _currentWorkoutSession!,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                            // Start current/next workout button
+                            _ActionCard(
+                              title: 'Workouts',
+                              subtitle: _currentWorkoutSession != null
+                                  ? 'Start workout'
+                                  : 'No workout available',
+                              icon: HugeIcons.strokeRoundedPlay,
+                              color: context.successColor.withValues(
+                                  alpha: _currentWorkoutSession != null
+                                      ? 1.0
+                                      : 0.4),
+                              onTap: _currentWorkoutSession != null
+                                  ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => WorkoutScreen(
+                                            programRepository:
+                                                widget.programRepository,
+                                            workoutSession:
+                                                _currentWorkoutSession!,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  : () {
+                                      showInfoMessage(context,
+                                          'No workout session available. Start a program first!');
+                                    },
+                            ),
                             _ActionCard(
                               title: 'Progress',
                               subtitle: 'Track gains',
