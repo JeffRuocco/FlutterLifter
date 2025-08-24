@@ -433,7 +433,7 @@ class ProgramCycle {
   WorkoutSession? get currentWorkoutSession {
     final now = DateTime.now();
     return scheduledSessions
-        .where((session) => !session.isCompleted && session.date.isBefore(now))
+        .where((session) => !session.isCompleted && !session.date.isAfter(now))
         .fold<WorkoutSession?>(null, (latest, session) {
       if (latest == null || session.date.isAfter(latest.date)) {
         return session;

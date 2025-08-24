@@ -25,9 +25,6 @@ class WorkoutScreen extends StatefulWidget {
 }
 
 class _WorkoutScreenState extends State<WorkoutScreen> {
-  String programId = 'Custom Program';
-  String programName = 'Custom Program';
-  DateTime? workoutDate;
   bool _isLoading = true;
   String? _errorMessage;
   final ScrollController _scrollController = ScrollController();
@@ -44,12 +41,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     super.dispose();
   }
 
-  Future<void> _initializeWorkout() async {
+  void _initializeWorkout() {
     try {
       setState(() {
-        programId = widget.workoutSession.programId ?? programId;
-        programName = widget.workoutSession.programName ?? programName;
-        workoutDate = widget.workoutSession.date;
         _isLoading = false;
       });
     } catch (error) {
@@ -218,7 +212,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           title: Text(
-            programName,
+            widget.workoutSession.programName ?? 'Custom Program',
             style: AppTextStyles.titleMedium.copyWith(
               color: context.onSurface,
             ),
@@ -251,7 +245,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           title: Text(
-            programName,
+            widget.workoutSession.programName ?? 'Custom Program',
             style: AppTextStyles.titleMedium.copyWith(
               color: context.onSurface,
             ),
@@ -300,7 +294,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              programName,
+              widget.workoutSession.programName ?? 'Custom Program',
               style: AppTextStyles.titleMedium.copyWith(
                 color: context.onSurface,
               ),
