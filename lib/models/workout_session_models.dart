@@ -9,7 +9,8 @@ class WorkoutSession {
   /// Date of the session.
   final DateTime date;
   final List<WorkoutExercise> exercises;
-  // Time session was started.
+
+  /// Time session was started.
   DateTime? startTime;
 
   /// Time session was ended.
