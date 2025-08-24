@@ -9,6 +9,7 @@ import 'home_screen.dart';
 const emailRegex =
     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$'; // Regex for email validation
 
+/// The main screen for user login.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 

@@ -32,6 +32,7 @@ class WorkoutPeriodicity {
   });
 
   /// Creates a weekly periodicity (e.g., Monday, Wednesday, Friday)
+  /// [days] is a list of integers representing the days of the week (1=Monday, 7=Sunday)
   const WorkoutPeriodicity.weekly(List<int> days)
       : type = PeriodicityType.weekly,
         weeklyDays = days,
@@ -428,6 +429,19 @@ class ProgramCycle {
     return completedWorkoutsCount / totalWorkoutsCount;
   }
 
+  /// Return the current workout session in this cycle
+  WorkoutSession? get currentWorkoutSession {
+    final now = DateTime.now();
+    return scheduledSessions
+        .where((session) => !session.isCompleted && !session.date.isAfter(now))
+        .fold<WorkoutSession?>(null, (latest, session) {
+      if (latest == null || session.date.isAfter(latest.date)) {
+        return session;
+      }
+      return latest;
+    });
+  }
+
   /// Returns the next scheduled workout session in this cycle
   WorkoutSession? get nextWorkout {
     final now = DateTime.now();
@@ -775,6 +789,10 @@ class Program {
   /// Returns the number of active cycles (should always be 0 or 1)
   int get activeCyclesCount =>
       allCycles.where((cycle) => cycle.isActive).length;
+
+  /// Returns the last completed workout session in the active cycle
+  WorkoutSession? get lastCompletedWorkoutSession =>
+      activeCycle?.lastCompletedWorkout;
 
   /// Validates that a new cycle's date range doesn't overlap with existing cycles
   bool _validateCycleDateRange(DateTime startDate, DateTime? endDate) {
