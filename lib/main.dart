@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/login_screen.dart';
+import 'services/service_locator.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize service locator
+  await serviceLocator.init();
+
   runApp(const FlutterLifterApp());
 }
 

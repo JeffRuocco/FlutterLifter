@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
+import 'package:flutter_lifter/services/service_locator.dart';
+import 'package:flutter_lifter/services/workout_service.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
@@ -25,6 +27,7 @@ class WorkoutScreen extends StatefulWidget {
 }
 
 class _WorkoutScreenState extends State<WorkoutScreen> {
+  late WorkoutService _workoutService;
   bool _isLoading = true;
   String? _errorMessage;
   final ScrollController _scrollController = ScrollController();
@@ -32,6 +35,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   @override
   void initState() {
     super.initState();
+    _workoutService = serviceLocator.get<WorkoutService>();
     _initializeWorkout();
   }
 
@@ -54,16 +58,25 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     }
   }
 
-  void _startWorkout(WorkoutSession workoutSession) {
-    setState(() {
-      workoutSession.start();
-    });
-    showSuccessMessage(context, 'Workout started! Let\'s go! 💪');
+  Future<void> _startWorkout(WorkoutSession workoutSession) async {
+    try {
+      await _workoutService.startWorkout(workoutSession);
+      setState(() {}); // Refresh UI
+      showSuccessMessage(context, 'Workout started! Auto-save enabled 💪');
+    } catch (error) {
+      showErrorMessage(context, 'Failed to start workout: $error');
+    }
   }
 
-  void _finishWorkout(WorkoutSession workoutSession) {
-    // TODO: Warn if sets are unfinished, especially if actual reps were record, but set was never marked completed
+  Future<void> _finishWorkout(WorkoutSession workoutSession) async {
     if (!workoutSession.isInProgress) return;
+
+    // Check for unfinished sets before finishing
+    if (_workoutService.hasUnfinishedSets()) {
+      final shouldContinue = await _showUnfinishedSetsDialog();
+      if (!shouldContinue) return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -90,10 +103,16 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Return to previous screen
-              showSuccessMessage(context, 'Workout completed! Great job! 🎉');
+
+              try {
+                await _workoutService.finishWorkout();
+                showSuccessMessage(context, 'Workout completed! Great job! 🎉');
+                Navigator.pop(context); // Return to previous screen
+              } catch (error) {
+                showErrorMessage(context, 'Failed to finish workout: $error');
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: context.successColor,
@@ -109,6 +128,45 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     );
   }
 
+  /// Show dialog for unfinished sets warning
+  Future<bool> _showUnfinishedSetsDialog() async {
+    final unfinishedCount = _workoutService.getUnfinishedSetsCount();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Unfinished Sets',
+          style: AppTextStyles.headlineSmall.copyWith(
+            color: context.textPrimary,
+          ),
+        ),
+        content: Text(
+          'You have $unfinishedCount unfinished sets with recorded data. '
+          'Are you sure you want to finish the workout?',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: context.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Continue Workout'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+            ),
+            child: const Text('Finish Anyway'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
   void _addExercise(WorkoutSession workoutSession) {
     showModalBottomSheet(
       context: context,
@@ -116,11 +174,19 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       useSafeArea: true,
       builder: (context) => AddExerciseBottomSheet(
         programRepository: widget.programRepository,
-        onExerciseAdded: (exercise) {
+        onExerciseAdded: (exercise) async {
           setState(() {
             workoutSession.exercises.add(exercise);
           });
-          showSuccessMessage(context, 'Exercise added!');
+
+          // Auto-save the change
+          try {
+            await _workoutService.updateWorkoutImmediate();
+            showSuccessMessage(context, 'Exercise added!');
+          } catch (error) {
+            showErrorMessage(
+                context, 'Exercise added but failed to save: $error');
+          }
         },
       ),
     );
@@ -153,12 +219,20 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               setState(() {
                 workoutSession.exercises.removeAt(index);
               });
               Navigator.pop(context);
-              showInfoMessage(context, 'Exercise removed');
+
+              // Auto-save the change
+              try {
+                await _workoutService.updateWorkoutImmediate();
+                showInfoMessage(context, 'Exercise removed');
+              } catch (error) {
+                showErrorMessage(
+                    context, 'Exercise removed but failed to save: $error');
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: context.errorColor,
@@ -181,11 +255,19 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       useSafeArea: true,
       builder: (context) => AddExerciseBottomSheet(
         programRepository: widget.programRepository,
-        onExerciseAdded: (exercise) {
+        onExerciseAdded: (exercise) async {
           setState(() {
             workoutSession.exercises[index] = exercise;
           });
-          showSuccessMessage(context, 'Exercise swapped!');
+
+          // Auto-save the change
+          try {
+            await _workoutService.updateWorkoutImmediate();
+            showSuccessMessage(context, 'Exercise swapped!');
+          } catch (error) {
+            showErrorMessage(
+                context, 'Exercise swapped but failed to save: $error');
+          }
         },
         isSwapping: true,
         currentExercise: workoutSession.exercises[index],
@@ -299,19 +381,53 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                 color: context.onSurface,
               ),
             ),
-            if (workoutSession.isInProgress)
+            if (workoutSession.isInProgress) ...[
               Text(
                 _formatWorkoutDuration(workoutSession),
                 style: AppTextStyles.bodySmall.copyWith(
                   color: context.successColor,
                 ),
               ),
+              if (_workoutService.hasActiveWorkout)
+                Text(
+                  'Auto-saving every 30s',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: context.textSecondary,
+                    fontSize: 10,
+                  ),
+                ),
+            ],
           ],
         ),
         backgroundColor: context.surfaceColor,
         elevation: 0,
         actions: [
-          if (workoutSession.isInProgress)
+          if (workoutSession.isInProgress) ...[
+            IconButton(
+              icon: Icon(
+                HugeIcons.strokeRoundedFloppyDisk,
+                color: context.onSurface,
+              ),
+              onPressed: () async {
+                try {
+                  await _workoutService.updateWorkoutImmediate();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Progress saved!'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                } catch (error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to save: $error'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              tooltip: 'Save Progress',
+            ),
             IconButton(
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedCheckmarkCircle02,
@@ -320,6 +436,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
               onPressed: () => _finishWorkout(workoutSession),
               tooltip: 'Finish Workout',
             ),
+          ],
           IconButton(
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedAdd01,
@@ -445,15 +562,23 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                           onRemove: () =>
                               _removeExercise(index, workoutSession),
                           onSwap: () => _swapExercise(index, workoutSession),
-                          onToggleSetCompleted: (setIndex) {
+                          onToggleSetCompleted: (setIndex) async {
                             // TODO: start rest timer based on set.restTime
                             setState(() {
                               workoutSession.exercises[index].sets[setIndex]
                                   .toggleCompleted();
                             });
+
+                            // Auto-save the change
+                            try {
+                              await _workoutService.updateWorkout();
+                            } catch (error) {
+                              // Silent error - don't interrupt workout flow
+                              print('Failed to save set completion: $error');
+                            }
                           },
-                          onSetUpdated:
-                              (setIndex, weight, reps, notes, markAsCompleted) {
+                          onSetUpdated: (setIndex, weight, reps, notes,
+                              markAsCompleted) async {
                             setState(() {
                               workoutSession.exercises[index].sets[setIndex]
                                   .updateSetData(
@@ -462,10 +587,28 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                                       notes: notes,
                                       markAsCompleted: markAsCompleted);
                             });
+
+                            // Auto-save the change
+                            try {
+                              await _workoutService.updateWorkout();
+                            } catch (error) {
+                              // Silent error - don't interrupt workout flow
+                              print('Failed to save set update: $error');
+                            }
                           },
-                          onAddSet: () => setState(() {
-                            workoutSession.exercises[index].addSet();
-                          }),
+                          onAddSet: () async {
+                            setState(() {
+                              workoutSession.exercises[index].addSet();
+                            });
+
+                            // Auto-save the change
+                            try {
+                              await _workoutService.updateWorkout();
+                            } catch (error) {
+                              // Silent error - don't interrupt workout flow
+                              print('Failed to save new set: $error');
+                            }
+                          },
                         ),
                       );
                     },

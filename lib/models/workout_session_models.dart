@@ -74,6 +74,9 @@ class WorkoutSession {
   int get completedSetsCount =>
       exercises.fold(0, (sum, ex) => sum + ex.completedSetsCount);
 
+  /// Returns whether the workout has uncompleted exercises
+  bool get hasUncompletedExercises => exercises.any((ex) => !ex.isCompleted);
+
   void start() {
     startTime ??= DateTime.now();
   }

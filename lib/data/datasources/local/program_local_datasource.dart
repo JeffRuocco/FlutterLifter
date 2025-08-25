@@ -73,9 +73,6 @@ class ProgramLocalDataSourceImpl implements ProgramLocalDataSource {
 
 /// SQLite implementation (future enhancement)
 class SqliteProgramLocalDataSource implements ProgramLocalDataSource {
-  // TODO: Implement SQLite-based local storage
-  // This would use sqflite package for persistent local storage
-
   @override
   Future<List<Program>> getCachedPrograms() async {
     throw UnimplementedError('SQLite implementation pending');
