@@ -582,14 +582,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                             });
 
                             // Auto-save the change
-                            try {
-                              await _workoutService.updateWorkout();
-                            } catch (error) {
-                              // Silent error - don't interrupt workout flow
-                              if (kDebugMode) {
-                                print('Failed to save set completion: $error');
-                              }
-                            }
+                            await _handleAutoSave(
+                              _workoutService.updateWorkout(),
+                              'Failed to save set completion',
+                            );
                           },
                           onSetUpdated: (setIndex, weight, reps, notes,
                               markAsCompleted) async {

@@ -65,20 +65,14 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     _notesFocusNode = FocusNode();
 
     // Add listeners to save when focus is lost
-    _weightFocusNode.addListener(() {
-      if (!_weightFocusNode.hasFocus) {
-        _onInputFinished();
-      }
-    });
+    _addFocusLostListener(_weightFocusNode);
+    _addFocusLostListener(_repsFocusNode);
+    _addFocusLostListener(_notesFocusNode);
+  }
 
-    _repsFocusNode.addListener(() {
-      if (!_repsFocusNode.hasFocus) {
-        _onInputFinished();
-      }
-    });
-
-    _notesFocusNode.addListener(() {
-      if (!_notesFocusNode.hasFocus) {
+  void _addFocusLostListener(FocusNode node) {
+    node.addListener(() {
+      if (!node.hasFocus) {
         _onInputFinished();
       }
     });

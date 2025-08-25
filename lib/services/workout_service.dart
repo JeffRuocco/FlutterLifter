@@ -129,18 +129,7 @@ class WorkoutService {
 
   /// Check if there are any unfinished sets in the current workout
   bool hasUnfinishedSets() {
-    if (_currentWorkout == null) return false;
-
-    for (final exercise in _currentWorkout!.exercises) {
-      for (final set in exercise.sets) {
-        // Check if set has recorded data but isn't marked complete
-        if ((set.actualReps != null || set.actualWeight != null) &&
-            !set.isCompleted) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return getUnfinishedSetsCount() > 0;
   }
 
   /// Get count of unfinished sets

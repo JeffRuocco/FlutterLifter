@@ -343,9 +343,10 @@ class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Example set completion button
-                  ElevatedButton(
-                    onPressed: () => _onSetCompleted(0, 0),
+                    onPressed: (widget.workoutSession.exercises.isNotEmpty &&
+                        widget.workoutSession.exercises[0].sets.isNotEmpty)
+                        ? () => _onSetCompleted(0, 0)
+                        : null,
                     child: const Text('Toggle Set Completion (Example)'),
                   ),
                 ],
