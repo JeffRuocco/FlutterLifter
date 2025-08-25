@@ -296,6 +296,18 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     }
   }
 
+  /// Save current workout session state to storage
+  Future<void> _updateWorkout() async {
+    try {
+      await _workoutService.updateWorkout();
+    } catch (error) {
+      // Silent error - don't interrupt workout flow
+      if (kDebugMode) {
+        print('Failed to save workout: $error');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -582,10 +594,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                             });
 
                             // Auto-save the change
-                            await _handleAutoSave(
-                              _workoutService.updateWorkout(),
-                              'Failed to save set completion',
-                            );
+                            await _updateWorkout();
                           },
                           onSetUpdated: (setIndex, weight, reps, notes,
                               markAsCompleted) async {
@@ -598,30 +607,14 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                                       markAsCompleted: markAsCompleted);
                             });
 
-                            // Auto-save the change
-                            try {
-                              await _workoutService.updateWorkout();
-                            } catch (error) {
-                              // Silent error - don't interrupt workout flow
-                              if (kDebugMode) {
-                                print('Failed to save set update: $error');
-                              }
-                            }
+                            await _updateWorkout();
                           },
                           onAddSet: () async {
                             setState(() {
                               workoutSession.exercises[index].addSet();
                             });
 
-                            // Auto-save the change
-                            try {
-                              await _workoutService.updateWorkout();
-                            } catch (error) {
-                              // Silent error - don't interrupt workout flow
-                              if (kDebugMode) {
-                                print('Failed to save new set: $error');
-                              }
-                            }
+                            await _updateWorkout();
                           },
                         ),
                       );
