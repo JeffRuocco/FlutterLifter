@@ -16,6 +16,7 @@ class WorkoutService {
   WorkoutSession? _currentWorkout;
   Timer? _autoSaveTimer;
   Timer? _debounceTimer;
+  String? _lastSavedHash; // Track the hash of the last saved state
 
   // Auto-save interval (default: 30 seconds)
   static const Duration _autoSaveInterval = Duration(seconds: 30);
@@ -43,6 +44,7 @@ class WorkoutService {
     }
 
     _currentWorkout = session;
+    _lastSavedHash = null; // Reset hash for new workout
     session.start();
     _startAutoSave();
     await _saveWorkout();
@@ -113,6 +115,7 @@ class WorkoutService {
     final workout = await _loadWorkout(workoutId);
     if (workout != null && !workout.isCompleted) {
       _currentWorkout = workout;
+      _lastSavedHash = workout.hash; // Set hash to current state
       _startAutoSave();
     }
   }
@@ -167,8 +170,20 @@ class WorkoutService {
   /// Save the current workout to the repository
   Future<void> _saveWorkout() async {
     if (_currentWorkout != null) {
+      // Generate hash of current workout state
+      final currentHash = _currentWorkout!.hash;
+
+      // Only save if the workout has actually changed
+      if (_lastSavedHash != null && _lastSavedHash == currentHash) {
+        if (kDebugMode) {
+          print('Workout unchanged, skipping save: ${_currentWorkout!.id}');
+        }
+        return;
+      }
+
       try {
         await _programRepository.saveWorkoutSession(_currentWorkout!);
+        _lastSavedHash = currentHash; // Update the saved hash
         if (kDebugMode) {
           print('Saving workout: ${_currentWorkout!.id} at ${DateTime.now()}');
         }

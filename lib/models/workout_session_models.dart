@@ -156,4 +156,28 @@ class WorkoutSession {
     return 'WorkoutSession{id: $id, programName: $programName, date: $date, '
         'exercisesCount: ${exercises.length}, isCompleted: $isCompleted}';
   }
+
+  /// Generate a simple hash of the workout data to detect changes
+  String get hash {
+    final buffer = StringBuffer();
+
+    // Include basic workout info
+    buffer.write(id);
+    buffer.write(programId ?? '');
+    buffer.write(programName ?? '');
+    buffer.write(date.millisecondsSinceEpoch);
+    buffer.write(startTime?.millisecondsSinceEpoch ?? 0);
+    buffer.write(endTime?.millisecondsSinceEpoch ?? 0);
+    buffer.write(notes ?? '');
+    buffer.write(metadata?.toString() ?? '');
+    buffer.write(exercises.length);
+
+    // Include exercise data using their hash getters
+    for (final exercise in exercises) {
+      buffer.write(exercise.hash);
+    }
+
+    // Return a simple hash code
+    return buffer.toString().hashCode.toString();
+  }
 }
