@@ -1,5 +1,6 @@
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/program_models.dart';
+import 'package:flutter_lifter/models/workout_session_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 
 import '../datasources/local/program_local_datasource.dart';
@@ -24,6 +25,12 @@ abstract class ProgramRepository {
   // Program cycle methods
   Future<ProgramCycle?> getProgramCycleWithProgram(String cycleId);
   Future<List<ProgramCycle>> getProgramCyclesWithProgram(String programId);
+
+  // Workout session methods
+  Future<void> saveWorkoutSession(WorkoutSession session);
+  Future<WorkoutSession?> getWorkoutSessionById(String sessionId);
+  Future<List<WorkoutSession>> getWorkoutHistory();
+  Future<void> deleteWorkoutSession(String sessionId);
 }
 
 /// Implementation of ProgramRepository
@@ -307,6 +314,60 @@ class ProgramRepositoryImpl implements ProgramRepository {
       cyclesWithProgram.add(cycle);
     }
     return cyclesWithProgram;
+  }
+
+  // Workout session methods implementation
+  // TODO: These are temporary in-memory implementations
+  // In a real app, these would be persisted via local storage or API
+  final Map<String, WorkoutSession> _workoutSessions = {};
+
+  @override
+  Future<void> saveWorkoutSession(WorkoutSession session) async {
+    if (useMockData || localDataSource != null) {
+      // For now, store in memory
+      _workoutSessions[session.id] = session;
+
+      // TODO: Implement actual persistence
+      // if (localDataSource != null) {
+      //   await localDataSource!.saveWorkoutSession(session);
+      // }
+    }
+  }
+
+  @override
+  Future<WorkoutSession?> getWorkoutSessionById(String sessionId) async {
+    // For now, return from memory
+    return _workoutSessions[sessionId];
+
+    // TODO: Implement actual retrieval
+    // if (localDataSource != null) {
+    //   return await localDataSource!.getWorkoutSessionById(sessionId);
+    // }
+  }
+
+  @override
+  Future<List<WorkoutSession>> getWorkoutHistory() async {
+    // For now, return from memory
+    final sessions = _workoutSessions.values.toList();
+    // Sort by date, most recent first
+    sessions.sort((a, b) => b.date.compareTo(a.date));
+    return sessions;
+
+    // TODO: Implement actual retrieval
+    // if (localDataSource != null) {
+    //   return await localDataSource!.getWorkoutHistory();
+    // }
+  }
+
+  @override
+  Future<void> deleteWorkoutSession(String sessionId) async {
+    // For now, remove from memory
+    _workoutSessions.remove(sessionId);
+
+    // TODO: Implement actual deletion
+    // if (localDataSource != null) {
+    //   await localDataSource!.deleteWorkoutSession(sessionId);
+    // }
   }
 }
 

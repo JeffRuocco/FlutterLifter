@@ -5,6 +5,7 @@ import '../data/datasources/remote/program_api_datasource.dart';
 import '../core/network/network_info.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
+import '../services/workout_service.dart';
 
 /// Simple service locator for dependency injection
 class ServiceLocator {
@@ -50,6 +51,9 @@ class ServiceLocator {
     // Register repositories
     register<ProgramRepository>(ProgramRepositoryImpl.development());
 
+    // Register services
+    register<WorkoutService>(WorkoutService(get<ProgramRepository>()));
+
     // Initialize storage
     await get<StorageService>().init();
   }
@@ -73,6 +77,9 @@ class ServiceLocator {
         localDataSource: get<ProgramLocalDataSource>(),
       ),
     );
+
+    // Register services
+    register<WorkoutService>(WorkoutService(get<ProgramRepository>()));
 
     // Initialize storage
     await get<StorageService>().init();

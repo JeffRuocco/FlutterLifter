@@ -243,7 +243,7 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
           ],
         ),
         trailing: Icon(
-          Icons.arrow_forward_ios,
+          HugeIcons.strokeRoundedArrowRight01,
           size: AppDimensions.iconMedium,
           color: context.textSecondary,
         ),

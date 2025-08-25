@@ -75,6 +75,23 @@ class _DefaultProgramRepository implements ProgramRepository {
   @override
   Future<List<ProgramCycle>> getProgramCyclesWithProgram(String programId) =>
       _instance.getProgramCyclesWithProgram(programId);
+
+  // Workout session methods
+  @override
+  Future<void> saveWorkoutSession(WorkoutSession session) =>
+      _instance.saveWorkoutSession(session);
+
+  @override
+  Future<WorkoutSession?> getWorkoutSessionById(String sessionId) =>
+      _instance.getWorkoutSessionById(sessionId);
+
+  @override
+  Future<List<WorkoutSession>> getWorkoutHistory() =>
+      _instance.getWorkoutHistory();
+
+  @override
+  Future<void> deleteWorkoutSession(String sessionId) =>
+      _instance.deleteWorkoutSession(sessionId);
 }
 
 class _HomeScreenState extends State<HomeScreen> {

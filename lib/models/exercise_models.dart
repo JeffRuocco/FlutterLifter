@@ -169,6 +169,23 @@ class ExerciseSet {
     return 'ExerciseSet{id: $id, targetReps: $targetReps, targetWeight: $targetWeight, '
         'actualReps: $actualReps, actualWeight: $actualWeight, isCompleted: $isCompleted}';
   }
+
+  /// Generate a hash of the set data to detect changes
+  String get hash {
+    final buffer = StringBuffer();
+
+    // Include all mutable set data
+    buffer.write(id);
+    buffer.write(targetWeight ?? 0);
+    buffer.write(targetReps ?? 0);
+    buffer.write(actualWeight ?? 0);
+    buffer.write(actualReps ?? 0);
+    buffer.write(notes ?? '');
+    buffer.write(isCompleted);
+    buffer.write(completedAt?.millisecondsSinceEpoch ?? 0);
+
+    return buffer.toString().hashCode.toString();
+  }
 }
 
 /// Represents a defined exercise that can be added to a [WorkoutSession].
@@ -379,5 +396,25 @@ class WorkoutExercise {
   String toString() {
     return 'WorkoutExercise{id: $id, name: $exercise.name, category: $exercise.category, '
         'setsCount: ${sets.length}, completedSets: $completedSetsCount}';
+  }
+
+  /// Generate a hash of the exercise data to detect changes
+  String get hash {
+    final buffer = StringBuffer();
+
+    // Include exercise-level mutable data
+    buffer.write(id);
+    buffer.write(exercise.id); // Base exercise ID
+    buffer.write(exercise.name);
+    buffer.write(restTime.inSeconds);
+    buffer.write(notes ?? '');
+    buffer.write(sets.length);
+
+    // Include all set data
+    for (final set in sets) {
+      buffer.write(set.hash);
+    }
+
+    return buffer.toString().hashCode.toString();
   }
 }

@@ -35,12 +35,16 @@ class SetInputWidget extends StatefulWidget {
 class _SetInputWidgetState extends State<SetInputWidget> {
   late TextEditingController _weightController;
   late TextEditingController _repsController;
+  late FocusNode _weightFocusNode;
+  late FocusNode _repsFocusNode;
+  late FocusNode _notesFocusNode;
   bool _showNotes = false;
   final TextEditingController _notesController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _initializeFocusNodes();
     _initializeControllers();
   }
 
@@ -49,9 +53,38 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     _weightController.dispose();
     _repsController.dispose();
     _notesController.dispose();
+    _weightFocusNode.dispose();
+    _repsFocusNode.dispose();
+    _notesFocusNode.dispose();
     super.dispose();
   }
 
+  void _initializeFocusNodes() {
+    _weightFocusNode = FocusNode();
+    _repsFocusNode = FocusNode();
+    _notesFocusNode = FocusNode();
+
+    // Define listeners
+    _weightFocusNode.addListener(() {
+      if (!_weightFocusNode.hasFocus) {
+        _onInputFinished();
+      }
+    });
+
+    _repsFocusNode.addListener(() {
+      if (!_repsFocusNode.hasFocus) {
+        _onInputFinished();
+      }
+    });
+
+    _notesFocusNode.addListener(() {
+      if (!_notesFocusNode.hasFocus) {
+        _onInputFinished();
+      }
+    });
+  }
+
+  // _addFocusLostListener is no longer needed.
   void _initializeControllers() {
     // Initialize weight controller
     final weightValue = widget.exerciseSet.actualWeight;
@@ -69,11 +102,6 @@ class _SetInputWidgetState extends State<SetInputWidget> {
 
     // Initialize notes controller
     _notesController.text = widget.exerciseSet.notes ?? '';
-
-    // Add listeners to update the exercise set
-    _weightController.addListener(_onInputChanged);
-    _repsController.addListener(_onInputChanged);
-    _notesController.addListener(_onInputChanged);
   }
 
   @override
@@ -104,35 +132,24 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   }
 
   void _updateControllersFromModel() {
-    // Temporarily remove listeners to avoid triggering onInputChanged
-    _weightController.removeListener(_onInputChanged);
-    _repsController.removeListener(_onInputChanged);
-    _notesController.removeListener(_onInputChanged);
+    // Update the controllers directly without listeners
+    final weightValue = widget.exerciseSet.actualWeight;
+    _weightController.text = weightValue != null
+        ? weightValue.toStringAsFixed(weightValue % 1 == 0 ? 0 : 1)
+        : '';
 
-    try {
-      // Update the controllers
-      final weightValue = widget.exerciseSet.actualWeight;
-      _weightController.text = weightValue != null
-          ? weightValue.toStringAsFixed(weightValue % 1 == 0 ? 0 : 1)
-          : '';
-
-      _repsController.text = widget.exerciseSet.actualReps?.toString() ?? '';
-      _notesController.text = widget.exerciseSet.notes ?? '';
-    } finally {
-      // Always re-add listeners, even if there was an error
-      _weightController.addListener(_onInputChanged);
-      _repsController.addListener(_onInputChanged);
-      _notesController.addListener(_onInputChanged);
-    }
+    _repsController.text = widget.exerciseSet.actualReps?.toString() ?? '';
+    _notesController.text = widget.exerciseSet.notes ?? '';
   }
 
-  void _onInputChanged() {
+  void _onInputFinished() {
     final weight = double.tryParse(_weightController.text);
     final reps = int.tryParse(_repsController.text);
     final notes = _notesController.text.trim().isEmpty
         ? null
         : _notesController.text.trim();
 
+    // Only call onUpdated when user finishes editing
     widget.onUpdated?.call(weight, reps, notes, false);
   }
 
@@ -249,6 +266,7 @@ class _SetInputWidgetState extends State<SetInputWidget> {
                       const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                   child: _buildInputField(
                     controller: _weightController,
+                    focusNode: _weightFocusNode,
                     enabled: isEditable,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
@@ -274,6 +292,7 @@ class _SetInputWidgetState extends State<SetInputWidget> {
                       const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                   child: _buildInputField(
                     controller: _repsController,
+                    focusNode: _repsFocusNode,
                     enabled: isEditable,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
@@ -389,6 +408,7 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   Widget _buildInputField({
     required TextEditingController controller,
     required bool enabled,
+    FocusNode? focusNode,
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     String? suffix,
@@ -396,10 +416,13 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   }) {
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       enabled: enabled,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       textAlign: TextAlign.center,
+      onFieldSubmitted: (_) => _onInputFinished(),
+      onEditingComplete: _onInputFinished,
       style: AppTextStyles.bodyMedium.copyWith(
         color: enabled ? context.textPrimary : context.textSecondary,
         fontWeight: FontWeight.w500,
@@ -442,8 +465,11 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   Widget _buildNotesField() {
     return TextFormField(
       controller: _notesController,
+      focusNode: _notesFocusNode,
       enabled: widget.isWorkoutStarted,
       maxLines: 2,
+      onFieldSubmitted: (_) => _onInputFinished(),
+      onEditingComplete: _onInputFinished,
       style: AppTextStyles.bodySmall.copyWith(
         color: context.textPrimary,
       ),
