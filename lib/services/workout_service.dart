@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
 
@@ -70,8 +71,10 @@ class WorkoutService {
     if (_currentWorkout != null) {
       // Cancel any pending debounced save since we're saving now
       _debounceTimer?.cancel();
-      print(
-          'Immediate workout update: ${_currentWorkout!.id} at ${DateTime.now()}');
+      if (kDebugMode) {
+        print(
+            'Immediate workout update: ${_currentWorkout!.id} at ${DateTime.now()}');
+      }
       await _saveWorkout();
     }
   }
@@ -177,11 +180,15 @@ class WorkoutService {
     if (_currentWorkout != null) {
       try {
         await _programRepository.saveWorkoutSession(_currentWorkout!);
-        print('Saving workout: ${_currentWorkout!.id} at ${DateTime.now()}');
+        if (kDebugMode) {
+          print('Saving workout: ${_currentWorkout!.id} at ${DateTime.now()}');
+        }
       } catch (e) {
         // Log error but don't throw - we don't want to interrupt the workout
         // In a real app, you might want to show a non-intrusive error message
-        print('Failed to save workout: $e');
+        if (kDebugMode) {
+          print('Failed to save workout: $e');
+        }
       }
     }
   }
@@ -191,7 +198,9 @@ class WorkoutService {
     try {
       return await _programRepository.getWorkoutSessionById(workoutId);
     } catch (e) {
-      print('Failed to load workout: $e');
+      if (kDebugMode) {
+        print('Failed to load workout: $e');
+      }
       return null;
     }
   }
@@ -201,7 +210,9 @@ class WorkoutService {
     try {
       await _programRepository.deleteWorkoutSession(workoutId);
     } catch (e) {
-      print('Failed to delete workout: $e');
+      if (kDebugMode) {
+        print('Failed to delete workout: $e');
+      }
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
@@ -61,9 +62,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   Future<void> _startWorkout(WorkoutSession workoutSession) async {
     try {
       await _workoutService.startWorkout(workoutSession);
+      if (!mounted) return;
       setState(() {}); // Refresh UI
       showSuccessMessage(context, 'Workout started! Auto-save enabled 💪');
     } catch (error) {
+      if (!mounted) return;
       showErrorMessage(context, 'Failed to start workout: $error');
     }
   }
@@ -74,9 +77,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     // Check for unfinished sets before finishing
     if (_workoutService.hasUnfinishedSets()) {
       final shouldContinue = await _showUnfinishedSetsDialog();
-      if (!shouldContinue) return;
+      if (!shouldContinue || !mounted) return;
     }
 
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -104,10 +108,12 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context); // Close dialog
+              final navigator = Navigator.of(context);
+              navigator.pop(); // Close dialog
 
               try {
                 await _workoutService.finishWorkout();
+                if (!context.mounted) return;
                 showSuccessMessage(context, 'Workout completed! Great job! 🎉');
                 Navigator.pop(context); // Return to previous screen
               } catch (error) {
@@ -182,6 +188,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           // Auto-save the change
           try {
             await _workoutService.updateWorkoutImmediate();
+            if (!context.mounted) return;
             showSuccessMessage(context, 'Exercise added!');
           } catch (error) {
             showErrorMessage(
@@ -228,6 +235,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
               // Auto-save the change
               try {
                 await _workoutService.updateWorkoutImmediate();
+                if (!context.mounted) return;
                 showInfoMessage(context, 'Exercise removed');
               } catch (error) {
                 showErrorMessage(
@@ -263,6 +271,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           // Auto-save the change
           try {
             await _workoutService.updateWorkoutImmediate();
+            if (!context.mounted) return;
             showSuccessMessage(context, 'Exercise swapped!');
           } catch (error) {
             showErrorMessage(
@@ -409,16 +418,19 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                 color: context.onSurface,
               ),
               onPressed: () async {
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
                 try {
                   await _workoutService.updateWorkoutImmediate();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  if (!mounted) return;
+                  scaffoldMessenger.showSnackBar(
                     const SnackBar(
                       content: Text('Progress saved!'),
                       duration: Duration(seconds: 1),
                     ),
                   );
                 } catch (error) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  if (!mounted) return;
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('Failed to save: $error'),
                       backgroundColor: Colors.red,
@@ -574,7 +586,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                               await _workoutService.updateWorkout();
                             } catch (error) {
                               // Silent error - don't interrupt workout flow
-                              print('Failed to save set completion: $error');
+                              if (kDebugMode) {
+                                print('Failed to save set completion: $error');
+                              }
                             }
                           },
                           onSetUpdated: (setIndex, weight, reps, notes,
@@ -593,7 +607,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                               await _workoutService.updateWorkout();
                             } catch (error) {
                               // Silent error - don't interrupt workout flow
-                              print('Failed to save set update: $error');
+                              if (kDebugMode) {
+                                print('Failed to save set update: $error');
+                              }
                             }
                           },
                           onAddSet: () async {
@@ -606,7 +622,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                               await _workoutService.updateWorkout();
                             } catch (error) {
                               // Silent error - don't interrupt workout flow
-                              print('Failed to save new set: $error');
+                              if (kDebugMode) {
+                                print('Failed to save new set: $error');
+                              }
                             }
                           },
                         ),
