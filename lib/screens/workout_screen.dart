@@ -187,7 +187,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
           // Auto-save the change
           try {
-            await _workoutService.updateWorkoutImmediate();
+            await _workoutService.saveWorkoutImmediate();
             if (!context.mounted) return;
             showSuccessMessage(context, 'Exercise added!');
           } catch (error) {
@@ -234,7 +234,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
               // Auto-save the change
               try {
-                await _workoutService.updateWorkoutImmediate();
+                await _workoutService.saveWorkoutImmediate();
                 if (!context.mounted) return;
                 showInfoMessage(context, 'Exercise removed');
               } catch (error) {
@@ -270,7 +270,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
           // Auto-save the change
           try {
-            await _workoutService.updateWorkoutImmediate();
+            await _workoutService.saveWorkoutImmediate();
             if (!context.mounted) return;
             showSuccessMessage(context, 'Exercise swapped!');
           } catch (error) {
@@ -297,9 +297,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   }
 
   /// Save current workout session state to storage
-  Future<void> _updateWorkout() async {
+  Future<void> _saveWorkout() async {
     try {
-      await _workoutService.updateWorkout();
+      await _workoutService.saveWorkout();
     } catch (error) {
       // Silent error - don't interrupt workout flow
       if (kDebugMode) {
@@ -432,7 +432,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
               onPressed: () async {
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
                 try {
-                  await _workoutService.updateWorkoutImmediate();
+                  await _workoutService.saveWorkoutImmediate();
                   if (!mounted) return;
                   scaffoldMessenger.showSnackBar(
                     const SnackBar(
@@ -594,7 +594,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                             });
 
                             // Auto-save the change
-                            await _updateWorkout();
+                            await _saveWorkout();
                           },
                           onSetUpdated: (setIndex, weight, reps, notes,
                               markAsCompleted) async {
@@ -607,14 +607,14 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                                       markAsCompleted: markAsCompleted);
                             });
 
-                            await _updateWorkout();
+                            await _saveWorkout();
                           },
                           onAddSet: () async {
                             setState(() {
                               workoutSession.exercises[index].addSet();
                             });
 
-                            await _updateWorkout();
+                            await _saveWorkout();
                           },
                         ),
                       );

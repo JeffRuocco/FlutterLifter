@@ -50,12 +50,13 @@ class WorkoutService {
     await _saveWorkout();
   }
 
-  /// Update the current workout session
+  /// Trigger a debounced save operation for the current workout session
   ///
   /// Call this method after making any changes to the workout
-  /// (e.g., completing sets, adding exercises, updating weights)
-  /// Uses debouncing to prevent duplicate saves within 500ms
-  Future<void> updateWorkout() async {
+  /// (e.g., completing sets, adding exercises, updating weights).
+  /// This method schedules a save using debouncing to prevent duplicate saves within 500ms,
+  /// rather than saving the workout immediately.
+  Future<void> saveWorkout() async {
     if (_currentWorkout != null) {
       // Cancel any pending debounced save
       _debounceTimer?.cancel();
@@ -67,9 +68,9 @@ class WorkoutService {
     }
   }
 
-  /// Update workout immediately without debouncing
+  /// Save workout immediately without debouncing
   /// Use for critical operations like starting/finishing workouts
-  Future<void> updateWorkoutImmediate() async {
+  Future<void> saveWorkoutImmediate() async {
     if (_currentWorkout != null) {
       // Cancel any pending debounced save since we're saving now
       _debounceTimer?.cancel();

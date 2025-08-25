@@ -85,7 +85,7 @@ class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
   /// Update workout data and trigger save
   Future<void> _updateWorkoutData() async {
     try {
-      await _workoutService.updateWorkout();
+      await _workoutService.saveWorkout();
       // No need to show success message for auto-save
     } catch (error) {
       if (mounted) {
