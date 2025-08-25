@@ -64,20 +64,30 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     _repsFocusNode = FocusNode();
     _notesFocusNode = FocusNode();
 
-    // Add listeners to save when focus is lost
-    _addFocusLostListener(_weightFocusNode);
-    _addFocusLostListener(_repsFocusNode);
-    _addFocusLostListener(_notesFocusNode);
-  }
-
-  void _addFocusLostListener(FocusNode node) {
-    node.addListener(() {
-      if (!node.hasFocus) {
+    // Define listeners
+    _weightFocusListener = () {
+      if (!_weightFocusNode.hasFocus) {
         _onInputFinished();
       }
-    });
+    };
+    _repsFocusListener = () {
+      if (!_repsFocusNode.hasFocus) {
+        _onInputFinished();
+      }
+    };
+    _notesFocusListener = () {
+      if (!_notesFocusNode.hasFocus) {
+        _onInputFinished();
+      }
+    };
+
+    // Add listeners to save when focus is lost
+    _weightFocusNode.addListener(_weightFocusListener);
+    _repsFocusNode.addListener(_repsFocusListener);
+    _notesFocusNode.addListener(_notesFocusListener);
   }
 
+  // _addFocusLostListener is no longer needed.
   void _initializeControllers() {
     // Initialize weight controller
     final weightValue = widget.exerciseSet.actualWeight;
