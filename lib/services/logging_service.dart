@@ -95,8 +95,7 @@ class LoggingService {
     talker.info('▶️ Workout resumed: $programName');
   }
 
-  /// Log updated workout session.
-  /// Will print entire contents of [updatedWorkout].
+  /// Will log entire contents of [updatedWorkout].
   static void logWorkoutUpdated(String programName,
       {WorkoutSession? updatedWorkout}) {
     if (updatedWorkout != null) {
