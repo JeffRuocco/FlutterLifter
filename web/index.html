@@ -147,8 +147,16 @@
         return false;
       });
 
-      // Prevent text selection on drag
+      // Prevent text selection on drag, but allow in input fields
       document.addEventListener('selectstart', function(e) {
+        // Allow text selection in input fields, textareas, and contenteditable elements
+        if (e.target.tagName === 'INPUT' || 
+            e.target.tagName === 'TEXTAREA' || 
+            e.target.contentEditable === 'true' ||
+            e.target.closest('input') || 
+            e.target.closest('textarea')) {
+          return true;
+        }
         e.preventDefault();
         return false;
       });
