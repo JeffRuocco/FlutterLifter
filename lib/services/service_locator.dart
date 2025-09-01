@@ -6,6 +6,8 @@ import '../core/network/network_info.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../services/workout_service.dart';
+import '../services/app_settings_service.dart';
+import '../services/logging_service.dart';
 
 /// Simple service locator for dependency injection
 class ServiceLocator {
@@ -41,6 +43,14 @@ class ServiceLocator {
     register<NetworkInfo>(const MockNetworkInfo(isConnected: true));
     register<ApiService>(MockApiService());
 
+    // Register app settings service and initialize it
+    final settingsService = AppSettingsService();
+    await settingsService.init();
+    register<AppSettingsService>(settingsService);
+
+    // Initialize logging service
+    await LoggingService.init(settingsService);
+
     // Register data sources
     register<MockProgramDataSource>(MockProgramDataSource());
     register<ProgramLocalDataSource>(ProgramLocalDataSourceImpl());
@@ -65,6 +75,14 @@ class ServiceLocator {
         InMemoryStorageService()); // Would use SharedPreferences/Hive
     register<NetworkInfo>(NetworkInfoImpl()); // Would use connectivity_plus
     register<ApiService>(HttpApiService());
+
+    // Register app settings service and initialize it
+    final settingsService = AppSettingsService();
+    await settingsService.init();
+    register<AppSettingsService>(settingsService);
+
+    // Initialize logging service
+    await LoggingService.init(settingsService);
 
     // Register production data sources
     register<ProgramApiDataSource>(HttpProgramApiDataSource());

@@ -1,6 +1,7 @@
 # TODO
 
-- [ ] **Add logging service**
+- [X] **Add logging service**
+  - [ ] **Connect Firebase logging**
 - [ ] **Add exercise repository**
 - [x] **WorkoutService Implementation**
   - [x] Create WorkoutService class with auto-save functionality

@@ -35,6 +35,17 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   hugeicons: ^0.0.7
+  
+  # Logging and Debugging
+  talker: ^4.4.1
+  talker_flutter: ^4.4.1
+  
+  # Firebase integration for remote logging
+  firebase_core: ^3.4.0
+  firebase_crashlytics: ^4.1.0
+  
+  # App settings and storage
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

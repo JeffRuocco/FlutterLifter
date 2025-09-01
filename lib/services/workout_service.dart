@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
+import 'logging_service.dart';
 
 /// Service for managing workout sessions with automatic persistence
 ///
@@ -38,8 +38,11 @@ class WorkoutService {
   /// - Begin auto-save functionality
   /// - Perform initial save
   Future<void> startWorkout(WorkoutSession session) async {
+    LoggingService.logWorkoutStart(session.programName ?? 'Unknown Program');
+
     // End any existing workout first
     if (_currentWorkout?.isInProgress == true) {
+      LoggingService.warning('Ending previous workout to start new one');
       await finishWorkout();
     }
 
@@ -48,6 +51,8 @@ class WorkoutService {
     session.start();
     _startAutoSave();
     await _saveWorkout();
+
+    LoggingService.info('Workout started successfully with auto-save enabled');
   }
 
   /// Trigger a debounced save operation for the current workout session
@@ -62,6 +67,7 @@ class WorkoutService {
       _debounceTimer?.cancel();
 
       // Schedule a new debounced save
+      LoggingService.debug('Scheduling workout save: ${_currentWorkout!.id}');
       _debounceTimer = Timer(_debounceInterval, () async {
         await _saveWorkout();
       });
@@ -72,12 +78,10 @@ class WorkoutService {
   /// Use for critical operations like starting/finishing workouts
   Future<void> saveWorkoutImmediate() async {
     if (_currentWorkout != null) {
+      LoggingService.debug(
+          'Immediate workout save: ${_currentWorkout!.id} at ${DateTime.now()}');
       // Cancel any pending debounced save since we're saving now
       _debounceTimer?.cancel();
-      if (kDebugMode) {
-        print(
-            'Immediate workout update: ${_currentWorkout!.id} at ${DateTime.now()}');
-      }
       await _saveWorkout();
     }
   }
@@ -92,6 +96,9 @@ class WorkoutService {
   Future<void> finishWorkout() async {
     if (_currentWorkout != null) {
       _currentWorkout!.endTime = DateTime.now();
+      LoggingService.logWorkoutComplete(
+          _currentWorkout!.programName ?? 'Unknown Program',
+          _currentWorkout!.duration ?? Duration.zero);
       await _saveWorkout();
       _stopAutoSave();
       _currentWorkout = null;
@@ -103,6 +110,14 @@ class WorkoutService {
   /// Use this if the user wants to discard the workout
   Future<void> cancelWorkout() async {
     if (_currentWorkout != null) {
+      final startTime = _currentWorkout!.startTime;
+      final duration = _currentWorkout!.duration ??
+          (startTime != null
+              ? DateTime.now().difference(startTime)
+              : Duration.zero);
+
+      LoggingService.logWorkoutCanceled(
+          _currentWorkout!.programName ?? 'Unknown Program', duration);
       _stopAutoSave();
       await _deleteWorkout(_currentWorkout!.id);
       _currentWorkout = null;
@@ -117,6 +132,8 @@ class WorkoutService {
     if (workout != null && !workout.isCompleted) {
       _currentWorkout = workout;
       _lastSavedHash = workout.hash; // Set hash to current state
+      LoggingService.logWorkoutResumed(
+          workout.programName ?? 'Unknown Program');
       _startAutoSave();
     }
   }
@@ -154,6 +171,7 @@ class WorkoutService {
 
   /// Start automatic saving every 30 seconds
   void _startAutoSave() {
+    LoggingService.debug('Starting auto-save timer');
     _stopAutoSave(); // Ensure no duplicate timers
     _autoSaveTimer = Timer.periodic(_autoSaveInterval, (_) {
       if (_currentWorkout?.isInProgress == true) {
@@ -164,6 +182,7 @@ class WorkoutService {
 
   /// Stop automatic saving
   void _stopAutoSave() {
+    LoggingService.debug('Stopping auto-save timer');
     _autoSaveTimer?.cancel();
     _autoSaveTimer = null;
   }
@@ -176,24 +195,20 @@ class WorkoutService {
 
       // Only save if the workout has actually changed
       if (_lastSavedHash != null && _lastSavedHash == currentHash) {
-        if (kDebugMode) {
-          print('Workout unchanged, skipping save: ${_currentWorkout!.id}');
-        }
+        LoggingService.debug(
+            'Workout unchanged, skipping save: ${_currentWorkout!.id}');
         return;
       }
 
       try {
         await _programRepository.saveWorkoutSession(_currentWorkout!);
         _lastSavedHash = currentHash; // Update the saved hash
-        if (kDebugMode) {
-          print('Saving workout: ${_currentWorkout!.id} at ${DateTime.now()}');
-        }
+        LoggingService.debug(
+            'Saving workout: ${_currentWorkout!.id} at ${DateTime.now()}');
       } catch (e) {
         // Log error but don't throw - we don't want to interrupt the workout
         // In a real app, you might want to show a non-intrusive error message
-        if (kDebugMode) {
-          print('Failed to save workout: $e');
-        }
+        LoggingService.error('Failed to save workout: $e');
       }
     }
   }
@@ -201,11 +216,10 @@ class WorkoutService {
   /// Load a workout session from the repository
   Future<WorkoutSession?> _loadWorkout(String workoutId) async {
     try {
+      LoggingService.debug('Loading workout: $workoutId');
       return await _programRepository.getWorkoutSessionById(workoutId);
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to load workout: $e');
-      }
+      LoggingService.error('Failed to load workout: $e');
       return null;
     }
   }
@@ -213,11 +227,10 @@ class WorkoutService {
   /// Delete a workout session from the repository
   Future<void> _deleteWorkout(String workoutId) async {
     try {
+      LoggingService.debug('Deleting workout: $workoutId');
       await _programRepository.deleteWorkoutSession(workoutId);
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to delete workout: $e');
-      }
+      LoggingService.error('Failed to delete workout: $e');
     }
   }
 
