@@ -65,28 +65,24 @@ class LoggingService {
   }
 
   // Workout-specific logging methods
-  static void logWorkoutStart(String programName,
-      {Map<String, dynamic>? data}) {
+  static void logWorkoutStart(String programName) {
     talker.info('🏋️ Workout started: $programName');
   }
 
-  static void logWorkoutComplete(String programName, Duration duration,
-      {Map<String, dynamic>? data}) {
+  static void logWorkoutComplete(String programName, Duration duration) {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     talker.info('✅ Workout completed: $programName in ${minutes}m ${seconds}s');
   }
 
-  static void logWorkoutCanceled(String programName, Duration duration,
-      {Map<String, dynamic>? data}) {
+  static void logWorkoutCanceled(String programName, Duration duration) {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     talker
         .info('❌ Workout canceled: $programName after ${minutes}m ${seconds}s');
   }
 
-  static void logWorkoutPaused(String programName,
-      {Map<String, dynamic>? data}) {
+  static void logWorkoutPaused(String programName) {
     talker.info('⏸️ Workout paused: $programName');
   }
 
