@@ -191,73 +191,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Developer Options Section (only show if in development or debug already enabled)
-                  if (kDebugMode || _debugModeEnabled) ...[
-                    _buildSectionTitle('Developer Options'),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.amber[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.amber[200]!),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.warning_amber_rounded,
-                                color: Colors.amber[800],
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Developer Mode',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.amber[800],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Enable debug features and logging tools. Only enable if you need to troubleshoot issues or are developing the app.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.amber[700],
-                            ),
-                          ),
-                        ],
-                      ),
+                  // Developer Options Section
+                  _buildSectionTitle('Developer Options'),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.amber[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.amber[200]!),
                     ),
-                    const SizedBox(height: 8),
-                    _buildSettingsCard([
-                      _buildSwitchTile(
-                        'Enable Debug Mode',
-                        'Show debug buttons and enable developer features',
-                        _debugModeEnabled,
-                        _toggleDebugMode,
-                        Icons.developer_mode,
-                      ),
-                      if (_debugModeEnabled) ...[
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.bug_report,
-                              color: AppColors.primary),
-                          title: const Text('Debug Tools'),
-                          subtitle: const Text(
-                              'Advanced logging and debugging tools'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: _openDebugSettings,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.amber[800],
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Developer Mode',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber[800],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Enable debug features and logging tools. Only enable if you need to troubleshoot issues or are developing the app.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.amber[700],
+                          ),
                         ),
                       ],
-                    ]),
-                    const SizedBox(height: 24),
-                  ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildSettingsCard([
+                    _buildSwitchTile(
+                      'Enable Debug Mode',
+                      'Show debug buttons and enable developer features',
+                      _debugModeEnabled,
+                      _toggleDebugMode,
+                      Icons.developer_mode,
+                    ),
+                    if (_debugModeEnabled) ...[
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.bug_report,
+                            color: AppColors.primary),
+                        title: const Text('Debug Tools'),
+                        subtitle:
+                            const Text('Advanced logging and debugging tools'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: _openDebugSettings,
+                      ),
+                    ],
+                  ]),
+                  const SizedBox(height: 24),
 
                   // About Section
                   _buildSectionTitle('About'),
