@@ -5,8 +5,10 @@ import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
+import '../services/logging_service.dart';
 import 'programs_screen.dart';
 import 'workout_screen.dart';
+import 'settings_screen.dart';
 
 // TODO: get current program and in-progress or next workout
 // when user clicks "Workouts" action card, continue in progress workout or start next workout
@@ -137,6 +139,22 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: context.surfaceColor,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedSettings02,
+              color: context.onSurface,
+            ),
+            onPressed: () {
+              LoggingService.logNavigation('HomeScreen', 'SettingsScreen');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+            tooltip: 'Settings',
+          ),
           IconButton(
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedUser,

@@ -4,12 +4,14 @@ import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
 import 'package:flutter_lifter/services/service_locator.dart';
 import 'package:flutter_lifter/services/workout_service.dart';
+import 'package:flutter_lifter/services/logging_service.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
 import '../widgets/exercise_card.dart';
 import '../widgets/add_exercise_bottom_sheet.dart';
+import '../widgets/debug_action_button.dart';
 
 /// The main screen for creating and managing a workout session.
 class WorkoutScreen extends StatefulWidget {
@@ -48,10 +50,15 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
   void _initializeWorkout() {
     try {
+      LoggingService.logAppEvent(
+          'Workout screen initialized: ${widget.workoutSession.programName}');
+
       setState(() {
         _isLoading = false;
       });
     } catch (error) {
+      LoggingService.error('Failed to initialize workout screen', error);
+
       setState(() {
         _errorMessage = error.toString();
         _isLoading = false;
@@ -66,6 +73,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       setState(() {}); // Refresh UI
       showSuccessMessage(context, 'Workout started! Auto-save enabled 💪');
     } catch (error) {
+      LoggingService.logAuthError('start workout', error);
+
       if (!mounted) return;
       showErrorMessage(context, 'Failed to start workout: $error');
     }
@@ -181,6 +190,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       builder: (context) => AddExerciseBottomSheet(
         programRepository: widget.programRepository,
         onExerciseAdded: (exercise) async {
+          LoggingService.logUserAction(
+              "Add exercise to workout session: ${exercise.name}");
           setState(() {
             workoutSession.exercises.add(exercise);
           });
@@ -227,6 +238,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
+              LoggingService.logUserAction(
+                  "Remove exercise from workout session: ${workoutSession.exercises[index].name}");
               setState(() {
                 workoutSession.exercises.removeAt(index);
               });
@@ -264,6 +277,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       builder: (context) => AddExerciseBottomSheet(
         programRepository: widget.programRepository,
         onExerciseAdded: (exercise) async {
+          LoggingService.logUserAction(
+              "Swap exercise in workout session: old ${workoutSession.exercises[index].name}, new ${exercise.name}");
           setState(() {
             workoutSession.exercises[index] = exercise;
           });
@@ -423,6 +438,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         backgroundColor: context.surfaceColor,
         elevation: 0,
         actions: [
+          // Debug button (only shows when debug mode is enabled)
+          const DebugIconButton(),
           if (workoutSession.isInProgress) ...[
             IconButton(
               icon: Icon(
@@ -591,6 +608,14 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                             setState(() {
                               workoutSession.exercises[index].sets[setIndex]
                                   .toggleCompleted();
+
+                              LoggingService.logSetComplete(
+                                  workoutSession.exercises[index].name,
+                                  setIndex + 1,
+                                  workoutSession.exercises[index].sets[setIndex]
+                                      .actualWeight,
+                                  workoutSession.exercises[index].sets[setIndex]
+                                      .actualReps);
                             });
 
                             // Auto-save the change
