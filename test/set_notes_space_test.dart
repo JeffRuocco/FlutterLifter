@@ -1,7 +1,7 @@
 // Test for space input fix in set notes and other text fields
 // This test validates that spaces can be typed in note fields after fixing
 // the JavaScript selectstart event handler in web/index.html
-// 
+//
 // The fix allows text selection and input in input/textarea elements while
 // still preventing unwanted text selection elsewhere in the web app
 
@@ -12,7 +12,8 @@ import 'package:flutter_lifter/models/exercise_models.dart';
 
 void main() {
   group('Set Notes Space Input Tests', () {
-    testWidgets('Should allow typing spaces in notes field', (WidgetTester tester) async {
+    testWidgets('Should allow typing spaces in notes field',
+        (WidgetTester tester) async {
       // Create a test exercise set
       final exerciseSet = ExerciseSet.create(
         targetReps: 10,
@@ -44,7 +45,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find the notes text field
-      final notesField = find.byType(TextFormField).last; // Notes field is the last TextFormField
+      final notesField = find
+          .byType(TextFormField)
+          .last; // Notes field is the last TextFormField
       expect(notesField, findsOneWidget);
 
       // Type text with spaces
@@ -62,7 +65,8 @@ void main() {
       // The test passes if no exceptions were thrown and the text with spaces was accepted
     });
 
-    testWidgets('Should preserve spaces when updating notes', (WidgetTester tester) async {
+    testWidgets('Should preserve spaces when updating notes',
+        (WidgetTester tester) async {
       // Create a test exercise set with existing notes containing spaces
       final exerciseSet = ExerciseSet.create(
         targetReps: 10,
@@ -91,11 +95,13 @@ void main() {
       expect(find.text('Existing note with spaces'), findsOneWidget);
 
       // Add more text with spaces
-      await tester.enterText(notesField, 'Existing note with spaces and more spaces');
+      await tester.enterText(
+          notesField, 'Existing note with spaces and more spaces');
       await tester.pumpAndSettle();
 
       // Verify the updated text with spaces is accepted
-      expect(find.text('Existing note with spaces and more spaces'), findsOneWidget);
+      expect(find.text('Existing note with spaces and more spaces'),
+          findsOneWidget);
     });
   });
 }
