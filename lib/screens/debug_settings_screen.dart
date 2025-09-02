@@ -93,7 +93,8 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Verbose logging ${enabled ? 'enabled' : 'disabled'}'),
+            content:
+                Text('Verbose logging ${enabled ? 'enabled' : 'disabled'}'),
             backgroundColor: enabled ? Colors.green : Colors.orange,
           ),
         );
