@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Service for managing application settings and preferences
 class AppSettingsService {
   static const String _debugLoggingKey = 'debug_logging_enabled';
+  static const String _verboseLoggingKey = 'verbose_logging_enabled';
   static const String _debugModeKey = 'debug_mode_enabled';
 
   late SharedPreferences _prefs;
@@ -20,6 +21,16 @@ class AppSettingsService {
   /// Enable or disable debug logging
   Future<void> setDebugLoggingEnabled(bool enabled) async {
     await _prefs.setBool(_debugLoggingKey, enabled);
+  }
+
+  /// Check if verbose logging is enabled
+  Future<bool> isVerboseLoggingEnabled() async {
+    return _prefs.getBool(_verboseLoggingKey) ?? false;
+  }
+
+  /// Enable or disable verbose logging
+  Future<void> setVerboseLoggingEnabled(bool enabled) async {
+    await _prefs.setBool(_verboseLoggingKey, enabled);
   }
 
   /// Check if debug mode is enabled in app settings

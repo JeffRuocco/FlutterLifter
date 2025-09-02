@@ -17,6 +17,7 @@ class DebugSettingsScreen extends StatefulWidget {
 class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
   late AppSettingsService _settingsService;
   bool _debugLoggingEnabled = false;
+  bool _verboseLoggingEnabled = false;
   bool _isLoading = true;
 
   @override
@@ -29,9 +30,11 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
   Future<void> _loadSettings() async {
     try {
       final debugLogging = await _settingsService.isDebugLoggingEnabled();
+      final verboseLogging = await _settingsService.isVerboseLoggingEnabled();
 
       setState(() {
         _debugLoggingEnabled = debugLogging;
+        _verboseLoggingEnabled = verboseLogging;
         _isLoading = false;
       });
     } catch (e) {
@@ -68,6 +71,39 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Failed to update debug logging setting'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleVerboseLogging(bool enabled) async {
+    try {
+      await _settingsService.setVerboseLoggingEnabled(enabled);
+      await LoggingService.updateVerboseLogging(enabled);
+
+      setState(() {
+        _verboseLoggingEnabled = enabled;
+      });
+
+      LoggingService.logUserAction(
+          'Verbose logging ${enabled ? 'enabled' : 'disabled'}');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Verbose logging ${enabled ? 'enabled' : 'disabled'}'),
+            backgroundColor: enabled ? Colors.green : Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      LoggingService.error('Failed to toggle verbose logging', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to update verbose logging setting'),
             backgroundColor: Colors.red,
           ),
         );
@@ -234,10 +270,18 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
                   _buildSettingsCard([
                     _buildSwitchTile(
                       'Debug Logging',
-                      'Enable verbose logging to console',
+                      'Enable debug level logging to console',
                       _debugLoggingEnabled,
                       _toggleDebugLogging,
                       Icons.bug_report,
+                    ),
+                    const Divider(height: 1),
+                    _buildSwitchTile(
+                      'Verbose Logging',
+                      'Enable verbose level logging (most detailed)',
+                      _verboseLoggingEnabled,
+                      _toggleVerboseLogging,
+                      Icons.visibility,
                     ),
                   ]),
 

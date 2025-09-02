@@ -23,17 +23,22 @@ class LoggingService {
   static Future<void> init(AppSettingsService settingsService) async {
     _settingsService = settingsService;
 
+    final debugLoggingEnabled = await _settingsService.isDebugLoggingEnabled();
+    final verboseLoggingEnabled =
+        await _settingsService.isVerboseLoggingEnabled();
+
     _talker = TalkerFlutter.init(
       settings: TalkerSettings(
         enabled: true,
-        useConsoleLogs:
-            kDebugMode || await _settingsService.isDebugLoggingEnabled(),
+        useConsoleLogs: debugLoggingEnabled || verboseLoggingEnabled,
         useHistory: true,
         maxHistoryItems: 1000,
       ),
       logger: TalkerLogger(
         settings: TalkerLoggerSettings(
           enableColors: true,
+          // Set minimum log level based on debug and verbose settings
+          level: _determineLogLevel(debugLoggingEnabled, verboseLoggingEnabled),
         ),
       ),
     );
@@ -47,20 +52,64 @@ class LoggingService {
 
     // Log initialization
     _talker!.info('🚀 LoggingService initialized successfully');
-    _talker!.debug('Debug mode: $kDebugMode');
-    _talker!.debug(
-        'Debug logging enabled: ${await _settingsService.isDebugLoggingEnabled()}');
+    _talker!
+        .debug('Debug mode: ${await _settingsService.isDebugModeEnabled()}');
+    _talker!.debug('Debug logging enabled: $debugLoggingEnabled');
+    _talker!.debug('Verbose logging enabled: $verboseLoggingEnabled');
+  }
+
+  /// Determine the appropriate log level based on debug and verbose settings
+  static LogLevel _determineLogLevel(bool debugEnabled, bool verboseEnabled) {
+    if (verboseEnabled) {
+      return LogLevel.verbose; // Show all logs including verbose
+    } else if (debugEnabled) {
+      return LogLevel.debug; // Show debug and above
+    } else {
+      return LogLevel.info; // Show info and above only
+    }
   }
 
   /// Update logging settings when debug mode changes
   static Future<void> updateDebugLogging(bool enabled) async {
     if (_talker != null) {
+      final verboseLoggingEnabled =
+          await _settingsService.isVerboseLoggingEnabled();
+
       _talker!.configure(
         settings: _talker!.settings.copyWith(
-          useConsoleLogs: kDebugMode || enabled,
+          useConsoleLogs: enabled || verboseLoggingEnabled,
+        ),
+        logger: TalkerLogger(
+          settings: TalkerLoggerSettings(
+            enableColors: true,
+            // Update log level based on both debug and verbose settings
+            level: _determineLogLevel(enabled, verboseLoggingEnabled),
+          ),
         ),
       );
       _talker!.info('Debug logging ${enabled ? 'enabled' : 'disabled'}');
+    }
+  }
+
+  /// Update logging settings when verbose mode changes
+  static Future<void> updateVerboseLogging(bool enabled) async {
+    if (_talker != null) {
+      final debugLoggingEnabled =
+          await _settingsService.isDebugLoggingEnabled();
+
+      _talker!.configure(
+        settings: _talker!.settings.copyWith(
+          useConsoleLogs: debugLoggingEnabled || enabled,
+        ),
+        logger: TalkerLogger(
+          settings: TalkerLoggerSettings(
+            enableColors: true,
+            // Update log level based on both debug and verbose settings
+            level: _determineLogLevel(debugLoggingEnabled, enabled),
+          ),
+        ),
+      );
+      _talker!.info('Verbose logging ${enabled ? 'enabled' : 'disabled'}');
     }
   }
 
@@ -86,8 +135,7 @@ class LoggingService {
     talker.info('⏸️ Workout paused: $programName');
   }
 
-  static void logWorkoutResumed(String programName,
-      {Map<String, dynamic>? data}) {
+  static void logWorkoutResumed(String programName) {
     talker.info('▶️ Workout resumed: $programName');
   }
 
@@ -103,30 +151,27 @@ class LoggingService {
     }
   }
 
-  static void logExerciseStart(String exerciseName,
-      {Map<String, dynamic>? data}) {
+  static void logExerciseStart(String exerciseName) {
     talker.debug('🎯 Exercise started: $exerciseName');
   }
 
-  static void logExerciseComplete(String exerciseName, int sets,
-      {Map<String, dynamic>? data}) {
+  static void logExerciseComplete(String exerciseName, int sets) {
     talker.debug('✅ Exercise completed: $exerciseName ($sets sets)');
   }
 
   static void logSetComplete(
-      String exerciseName, int setNumber, double? weight, int? reps,
-      {Map<String, dynamic>? data}) {
+      String exerciseName, int setNumber, double? weight, int? reps) {
     talker.debug(
         'Set completed: $exerciseName Set $setNumber - ${weight ?? "BW"} x ${reps ?? "N/A"} reps');
   }
 
   // Authentication logging
-  static void logAuthEvent(String event, {Map<String, dynamic>? data}) {
+  static void logAuthEvent(String event) {
     talker.info('🔐 Auth: $event');
   }
 
   static void logAuthError(String event, Object error,
-      {StackTrace? stackTrace, Map<String, dynamic>? data}) {
+      {StackTrace? stackTrace}) {
     talker.error('🔐❌ Auth Error: $event - $error');
     if (!kDebugMode) {
       FirebaseCrashlytics.instance
@@ -135,13 +180,11 @@ class LoggingService {
   }
 
   // API and network logging
-  static void logApiRequest(String method, String endpoint,
-      {Map<String, dynamic>? data}) {
+  static void logApiRequest(String method, String endpoint) {
     talker.debug('🌐 API Request: $method $endpoint');
   }
 
-  static void logApiResponse(String method, String endpoint, int statusCode,
-      {Map<String, dynamic>? data}) {
+  static void logApiResponse(String method, String endpoint, int statusCode) {
     if (statusCode >= 200 && statusCode < 300) {
       talker.debug('🌐✅ API Success: $method $endpoint ($statusCode)');
     } else {
@@ -150,7 +193,7 @@ class LoggingService {
   }
 
   static void logApiError(String method, String endpoint, Object error,
-      {StackTrace? stackTrace, Map<String, dynamic>? data}) {
+      {StackTrace? stackTrace}) {
     talker.error('🌐❌ API Error: $method $endpoint - $error');
     if (!kDebugMode) {
       FirebaseCrashlytics.instance.recordError(error, stackTrace,
@@ -159,16 +202,16 @@ class LoggingService {
   }
 
   // Data persistence logging
-  static void logDataSave(String dataType, {Map<String, dynamic>? data}) {
+  static void logDataSave(String dataType) {
     talker.debug('💾 Data saved: $dataType');
   }
 
-  static void logDataLoad(String dataType, {Map<String, dynamic>? data}) {
+  static void logDataLoad(String dataType) {
     talker.debug('📂 Data loaded: $dataType');
   }
 
   static void logDataError(String operation, String dataType, Object error,
-      {StackTrace? stackTrace, Map<String, dynamic>? data}) {
+      {StackTrace? stackTrace}) {
     talker.error('💾❌ Data Error: $operation $dataType - $error');
     if (!kDebugMode) {
       FirebaseCrashlytics.instance.recordError(error, stackTrace,
@@ -177,37 +220,38 @@ class LoggingService {
   }
 
   // Navigation logging
-  static void logNavigation(String from, String to,
-      {Map<String, dynamic>? data}) {
+  static void logNavigation(String from, String to) {
     talker.debug('🧭 Navigation: $from → $to');
   }
 
   // Performance logging
-  static void logPerformance(String operation, Duration duration,
-      {Map<String, dynamic>? data}) {
+  static void logPerformance(String operation, Duration duration) {
     talker.debug('⚡ Performance: $operation took ${duration.inMilliseconds}ms');
   }
 
   // General application events
-  static void logAppEvent(String event, {Map<String, dynamic>? data}) {
+  static void logAppEvent(String event) {
     talker.info('📱 App Event: $event');
   }
 
   // Custom logging methods for different levels
-  static void debug(String message, [Object? data]) {
+  static void verbose(String message) {
+    talker.verbose(message);
+  }
+
+  static void debug(String message) {
     talker.debug(message);
   }
 
-  static void info(String message, [Object? data]) {
+  static void info(String message) {
     talker.info(message);
   }
 
-  static void warning(String message, [Object? data]) {
+  static void warning(String message) {
     talker.warning(message);
   }
 
-  static void error(String message,
-      [Object? error, StackTrace? stackTrace, Object? data]) {
+  static void error(String message, [Object? error, StackTrace? stackTrace]) {
     talker.error(message);
     if (!kDebugMode && error != null) {
       FirebaseCrashlytics.instance
@@ -216,7 +260,7 @@ class LoggingService {
   }
 
   static void critical(String message,
-      [Object? error, StackTrace? stackTrace, Object? data]) {
+      [Object? error, StackTrace? stackTrace]) {
     talker.critical(message);
     if (!kDebugMode && error != null) {
       FirebaseCrashlytics.instance
@@ -225,11 +269,11 @@ class LoggingService {
   }
 
   // Utility methods
-  static void logUserAction(String action, {Map<String, dynamic>? data}) {
+  static void logUserAction(String action) {
     talker.info('👤 User Action: $action');
   }
 
-  static void logBusinessLogic(String operation, {Map<String, dynamic>? data}) {
+  static void logBusinessLogic(String operation) {
     talker.debug('🔧 Business Logic: $operation');
   }
 
