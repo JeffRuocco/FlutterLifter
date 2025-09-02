@@ -23,6 +23,7 @@ class LoggingService {
   static Future<void> init(AppSettingsService settingsService) async {
     _settingsService = settingsService;
 
+    final debugModeEnabled = await _settingsService.isDebugModeEnabled();
     final debugLoggingEnabled = await _settingsService.isDebugLoggingEnabled();
     final verboseLoggingEnabled =
         await _settingsService.isVerboseLoggingEnabled();
@@ -52,8 +53,7 @@ class LoggingService {
 
     // Log initialization
     _talker!.info('🚀 LoggingService initialized successfully');
-    _talker!
-        .debug('Debug mode: ${await _settingsService.isDebugModeEnabled()}');
+    _talker!.debug('Debug mode: $debugModeEnabled');
     _talker!.debug('Debug logging enabled: $debugLoggingEnabled');
     _talker!.debug('Verbose logging enabled: $verboseLoggingEnabled');
   }
