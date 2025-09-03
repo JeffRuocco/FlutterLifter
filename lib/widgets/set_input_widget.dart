@@ -35,16 +35,12 @@ class SetInputWidget extends StatefulWidget {
 class _SetInputWidgetState extends State<SetInputWidget> {
   late TextEditingController _weightController;
   late TextEditingController _repsController;
-  late FocusNode _weightFocusNode;
-  late FocusNode _repsFocusNode;
-  late FocusNode _notesFocusNode;
   bool _showNotes = false;
   final TextEditingController _notesController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _initializeFocusNodes();
     _initializeControllers();
   }
 
@@ -53,38 +49,9 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     _weightController.dispose();
     _repsController.dispose();
     _notesController.dispose();
-    _weightFocusNode.dispose();
-    _repsFocusNode.dispose();
-    _notesFocusNode.dispose();
     super.dispose();
   }
 
-  void _initializeFocusNodes() {
-    _weightFocusNode = FocusNode();
-    _repsFocusNode = FocusNode();
-    _notesFocusNode = FocusNode();
-
-    // Define listeners
-    _weightFocusNode.addListener(() {
-      if (!_weightFocusNode.hasFocus) {
-        _onInputFinished();
-      }
-    });
-
-    _repsFocusNode.addListener(() {
-      if (!_repsFocusNode.hasFocus) {
-        _onInputFinished();
-      }
-    });
-
-    _notesFocusNode.addListener(() {
-      if (!_notesFocusNode.hasFocus) {
-        _onInputFinished();
-      }
-    });
-  }
-
-  // _addFocusLostListener is no longer needed.
   void _initializeControllers() {
     // Initialize weight controller
     final weightValue = widget.exerciseSet.actualWeight;
@@ -143,8 +110,9 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   }
 
   void _onInputFinished() {
-    final weight = double.tryParse(_weightController.text);
-    final reps = int.tryParse(_repsController.text);
+    FocusScope.of(context).unfocus();
+    final weight = double.tryParse(_weightController.text.trim());
+    final reps = int.tryParse(_repsController.text.trim());
     final notes = _notesController.text.trim().isEmpty
         ? null
         : _notesController.text.trim();
@@ -266,7 +234,6 @@ class _SetInputWidgetState extends State<SetInputWidget> {
                       const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                   child: _buildInputField(
                     controller: _weightController,
-                    focusNode: _weightFocusNode,
                     enabled: isEditable,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
@@ -292,7 +259,6 @@ class _SetInputWidgetState extends State<SetInputWidget> {
                       const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                   child: _buildInputField(
                     controller: _repsController,
-                    focusNode: _repsFocusNode,
                     enabled: isEditable,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
@@ -408,101 +374,46 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   Widget _buildInputField({
     required TextEditingController controller,
     required bool enabled,
-    FocusNode? focusNode,
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     String? suffix,
     String? placeholder,
   }) {
-    return TextFormField(
+    return AppTextFormField(
       controller: controller,
-      focusNode: focusNode,
       enabled: enabled,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       textAlign: TextAlign.center,
       onFieldSubmitted: (_) => _onInputFinished(),
       onEditingComplete: _onInputFinished,
-      style: AppTextStyles.bodyMedium.copyWith(
-        color: enabled ? context.textPrimary : context.textSecondary,
-        fontWeight: FontWeight.w500,
-      ),
-      decoration: InputDecoration(
-        hintText: placeholder,
-        hintStyle: AppTextStyles.bodyMedium.copyWith(
-          color: context.textSecondary.withValues(alpha: 0.6),
-        ),
-        suffixText: suffix,
-        suffixStyle: AppTextStyles.labelSmall.copyWith(
-          color: context.textSecondary,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
-          borderSide: BorderSide(color: context.outlineVariant),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
-          borderSide: BorderSide(color: context.outlineVariant),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
-          borderSide: BorderSide(color: context.primaryColor),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
-          borderSide:
-              BorderSide(color: context.outlineVariant.withValues(alpha: 0.5)),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.sm,
-        ),
-        isDense: true,
-      ),
+      onTapOutside: (_) => _onInputFinished(),
+      hintText: placeholder,
+      suffixText: suffix,
+      isDense: true,
     );
   }
 
   Widget _buildNotesField() {
-    return TextFormField(
+    return AppTextFormField(
       controller: _notesController,
-      focusNode: _notesFocusNode,
       enabled: widget.isWorkoutStarted,
       maxLines: 2,
       onFieldSubmitted: (_) => _onInputFinished(),
       onEditingComplete: _onInputFinished,
-      style: AppTextStyles.bodySmall.copyWith(
-        color: context.textPrimary,
-      ),
-      decoration: InputDecoration(
-        hintText: 'Add notes for this set...',
-        hintStyle: AppTextStyles.bodySmall.copyWith(
-          color: context.textSecondary.withValues(alpha: 0.6),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
-          borderSide: BorderSide(color: context.outlineVariant),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
-          borderSide: BorderSide(color: context.outlineVariant),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
-          borderSide: BorderSide(color: context.primaryColor),
-        ),
-        contentPadding: const EdgeInsets.all(AppSpacing.sm),
-        isDense: true,
-        suffixIcon: _showNotes && (widget.exerciseSet.notes?.isEmpty ?? true)
-            ? IconButton(
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCancel01,
-                  color: context.textSecondary,
-                  size: AppDimensions.iconMedium,
-                ),
-                onPressed: () => setState(() => _showNotes = false),
-              )
-            : null,
-      ),
+      onTapOutside: (_) => _onInputFinished(),
+      hintText: 'Add notes for this set...',
+      isDense: true,
+      suffixIcon: _showNotes && (widget.exerciseSet.notes?.isEmpty ?? true)
+          ? IconButton(
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                color: context.textSecondary,
+                size: AppDimensions.iconMedium,
+              ),
+              onPressed: () => setState(() => _showNotes = false),
+            )
+          : null,
     );
   }
 }
