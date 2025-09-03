@@ -52,7 +52,6 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     super.dispose();
   }
 
-  // _addFocusLostListener is no longer needed.
   void _initializeControllers() {
     // Initialize weight controller
     final weightValue = widget.exerciseSet.actualWeight;
