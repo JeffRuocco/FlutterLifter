@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_dimensions.dart';
@@ -198,46 +199,73 @@ enum AppButtonType { elevated, outlined, text }
 class AppTextFormField extends StatelessWidget {
   final String? labelText;
   final String? hintText;
+  final String? suffixText;
+  final bool isDense;
+  final List<TextInputFormatter>? inputFormatters;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
+  final TextAlign textAlign;
   final bool obscureText;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final int? maxLines;
   final bool enabled;
   final void Function(String)? onChanged;
+  final void Function(String)? onFieldSubmitted;
+  final VoidCallback? onEditingComplete;
+  final void Function(PointerDownEvent)? onTapOutside;
 
   const AppTextFormField({
     super.key,
     this.labelText,
     this.hintText,
+    this.suffixText,
+    this.isDense = false,
+    this.inputFormatters,
     this.controller,
     this.validator,
     this.keyboardType,
+    this.textAlign = TextAlign.start,
     this.obscureText = false,
     this.prefixIcon,
     this.suffixIcon,
     this.maxLines = 1,
     this.enabled = true,
     this.onChanged,
+    this.onFieldSubmitted,
+    this.onEditingComplete,
+    this.onTapOutside,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      inputFormatters: inputFormatters,
       controller: controller,
       validator: validator,
       keyboardType: keyboardType,
+      textAlign: textAlign,
       obscureText: obscureText,
       maxLines: maxLines,
       enabled: enabled,
       onChanged: onChanged,
+      onEditingComplete: onEditingComplete,
+      onFieldSubmitted: onFieldSubmitted,
+      onTapOutside: onTapOutside,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
+        suffixText: suffixText,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
+        contentPadding: isDense
+            ? const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.sm,
+              )
+            : null,
+        isDense: isDense,
       ),
     );
   }
