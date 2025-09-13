@@ -1,4 +1,5 @@
 import 'package:flutter_lifter/models/shared_enums.dart';
+import 'package:flutter_lifter/models/operation_result.dart';
 import 'package:flutter_lifter/utils/utils.dart';
 
 /// Represents a single set within an exercise
@@ -34,10 +35,10 @@ class ExerciseSet {
   }) : id = Utils.generateId();
 
   /// Returns whether this set has target values
-  bool get hasTargets => targetReps != null || targetWeight != null;
+  bool get hasTargets => targetReps != null && targetWeight != null;
 
   /// Returns whether this set has been logged with actual values
-  bool get isLogged => actualReps != null || actualWeight != null;
+  bool get isLogged => actualReps != null && actualWeight != null;
 
   /// Returns the display text for reps (actual if available, otherwise target)
   String get displayReps {
@@ -49,9 +50,26 @@ class ExerciseSet {
     return '--';
   }
 
-  /// Toggles the completion state of this set
-  void toggleCompleted() {
-    isCompleted ? markIncomplete() : markCompleted();
+  /// Toggles the completion state of this set.
+  /// Returns a SetOperationResult indicating the outcome.
+  OperationResult toggleCompleted() {
+    if (!isLogged && !hasTargets) {
+      return const OperationWarning(
+        message: "Record your weight and reps before completing a set",
+      );
+    }
+
+    if (isCompleted) {
+      markIncomplete();
+      return const OperationInfo(
+        message: 'Set marked as incomplete',
+      );
+    } else {
+      markCompleted();
+      return const OperationSuccess(
+        message: 'Set completed! 💪',
+      );
+    }
   }
 
   /// Marks this set as completed

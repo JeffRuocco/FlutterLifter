@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FLUTTER_VERSION: '3.32.x'
+  FLUTTER_VERSION: '3.35.x'
 
 jobs:
   # Job 1: Build and deploy web version

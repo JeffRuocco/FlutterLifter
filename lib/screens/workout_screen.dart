@@ -2,9 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
+import 'package:flutter_lifter/models/operation_result.dart';
 import 'package:flutter_lifter/services/service_locator.dart';
 import 'package:flutter_lifter/services/workout_service.dart';
 import 'package:flutter_lifter/services/logging_service.dart';
+import 'package:flutter_lifter/utils/operation_ui_handler.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
@@ -606,16 +608,20 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                           onToggleSetCompleted: (setIndex) async {
                             // TODO: start rest timer based on set.restTime
                             setState(() {
-                              workoutSession.exercises[index].sets[setIndex]
+                              final result = workoutSession
+                                  .exercises[index].sets[setIndex]
                                   .toggleCompleted();
+                              OperationUIHandler.handleResult(context, result);
 
-                              LoggingService.logSetComplete(
-                                  workoutSession.exercises[index].name,
-                                  setIndex + 1,
-                                  workoutSession.exercises[index].sets[setIndex]
-                                      .actualWeight,
-                                  workoutSession.exercises[index].sets[setIndex]
-                                      .actualReps);
+                              if (result is OperationSuccess) {
+                                LoggingService.logSetComplete(
+                                    workoutSession.exercises[index].name,
+                                    setIndex + 1,
+                                    workoutSession.exercises[index]
+                                        .sets[setIndex].actualWeight,
+                                    workoutSession.exercises[index]
+                                        .sets[setIndex].actualReps);
+                              }
                             });
 
                             // Auto-save the change

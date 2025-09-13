@@ -127,8 +127,6 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     } else {
       // Call the completion toggle callback
       widget.onCompletedToggle?.call();
-      HapticFeedback.mediumImpact();
-      showSuccessMessage(context, 'Set completed! 💪', duration: 2);
     }
   }
 
@@ -137,8 +135,6 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     if (!widget.isWorkoutStarted) return;
 
     widget.onCompletedToggle?.call();
-    HapticFeedback.mediumImpact();
-    showInfoMessage(context, 'Set marked as incomplete', duration: 2);
   }
 
   void _showUnmarkConfirmation() {
@@ -171,7 +167,6 @@ class _SetInputWidgetState extends State<SetInputWidget> {
             onPressed: () {
               Navigator.pop(context);
               widget.onCompletedToggle?.call();
-              showInfoMessage(context, 'Set marked as incomplete', duration: 2);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: context.errorColor,
