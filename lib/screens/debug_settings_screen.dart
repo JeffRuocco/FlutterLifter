@@ -401,7 +401,7 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: AppColors.primary,
+        activeThumbColor: AppColors.primary,
       ),
     );
   }

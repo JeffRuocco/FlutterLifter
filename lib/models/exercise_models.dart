@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_lifter/core/theme/theme_utils.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
+import 'package:flutter_lifter/models/operation_result.dart';
 import 'package:flutter_lifter/utils/utils.dart';
 
 /// Represents a single set within an exercise
@@ -53,23 +51,24 @@ class ExerciseSet {
   }
 
   /// Toggles the completion state of this set.
-  /// If the set is not logged and has no targets, it cannot be completed.
-  /// In this case, an error will be returned.
-  void toggleCompleted(BuildContext context) {
+  /// Returns a SetOperationResult indicating the outcome.
+  OperationResult toggleCompleted() {
     if (!isLogged && !hasTargets) {
-      showWarningMessage(
-          context, "Record your weight and reps before completing a set");
-      throw Exception('Cannot complete set: no targets or actuals present');
+      return const OperationWarning(
+        message: "Record your weight and reps before completing a set",
+      );
     }
 
     if (isCompleted) {
       markIncomplete();
-      HapticFeedback.mediumImpact();
-      showInfoMessage(context, 'Set marked as incomplete', duration: 2);
+      return const OperationInfo(
+        message: 'Set marked as incomplete',
+      );
     } else {
       markCompleted();
-      HapticFeedback.mediumImpact();
-      showSuccessMessage(context, 'Set completed! 💪', duration: 2);
+      return const OperationSuccess(
+        message: 'Set completed! 💪',
+      );
     }
   }
 
