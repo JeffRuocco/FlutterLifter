@@ -7,30 +7,22 @@ import 'package:flutter_lifter/models/operation_result.dart';
 class OperationUIHandler {
   /// Shows appropriate UI feedback based on the operation result
   static void handleResult(BuildContext context, OperationResult result) {
-    switch (result.runtimeType) {
-      case OperationSuccess:
-        final success = result as OperationSuccess;
-        HapticFeedback.mediumImpact();
-        showSuccessMessage(context, success.message, duration: 2);
-        break;
-
-      case OperationInfo:
-        final info = result as OperationInfo;
-        HapticFeedback.lightImpact();
-        showInfoMessage(context, info.message, duration: 2);
-        break;
-
-      case OperationWarning:
-        final warning = result as OperationWarning;
-        HapticFeedback.mediumImpact();
-        showWarningMessage(context, warning.message, duration: 5);
-        break;
-
-      case OperationError:
-        final error = result as OperationError;
-        HapticFeedback.heavyImpact();
-        showErrorMessage(context, error.message, duration: 5);
-        break;
+    if (result is OperationSuccess) {
+      final success = result;
+      HapticFeedback.mediumImpact();
+      showSuccessMessage(context, success.message, duration: 2);
+    } else if (result is OperationInfo) {
+      final info = result;
+      HapticFeedback.lightImpact();
+      showInfoMessage(context, info.message, duration: 2);
+    } else if (result is OperationWarning) {
+      final warning = result;
+      HapticFeedback.mediumImpact();
+      showWarningMessage(context, warning.message, duration: 5);
+    } else if (result is OperationError) {
+      final error = result;
+      HapticFeedback.heavyImpact();
+      showErrorMessage(context, error.message, duration: 5);
     }
   }
 
