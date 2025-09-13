@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_lifter/core/theme/theme_utils.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:flutter_lifter/utils/utils.dart';
 
@@ -34,10 +37,10 @@ class ExerciseSet {
   }) : id = Utils.generateId();
 
   /// Returns whether this set has target values
-  bool get hasTargets => targetReps != null || targetWeight != null;
+  bool get hasTargets => targetReps != null && targetWeight != null;
 
   /// Returns whether this set has been logged with actual values
-  bool get isLogged => actualReps != null || actualWeight != null;
+  bool get isLogged => actualReps != null && actualWeight != null;
 
   /// Returns the display text for reps (actual if available, otherwise target)
   String get displayReps {
@@ -49,9 +52,25 @@ class ExerciseSet {
     return '--';
   }
 
-  /// Toggles the completion state of this set
-  void toggleCompleted() {
-    isCompleted ? markIncomplete() : markCompleted();
+  /// Toggles the completion state of this set.
+  /// If the set is not logged and has no targets, it cannot be completed.
+  /// In this case, an error will be returned.
+  void toggleCompleted(BuildContext context) {
+    if (!isLogged && !hasTargets) {
+      showWarningMessage(
+          context, "Record your weight and reps before completing a set");
+      throw Exception('Cannot complete set: no targets or actuals present');
+    }
+
+    if (isCompleted) {
+      markIncomplete();
+      HapticFeedback.mediumImpact();
+      showInfoMessage(context, 'Set marked as incomplete', duration: 2);
+    } else {
+      markCompleted();
+      HapticFeedback.mediumImpact();
+      showSuccessMessage(context, 'Set completed! 💪', duration: 2);
+    }
   }
 
   /// Marks this set as completed

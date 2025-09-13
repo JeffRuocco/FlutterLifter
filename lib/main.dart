@@ -39,7 +39,7 @@ void main() async {
 class FlutterLifterApp extends StatelessWidget {
   const FlutterLifterApp({super.key});
 
-  // TODO: route to login page if user is not authenticated
+  // TODO: Implement route guard for home screen
 
   @override
   Widget build(BuildContext context) {

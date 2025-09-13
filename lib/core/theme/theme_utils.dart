@@ -341,11 +341,12 @@ void showSuccessMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
-        message,
+        '✅ $message',
         style: TextStyle(color: context.onSuccessColor),
       ),
       backgroundColor: context.successColor,
       duration: Duration(seconds: duration ?? 4),
+      showCloseIcon: true,
     ),
   );
 }
@@ -354,11 +355,13 @@ void showErrorMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
-        message,
+        '❌ $message',
         style: TextStyle(color: context.onError),
+        softWrap: true,
       ),
       backgroundColor: context.errorColor,
       duration: Duration(seconds: duration ?? 4),
+      showCloseIcon: true,
     ),
   );
 }
@@ -367,11 +370,12 @@ void showWarningMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
-        message,
+        '⚠️ $message',
         style: TextStyle(color: context.onWarningColor),
       ),
       backgroundColor: context.warningColor,
       duration: Duration(seconds: duration ?? 4),
+      showCloseIcon: true,
     ),
   );
 }
@@ -380,11 +384,12 @@ void showInfoMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
-        message,
+        'ℹ️ $message',
         style: TextStyle(color: context.onInfoColor),
       ),
       backgroundColor: context.infoColor,
       duration: Duration(seconds: duration ?? 4),
+      showCloseIcon: true,
     ),
   );
 }

@@ -606,16 +606,21 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                           onToggleSetCompleted: (setIndex) async {
                             // TODO: start rest timer based on set.restTime
                             setState(() {
-                              workoutSession.exercises[index].sets[setIndex]
-                                  .toggleCompleted();
+                              try {
+                                workoutSession.exercises[index].sets[setIndex]
+                                    .toggleCompleted(context);
 
-                              LoggingService.logSetComplete(
-                                  workoutSession.exercises[index].name,
-                                  setIndex + 1,
-                                  workoutSession.exercises[index].sets[setIndex]
-                                      .actualWeight,
-                                  workoutSession.exercises[index].sets[setIndex]
-                                      .actualReps);
+                                LoggingService.logSetComplete(
+                                    workoutSession.exercises[index].name,
+                                    setIndex + 1,
+                                    workoutSession.exercises[index]
+                                        .sets[setIndex].actualWeight,
+                                    workoutSession.exercises[index]
+                                        .sets[setIndex].actualReps);
+                              } catch (e) {
+                                LoggingService.error(
+                                    'Failed to toggle set completion', e);
+                              }
                             });
 
                             // Auto-save the change
