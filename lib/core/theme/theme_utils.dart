@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_dimensions.dart';
@@ -340,9 +341,21 @@ class HSpace extends AppSpacingWidget {
 void showSuccessMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(
-        '✅ $message',
-        style: TextStyle(color: context.onSuccessColor),
+      content: Row(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+            color: context.onSuccessColor,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: context.onSuccessColor),
+            ),
+          ),
+        ],
       ),
       backgroundColor: context.successColor,
       duration: Duration(seconds: duration ?? 4),
@@ -354,10 +367,22 @@ void showSuccessMessage(BuildContext context, String message, {int? duration}) {
 void showErrorMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(
-        '❌ $message',
-        style: TextStyle(color: context.onError),
-        softWrap: true,
+      content: Row(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedCancelCircle,
+            color: context.onError,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: context.onError),
+              softWrap: true,
+            ),
+          ),
+        ],
       ),
       backgroundColor: context.errorColor,
       duration: Duration(seconds: duration ?? 4),
@@ -369,9 +394,21 @@ void showErrorMessage(BuildContext context, String message, {int? duration}) {
 void showWarningMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(
-        '⚠️ $message',
-        style: TextStyle(color: context.onWarningColor),
+      content: Row(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedAlert02,
+            color: context.onWarningColor,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: context.onWarningColor),
+            ),
+          ),
+        ],
       ),
       backgroundColor: context.warningColor,
       duration: Duration(seconds: duration ?? 4),
@@ -383,9 +420,21 @@ void showWarningMessage(BuildContext context, String message, {int? duration}) {
 void showInfoMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(
-        'ℹ️ $message',
-        style: TextStyle(color: context.onInfoColor),
+      content: Row(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedInformationCircle,
+            color: context.onInfoColor,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: context.onInfoColor),
+            ),
+          ),
+        ],
       ),
       backgroundColor: context.infoColor,
       duration: Duration(seconds: duration ?? 4),
