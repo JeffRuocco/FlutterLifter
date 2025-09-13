@@ -106,8 +106,7 @@ class AppTheme {
   // AppBar Theme
   static const AppBarTheme _appBarTheme = AppBarTheme(
     centerTitle: true,
-    elevation: 0,
-    scrolledUnderElevation: 1,
+    shadowColor: Colors.black26,
     backgroundColor: AppColors.surface,
     foregroundColor: AppColors.onSurface,
     titleTextStyle: AppTextStyles.titleLarge,
@@ -115,8 +114,7 @@ class AppTheme {
 
   static const AppBarTheme _appBarThemeDark = AppBarTheme(
     centerTitle: true,
-    elevation: 0,
-    scrolledUnderElevation: 1,
+    shadowColor: Colors.black54,
     backgroundColor: Color(0xFF121212),
     foregroundColor: Colors.white,
     titleTextStyle: AppTextStyles.titleLarge,
