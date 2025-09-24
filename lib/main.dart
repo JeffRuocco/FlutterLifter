@@ -51,7 +51,7 @@ extension ColorHex on Color {
         ((r * 255).round() << 16) |
         ((g * 255).round() << 8) |
         (b * 255).round();
-    // Convert to hex and remove the alpha channel (first 2 chars after #)
+    // Convert to hex
     return '#${argbValue.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
   }
 }
