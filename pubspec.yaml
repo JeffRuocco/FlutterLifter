@@ -46,6 +46,9 @@ dependencies:
   
   # App settings and storage
   shared_preferences: ^2.3.2
+  
+  # Modern web API access (replaces dart:html)
+  web: ^1.1.0
 
 dev_dependencies:
   flutter_test:

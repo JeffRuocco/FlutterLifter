@@ -7,6 +7,9 @@ import 'core/theme/app_theme.dart';
 import 'screens/login_screen.dart';
 import 'services/service_locator.dart';
 import 'services/logging_service.dart';
+// Conditional import for web-specific functionality
+import 'utils/web_theme_helper.dart'
+    if (dart.library.html) 'utils/web_theme_helper_web.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,11 +36,35 @@ void main() async {
   // Log app startup
   LoggingService.logAppEvent('App started');
 
+  // Set initial PWA theme color
+  if (kIsWeb) {
+    WebThemeHelper.setMetaThemeColor(
+        AppTheme.lightTheme.appBarTheme.backgroundColor?.toHex() ?? '#FFFFFF');
+  }
+
   runApp(const FlutterLifterApp());
+}
+
+extension ColorHex on Color {
+  String toHex() {
+    final int argbValue = ((a * 255).round() << 24) |
+        ((r * 255).round() << 16) |
+        ((g * 255).round() << 8) |
+        (b * 255).round();
+    // Convert to hex and remove the alpha channel (first 2 chars after #)
+    return '#${argbValue.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+  }
 }
 
 class FlutterLifterApp extends StatelessWidget {
   const FlutterLifterApp({super.key});
+
+  /// Sets the PWA theme color for supported platforms
+  void setMetaThemeColor(Color color) {
+    if (kIsWeb) {
+      WebThemeHelper.setMetaThemeColor(color.toHex());
+    }
+  }
 
   // TODO: Implement route guard for home screen
 

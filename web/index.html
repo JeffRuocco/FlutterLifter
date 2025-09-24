@@ -21,9 +21,12 @@
   <meta name="description" content="A new Flutter project.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFFFFF">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121212">
+
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="flutter_lifter">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
@@ -32,6 +35,23 @@
 
   <title>FlutterLifter</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Helper to dynamically adjust theme color for PWA status bar color -->
+  <script>
+  function setMetaThemeColor(color) {
+    // Update existing meta theme-color tag
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', color);
+    } else {
+      // Create new meta theme-color tag if it doesn't exist
+      metaThemeColor = document.createElement('meta');
+      metaThemeColor.setAttribute('name', 'theme-color');
+      metaThemeColor.setAttribute('content', color);
+      document.head.appendChild(metaThemeColor);
+    }
+  }
+  </script>
 
   <style>
     /* Native app behavior for Flutter web */
