@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_dimensions.dart';
@@ -110,14 +111,24 @@ class AppTheme {
     backgroundColor: AppColors.surface,
     foregroundColor: AppColors.onSurface,
     titleTextStyle: AppTextStyles.titleLarge,
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: AppColors.surface,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ),
   );
 
   static const AppBarTheme _appBarThemeDark = AppBarTheme(
     centerTitle: true,
     shadowColor: Colors.black54,
-    backgroundColor: Color(0xFF121212),
+    backgroundColor: AppColors.surfaceDark,
     foregroundColor: Colors.white,
     titleTextStyle: AppTextStyles.titleLarge,
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: AppColors.surfaceDark,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ),
   );
 
   // Button Themes

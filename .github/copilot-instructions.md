@@ -362,7 +362,8 @@ dev_dependencies:
 - **Programs Feature**: `docs/programs-feature.md` - Feature-specific documentation
 
 ## Development Guidelines
-- Follow Flutter best practices and Material Design guidelines
+- Follow the most recent Flutter best practices and Material Design guidelines
+- Maintain compatibility with at minimum Flutter 3.32.x
 - Use proper widget composition and state management
 - Implement responsive design principles
 - Follow Dart naming conventions (camelCase for variables, PascalCase for classes)

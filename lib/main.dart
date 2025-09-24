@@ -7,6 +7,10 @@ import 'core/theme/app_theme.dart';
 import 'screens/login_screen.dart';
 import 'services/service_locator.dart';
 import 'services/logging_service.dart';
+import 'utils/utils.dart';
+// Conditional import for web-specific functionality
+import 'utils/web_theme_helper.dart'
+    if (dart.library.js) 'utils/web_theme_helper_web.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +36,10 @@ void main() async {
 
   // Log app startup
   LoggingService.logAppEvent('App started');
+
+  // Set initial PWA theme color
+  WebThemeHelper.setMetaThemeColor(
+      AppTheme.lightTheme.appBarTheme.backgroundColor?.toHex() ?? '#FFFFFF');
 
   runApp(const FlutterLifterApp());
 }
