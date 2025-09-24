@@ -10,7 +10,7 @@ import 'services/logging_service.dart';
 import 'utils/utils.dart';
 // Conditional import for web-specific functionality
 import 'utils/web_theme_helper.dart'
-    if (dart.library.js_interop) 'utils/web_theme_helper_web.dart';
+    if (dart.library.js) 'utils/web_theme_helper_web.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
