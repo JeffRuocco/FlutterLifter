@@ -9,6 +9,9 @@ class WebThemeHelper {
       if (!kIsWeb) {
         return; // Safety check to ensure this runs only on web
       }
+
+      LoggingService.debug('Setting meta theme color to $hexColor');
+
       // Remove existing theme-color meta tags
       final existingTags =
           web.document.querySelectorAll('meta[name="theme-color"]');
