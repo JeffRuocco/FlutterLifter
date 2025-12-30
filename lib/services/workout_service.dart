@@ -167,6 +167,25 @@ class WorkoutService {
     return count;
   }
 
+  /// Check if there are any sets with recorded data but not marked complete
+  bool hasUncompletedRecordedSets() {
+    if (_currentWorkout == null) return false;
+
+    for (var exercise in _currentWorkout!.exercises) {
+      for (var set in exercise.sets) {
+        final hasRecordedData =
+            (set.actualWeight != null && set.actualWeight! >= 0) ||
+                (set.actualReps != null && set.actualReps! >= 0);
+        final isNotComplete = !set.isCompleted;
+
+        if (hasRecordedData && isNotComplete) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /// Start automatic saving every 30 seconds
   void _startAutoSave() {
     LoggingService.debug('Starting auto-save timer');

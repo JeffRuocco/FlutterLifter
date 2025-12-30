@@ -17,7 +17,7 @@
   - [x] Program cycle persistance
 - [x] **Workout complete validation (warn about incomplete)**
   - [x] Warn about finishing workout before completing all sets (✅ WorkoutService ready)
-  - [ ] Warn about leaving workout page with sets recorded, but not marked complete (✅ WorkoutService ready)
+  - [x] Warn about leaving workout page with sets recorded, but not marked complete (✅ WorkoutService ready)
 - [ ] **Add Hive for local storage (all platforms)**
   - [ ] Add hive dependencies to pubspec.yaml
   - [ ] Implement HiveStorageService
