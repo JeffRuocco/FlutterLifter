@@ -150,8 +150,8 @@ class WorkoutService {
   }
 
   /// Check if there are any unfinished sets in the current workout
-  bool hasUnfinishedSets() {
-    return getUnfinishedSetsCount() > 0;
+  bool hasUnfinishedExercises() {
+    return _currentWorkout!.hasUncompletedExercises;
   }
 
   /// Get count of unfinished sets
@@ -159,14 +159,11 @@ class WorkoutService {
     if (_currentWorkout == null) return 0;
 
     int count = 0;
-    for (final exercise in _currentWorkout!.exercises) {
-      for (final set in exercise.sets) {
-        if ((set.actualReps != null || set.actualWeight != null) &&
-            !set.isCompleted) {
-          count++;
-        }
-      }
-    }
+    count = _currentWorkout!.exercises
+        .map((exercise) =>
+            exercise.sets.where((set) => set.isCompleted == false))
+        .length;
+
     return count;
   }
 

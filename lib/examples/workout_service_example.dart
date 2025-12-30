@@ -102,7 +102,7 @@ class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
   /// Finish workout with validation
   Future<void> _finishWorkout() async {
     // Check for unfinished sets before finishing
-    if (_workoutService.hasUnfinishedSets()) {
+    if (_workoutService.hasUnfinishedExercises()) {
       final shouldContinue = await _showUnfinishedSetsDialog();
       if (!shouldContinue) return;
     }

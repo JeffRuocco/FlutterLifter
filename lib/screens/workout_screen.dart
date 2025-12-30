@@ -86,7 +86,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     if (!workoutSession.isInProgress) return;
 
     // Check for unfinished sets before finishing
-    if (_workoutService.hasUnfinishedSets()) {
+    if (_workoutService.hasUnfinishedExercises()) {
       final shouldContinue = await _showUnfinishedSetsDialog();
       if (!shouldContinue || !mounted) return;
     }
