@@ -18,9 +18,10 @@ class WorkoutService {
   Timer? _debounceTimer;
   String? _lastSavedHash; // Track the hash of the last saved state
 
-  // Auto-save interval (default: 30 seconds)
-  static const Duration _autoSaveInterval = Duration(seconds: 30);
-  // Debounce interval to prevent duplicate saves
+  /// Auto-save interval (default: 5 seconds)
+  static const Duration _autoSaveInterval = Duration(seconds: 5);
+
+  /// Debounce interval to prevent duplicate saves
   static const Duration _debounceInterval = Duration(milliseconds: 500);
   WorkoutService(this._programRepository);
 
