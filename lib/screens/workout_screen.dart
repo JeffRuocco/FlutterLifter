@@ -86,7 +86,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     if (!workoutSession.isInProgress) return;
 
     // Check for unfinished sets before finishing
-    if (_workoutService.hasUnfinishedSets()) {
+    if (_workoutService.hasUnfinishedExercises()) {
       final shouldContinue = await _showUnfinishedSetsDialog();
       if (!shouldContinue || !mounted) return;
     }
@@ -173,7 +173,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
+              backgroundColor: context.warningColor,
+              foregroundColor: context.onWarningColor,
             ),
             child: const Text('Finish Anyway'),
           ),
@@ -406,253 +407,308 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     return _buildWorkoutScreen(widget.workoutSession);
   }
 
-  Widget _buildWorkoutScreen(WorkoutSession workoutSession) {
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.workoutSession.programName ?? 'Custom Program',
-              style: AppTextStyles.titleMedium.copyWith(
-                color: context.onSurface,
-              ),
-            ),
-            if (workoutSession.isInProgress) ...[
-              Text(
-                _formatWorkoutDuration(workoutSession),
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: context.successColor,
+  /// Warn the user if they're leaving the workout screen while having
+  /// recorded sets that are not marked complete.
+  Future<void> _onWillPop(bool didPop, Object? result) async {
+    if (didPop) return; // Already popped, don't process further
+
+    // Check if user has uncompleted recorded sets
+    if (_workoutService.hasUncompletedRecordedSets()) {
+      final shouldLeave = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(
+                'Incomplete Sets',
+                style: AppTextStyles.headlineSmall.copyWith(
+                  color: context.textPrimary,
                 ),
               ),
-              if (_workoutService.hasActiveWorkout)
-                Text(
-                  'Auto-saving every 30s',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: context.textSecondary,
-                    fontSize: 10,
+              content: Text(
+                'You have sets with recorded data that are not marked as complete. '
+                'Are you sure you want to leave this screen?',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: context.textSecondary,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Stay'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.warningColor,
+                    foregroundColor: context.onWarningColor,
                   ),
-                ),
-            ],
-          ],
-        ),
-        backgroundColor: context.surfaceColor,
-        elevation: 0,
-        actions: [
-          // Debug button (only shows when debug mode is enabled)
-          const DebugIconButton(),
-          if (workoutSession.isInProgress) ...[
-            IconButton(
-              icon: Icon(
-                HugeIcons.strokeRoundedFloppyDisk,
-                color: context.onSurface,
-              ),
-              onPressed: () async {
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
-                try {
-                  await _workoutService.saveWorkoutImmediate();
-                  if (!mounted) return;
-                  scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Progress saved!'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                } catch (error) {
-                  if (!mounted) return;
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to save: $error'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              tooltip: 'Save Progress',
-            ),
-            IconButton(
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                color: context.successColor,
-              ),
-              onPressed: () => _finishWorkout(workoutSession),
-              tooltip: 'Finish Workout',
-            ),
-          ],
-          IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedAdd01,
-              color: context.onSurface,
-            ),
-            onPressed: () => _addExercise(workoutSession),
-            tooltip: 'Add Exercise',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Workout Header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            margin: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: context.surfaceVariant,
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.borderRadiusLarge),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Today\'s Workout',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: context.textPrimary,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: workoutSession.isInProgress
-                            ? context.successColor.withValues(alpha: 0.1)
-                            : context.outlineVariant,
-                        borderRadius: BorderRadius.circular(
-                            AppDimensions.borderRadiusSmall),
-                      ),
-                      child: Text(
-                        workoutSession.isInProgress
-                            ? 'In Progress'
-                            : 'Not Started',
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: workoutSession.isInProgress
-                              ? context.successColor
-                              : context.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const VSpace.xs(),
-                Text(
-                  '${workoutSession.totalExercisesCount} exercises',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: context.textSecondary,
-                  ),
+                  child: const Text('Leave Anyway'),
                 ),
               ],
             ),
-          ),
+          ) ??
+          false;
 
-          // Start Workout Button (if not started)
-          if (!workoutSession.isInProgress)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: SizedBox(
-                width: double.infinity,
-                height: AppDimensions.buttonHeightLarge,
-                child: ElevatedButton.icon(
-                  onPressed: () => _startWorkout(workoutSession),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.primaryColor,
-                    foregroundColor: context.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppDimensions.borderRadiusLarge),
-                    ),
-                  ),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedPlay,
-                    color: context.onPrimary,
-                    size: AppDimensions.iconMedium,
-                  ),
-                  label: const Text(
-                    'Start Workout',
-                    style: AppTextStyles.buttonText,
+      if (shouldLeave && mounted) {
+        Navigator.of(context).pop(); // Now allow pop
+      }
+    } else {
+      // No uncompleted sets, allow pop immediately
+      Navigator.of(context).pop();
+    }
+  }
+
+  Widget _buildWorkoutScreen(WorkoutSession workoutSession) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) => _onWillPop(didPop, result),
+      child: Scaffold(
+        backgroundColor: context.backgroundColor,
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.workoutSession.programName ?? 'Custom Program',
+                style: AppTextStyles.titleMedium.copyWith(
+                  color: context.onSurface,
+                ),
+              ),
+              if (workoutSession.isInProgress) ...[
+                Text(
+                  _formatWorkoutDuration(workoutSession),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: context.successColor,
                   ),
                 ),
+                if (_workoutService.hasActiveWorkout)
+                  Text(
+                    'Auto-saving every 30s',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: context.textSecondary,
+                      fontSize: 10,
+                    ),
+                  ),
+              ],
+            ],
+          ),
+          backgroundColor: context.surfaceColor,
+          elevation: 0,
+          actions: [
+            // Debug button (only shows when debug mode is enabled)
+            const DebugIconButton(),
+            if (workoutSession.isInProgress) ...[
+              IconButton(
+                icon: Icon(
+                  HugeIcons.strokeRoundedFloppyDisk,
+                  color: context.onSurface,
+                ),
+                onPressed: () async {
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  try {
+                    await _workoutService.saveWorkoutImmediate();
+                    if (!mounted) return;
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Progress saved!'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  } catch (error) {
+                    if (!mounted) return;
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to save: $error'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                tooltip: 'Save Progress',
+              ),
+              IconButton(
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                  color: context.successColor,
+                ),
+                onPressed: () => _finishWorkout(workoutSession),
+                tooltip: 'Finish Workout',
+              ),
+            ],
+            IconButton(
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                color: context.onSurface,
+              ),
+              onPressed: () => _addExercise(workoutSession),
+              tooltip: 'Add Exercise',
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Workout Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              margin: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                color: context.surfaceVariant,
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.borderRadiusLarge),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Today\'s Workout',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: context.textPrimary,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: workoutSession.isInProgress
+                              ? context.successColor.withValues(alpha: 0.1)
+                              : context.outlineVariant,
+                          borderRadius: BorderRadius.circular(
+                              AppDimensions.borderRadiusSmall),
+                        ),
+                        child: Text(
+                          workoutSession.isInProgress
+                              ? 'In Progress'
+                              : 'Not Started',
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: workoutSession.isInProgress
+                                ? context.successColor
+                                : context.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const VSpace.xs(),
+                  Text(
+                    '${workoutSession.totalExercisesCount} exercises',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: context.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
 
-          const VSpace.md(),
-
-          // Exercises List
-          Expanded(
-            child: workoutSession.exercises.isEmpty
-                ? _buildEmptyState(workoutSession)
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                    itemCount: workoutSession.exercises.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: ExerciseCard(
-                          exercise: workoutSession.exercises[index],
-                          exerciseIndex: index + 1,
-                          isWorkoutStarted: workoutSession.isInProgress,
-                          onRemove: () =>
-                              _removeExercise(index, workoutSession),
-                          onSwap: () => _swapExercise(index, workoutSession),
-                          onToggleSetCompleted: (setIndex) async {
-                            // TODO: start rest timer based on set.restTime
-                            setState(() {
-                              final result = workoutSession
-                                  .exercises[index].sets[setIndex]
-                                  .toggleCompleted();
-                              OperationUIHandler.handleResult(context, result);
-
-                              if (result is OperationSuccess) {
-                                LoggingService.logSetComplete(
-                                    workoutSession.exercises[index].name,
-                                    setIndex + 1,
-                                    workoutSession.exercises[index]
-                                        .sets[setIndex].actualWeight,
-                                    workoutSession.exercises[index]
-                                        .sets[setIndex].actualReps);
-                              }
-                            });
-
-                            // Auto-save the change
-                            await _saveWorkout();
-                          },
-                          onSetUpdated: (setIndex, weight, reps, notes,
-                              markAsCompleted) async {
-                            setState(() {
-                              workoutSession.exercises[index].sets[setIndex]
-                                  .updateSetData(
-                                      weight: weight,
-                                      reps: reps,
-                                      notes: notes,
-                                      markAsCompleted: markAsCompleted);
-                            });
-
-                            await _saveWorkout();
-                          },
-                          onAddSet: () async {
-                            setState(() {
-                              workoutSession.exercises[index].addSet();
-                            });
-
-                            await _saveWorkout();
-                          },
-                        ),
-                      );
-                    },
+            // Start Workout Button (if not started)
+            if (!workoutSession.isInProgress)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: AppDimensions.buttonHeightLarge,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _startWorkout(workoutSession),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: context.primaryColor,
+                      foregroundColor: context.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            AppDimensions.borderRadiusLarge),
+                      ),
+                    ),
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedPlay,
+                      color: context.onPrimary,
+                      size: AppDimensions.iconMedium,
+                    ),
+                    label: const Text(
+                      'Start Workout',
+                      style: AppTextStyles.buttonText,
+                    ),
                   ),
-          ),
-        ],
+                ),
+              ),
+
+            const VSpace.md(),
+
+            // Exercises List
+            Expanded(
+              child: workoutSession.exercises.isEmpty
+                  ? _buildEmptyState(workoutSession)
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                      itemCount: workoutSession.exercises.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: ExerciseCard(
+                            exercise: workoutSession.exercises[index],
+                            exerciseIndex: index + 1,
+                            isWorkoutStarted: workoutSession.isInProgress,
+                            onRemove: () =>
+                                _removeExercise(index, workoutSession),
+                            onSwap: () => _swapExercise(index, workoutSession),
+                            onToggleSetCompleted: (setIndex) async {
+                              // TODO: start rest timer based on set.restTime
+                              setState(() {
+                                final result = workoutSession
+                                    .exercises[index].sets[setIndex]
+                                    .toggleCompleted();
+                                OperationUIHandler.handleResult(
+                                    context, result);
+
+                                if (result is OperationSuccess) {
+                                  LoggingService.logSetComplete(
+                                      workoutSession.exercises[index].name,
+                                      setIndex + 1,
+                                      workoutSession.exercises[index]
+                                          .sets[setIndex].actualWeight,
+                                      workoutSession.exercises[index]
+                                          .sets[setIndex].actualReps);
+                                }
+                              });
+
+                              // Auto-save the change
+                              await _saveWorkout();
+                            },
+                            onSetUpdated: (setIndex, weight, reps, notes,
+                                markAsCompleted) async {
+                              setState(() {
+                                workoutSession.exercises[index].sets[setIndex]
+                                    .updateSetData(
+                                        weight: weight,
+                                        reps: reps,
+                                        notes: notes,
+                                        markAsCompleted: markAsCompleted);
+                              });
+
+                              await _saveWorkout();
+                            },
+                            onAddSet: () async {
+                              setState(() {
+                                workoutSession.exercises[index].addSet();
+                              });
+
+                              await _saveWorkout();
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

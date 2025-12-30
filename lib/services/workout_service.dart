@@ -18,9 +18,10 @@ class WorkoutService {
   Timer? _debounceTimer;
   String? _lastSavedHash; // Track the hash of the last saved state
 
-  // Auto-save interval (default: 30 seconds)
-  static const Duration _autoSaveInterval = Duration(seconds: 30);
-  // Debounce interval to prevent duplicate saves
+  /// Auto-save interval (default: 5 seconds)
+  static const Duration _autoSaveInterval = Duration(seconds: 5);
+
+  /// Debounce interval to prevent duplicate saves
   static const Duration _debounceInterval = Duration(milliseconds: 500);
   WorkoutService(this._programRepository);
 
@@ -149,8 +150,8 @@ class WorkoutService {
   }
 
   /// Check if there are any unfinished sets in the current workout
-  bool hasUnfinishedSets() {
-    return getUnfinishedSetsCount() > 0;
+  bool hasUnfinishedExercises() {
+    return _currentWorkout!.hasUncompletedExercises;
   }
 
   /// Get count of unfinished sets
@@ -158,15 +159,31 @@ class WorkoutService {
     if (_currentWorkout == null) return 0;
 
     int count = 0;
-    for (final exercise in _currentWorkout!.exercises) {
-      for (final set in exercise.sets) {
-        if ((set.actualReps != null || set.actualWeight != null) &&
-            !set.isCompleted) {
-          count++;
+    count = _currentWorkout!.exercises
+        .map((exercise) =>
+            exercise.sets.where((set) => set.isCompleted == false))
+        .length;
+
+    return count;
+  }
+
+  /// Check if there are any sets with recorded data but not marked complete
+  bool hasUncompletedRecordedSets() {
+    if (_currentWorkout == null) return false;
+
+    for (var exercise in _currentWorkout!.exercises) {
+      for (var set in exercise.sets) {
+        final hasRecordedData =
+            (set.actualWeight != null && set.actualWeight! >= 0) ||
+                (set.actualReps != null && set.actualReps! >= 0);
+        final isNotComplete = !set.isCompleted;
+
+        if (hasRecordedData && isNotComplete) {
+          return true;
         }
       }
     }
-    return count;
+    return false;
   }
 
   /// Start automatic saving every 30 seconds
