@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_lifter/core/theme/app_theme.dart';
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
 import 'package:flutter_lifter/models/operation_result.dart';
