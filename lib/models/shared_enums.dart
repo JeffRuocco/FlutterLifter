@@ -1,6 +1,31 @@
 /// Shared enums and types used across multiple model files
 library shared_enums;
 
+/// Enum for filtering exercises by source (default built-in vs custom user-created)
+enum ExerciseSource {
+  /// Include both default and custom exercises
+  all,
+
+  /// Include only default built-in exercises
+  defaultOnly,
+
+  /// Include only custom user-created exercises
+  customOnly,
+}
+
+extension ExerciseSourceExtension on ExerciseSource {
+  String get displayName {
+    switch (this) {
+      case ExerciseSource.all:
+        return 'All Exercises';
+      case ExerciseSource.defaultOnly:
+        return 'Default Exercises';
+      case ExerciseSource.customOnly:
+        return 'My Exercises';
+    }
+  }
+}
+
 /// Enum for exercise categories
 enum ExerciseCategory {
   strength,

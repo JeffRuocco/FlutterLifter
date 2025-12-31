@@ -19,7 +19,13 @@ abstract class ProgramRepository {
   Future<List<Program>> getProgramsByDifficulty(ProgramDifficulty difficulty);
   Future<List<Program>> getProgramsByType(ProgramType type);
   Future<void> refreshCache();
+
+  /// @deprecated Use ExerciseRepository.getExercises() instead
+  @Deprecated('Use ExerciseRepository.getExercises() instead')
   Future<List<Exercise>> getExercises();
+
+  /// @deprecated Use ExerciseRepository.getExerciseByName() instead
+  @Deprecated('Use ExerciseRepository.getExerciseByName() instead')
   Future<Exercise?> getExerciseByName(String name);
 
   // Program cycle methods
@@ -252,9 +258,10 @@ class ProgramRepositoryImpl implements ProgramRepository {
     await getPrograms();
   }
 
-  // TODO: move this method to ExerciseRepository
-  /// Get all exercises from the mock data source
+  /// @deprecated Use ExerciseRepository.getExercises() instead
+  /// This method is kept for backward compatibility but will be removed.
   @override
+  @Deprecated('Use ExerciseRepository.getExercises() instead')
   Future<List<Exercise>> getExercises() async {
     if (useMockData && mockDataSource != null) {
       return await mockDataSource!.getExercises();
@@ -269,8 +276,10 @@ class ProgramRepositoryImpl implements ProgramRepository {
     return [];
   }
 
-  /// Get exercise by name from the available data sources.
+  /// @deprecated Use ExerciseRepository.getExerciseByName() instead
+  /// This method is kept for backward compatibility but will be removed.
   @override
+  @Deprecated('Use ExerciseRepository.getExerciseByName() instead')
   Future<Exercise?> getExerciseByName(String name) async {
     if (useMockData && mockDataSource != null) {
       return await mockDataSource!.getExerciseByName(name);

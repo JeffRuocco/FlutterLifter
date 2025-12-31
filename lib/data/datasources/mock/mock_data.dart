@@ -2,8 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lifter/models/models.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import 'default_exercises.dart';
+
+/// Mock data for testing and development purposes.
+/// Contains programs with active cycles and workout sessions populated.
+///
+/// For production defaults without mock data, use:
+/// - [DefaultExercises] for exercise templates
+/// - [DefaultPrograms] for program templates
 class MockPrograms {
-  /// Retrieves a program by its ID.
+  /// Retrieves a mock program by its ID.
   /// Returns null if the program is not found.
   static Program? getProgramById(String id) {
     try {
@@ -16,7 +24,7 @@ class MockPrograms {
     }
   }
 
-  /// Retrieves a program by name.
+  /// Retrieves a mock program by name.
   /// Returns null if the program is not found.
   static Program? getProgramByName(String name) {
     try {
@@ -29,7 +37,9 @@ class MockPrograms {
     }
   }
 
+  /// Mock programs with active cycles and workout sessions for testing
   static List<Program> programs = [
+    // Upper/Lower with active cycle and mock sessions
     Program(
       id: 'upper_lower',
       name: 'Upper/Lower',
@@ -47,47 +57,50 @@ class MockPrograms {
       },
       cycles: [
         ProgramCycle(
-            cycleNumber: 1,
-            id: 'cycle_1',
-            programId: 'upper_lower',
-            isActive: true,
-            isCompleted: false,
-            periodicity: WorkoutPeriodicity.weekly([1, 2, 4, 5]),
-            startDate: DateTime.now().subtract(const Duration(days: 30)),
-            createdAt: DateTime.now().subtract(const Duration(days: 31)),
-            scheduledSessions: [
-              WorkoutSession(
-                id: 'session_1',
-                date: DateTime.now(),
-                exercises: [
-                  WorkoutExercise.create(
-                    exercise: MockExercises.getExerciseById('bench')!,
-                    sets: [
-                      ExerciseSet.create(targetReps: 5, targetWeight: 195),
-                      ExerciseSet.create(targetReps: 5, targetWeight: 185),
-                    ],
-                  ),
-                  WorkoutExercise.create(
-                    exercise: MockExercises.getExerciseById('ohp')!,
-                    sets: [
-                      ExerciseSet.create(targetReps: 5, targetWeight: 150),
-                      ExerciseSet.create(targetReps: 5, targetWeight: 140),
-                    ],
-                  ),
-                  WorkoutExercise.create(
-                    exercise: MockExercises.getExerciseById('row')!,
-                    sets: [
-                      ExerciseSet.create(targetReps: 5, targetWeight: 215),
-                      ExerciseSet.create(targetReps: 5, targetWeight: 205),
-                    ],
-                  ),
-                ],
-                programId: 'upper_lower',
-                programName: 'Upper/Lower',
-              ),
-            ]),
+          cycleNumber: 1,
+          id: 'cycle_1',
+          programId: 'upper_lower',
+          isActive: true,
+          isCompleted: false,
+          periodicity: WorkoutPeriodicity.weekly([1, 2, 4, 5]),
+          startDate: DateTime.now().subtract(const Duration(days: 30)),
+          createdAt: DateTime.now().subtract(const Duration(days: 31)),
+          scheduledSessions: [
+            WorkoutSession(
+              id: 'session_1',
+              date: DateTime.now(),
+              exercises: [
+                WorkoutExercise.create(
+                  exercise: DefaultExercises.getExerciseById('bench')!,
+                  sets: [
+                    ExerciseSet.create(targetReps: 5, targetWeight: 195),
+                    ExerciseSet.create(targetReps: 5, targetWeight: 185),
+                  ],
+                ),
+                WorkoutExercise.create(
+                  exercise: DefaultExercises.getExerciseById('ohp')!,
+                  sets: [
+                    ExerciseSet.create(targetReps: 5, targetWeight: 150),
+                    ExerciseSet.create(targetReps: 5, targetWeight: 140),
+                  ],
+                ),
+                WorkoutExercise.create(
+                  exercise: DefaultExercises.getExerciseById('row')!,
+                  sets: [
+                    ExerciseSet.create(targetReps: 5, targetWeight: 215),
+                    ExerciseSet.create(targetReps: 5, targetWeight: 205),
+                  ],
+                ),
+              ],
+              programId: 'upper_lower',
+              programName: 'Upper/Lower',
+            ),
+          ],
+        ),
       ],
     ),
+
+    // Full Body - clean template (no active cycle for testing variety)
     Program(
       id: 'full_body',
       name: 'Full Body',
@@ -104,6 +117,8 @@ class MockPrograms {
         'icon': HugeIcons.strokeRoundedBodyPartMuscle,
       },
     ),
+
+    // Push/Pull/Legs - clean template
     Program(
       id: 'push_pull_legs',
       name: 'Push/Pull/Legs',
@@ -123,124 +138,71 @@ class MockPrograms {
   ];
 }
 
-class MockExercises {
-  /// Retrieves an exercise by its name.
-  /// Returns null if the exercise is not found.
-  static Exercise? getExerciseByName(String name) {
-    try {
-      return exercises.firstWhere(
-        (exercise) => exercise.name.toLowerCase() == name.toLowerCase(),
-        orElse: () => throw Exception('Exercise not found: $name'),
-      );
-    } catch (e) {
-      return null;
-    }
+/// Helper class for creating mock workout data for testing
+class MockWorkoutData {
+  /// Creates a mock workout session with sample exercises and sets
+  static WorkoutSession createMockSession({
+    String? id,
+    String? programId,
+    String? programName,
+    DateTime? date,
+    List<String>? exerciseIds,
+  }) {
+    final exercises = (exerciseIds ?? ['bench', 'squat', 'row'])
+        .map((id) => DefaultExercises.getExerciseById(id))
+        .whereType<Exercise>()
+        .map(
+          (exercise) => WorkoutExercise.create(
+            exercise: exercise,
+            sets: List.generate(
+              exercise.defaultSets,
+              (index) => ExerciseSet.create(
+                targetReps: exercise.defaultReps,
+                targetWeight: exercise.defaultWeight ?? 100,
+              ),
+            ),
+          ),
+        )
+        .toList();
+
+    return WorkoutSession(
+      id: id ?? 'mock_session_${DateTime.now().millisecondsSinceEpoch}',
+      date: date ?? DateTime.now(),
+      exercises: exercises,
+      programId: programId,
+      programName: programName,
+    );
   }
 
-  /// Retrieves an exercise by its ID.
-  /// Returns null if the exercise is not found.
-  static Exercise? getExerciseById(String id) {
-    try {
-      return exercises.firstWhere(
-        (exercise) => exercise.id.toLowerCase() == id.toLowerCase(),
-        orElse: () => throw Exception('Exercise not found: $id'),
-      );
-    } catch (e) {
-      return null;
-    }
-  }
+  /// Creates a mock program cycle with scheduled sessions
+  static ProgramCycle createMockCycle({
+    required String programId,
+    int cycleNumber = 1,
+    bool isActive = true,
+    bool isCompleted = false,
+    int numberOfSessions = 4,
+    WorkoutPeriodicity? periodicity,
+  }) {
+    final startDate = DateTime.now().subtract(const Duration(days: 7));
+    final sessions = List.generate(
+      numberOfSessions,
+      (index) => createMockSession(
+        id: 'mock_session_${cycleNumber}_$index',
+        programId: programId,
+        date: startDate.add(Duration(days: index * 2)),
+      ),
+    );
 
-  /// List of predefined exercises
-  static List<Exercise> exercises = [
-    Exercise(
-      id: 'squat',
-      name: 'Barbell Back Squat',
-      category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Quadriceps', 'Glutes', 'Hamstrings'],
-      defaultSets: 4,
-      defaultReps: 8,
-      defaultRestTimeSeconds: 180,
-    ),
-    Exercise(
-      id: 'bench',
-      name: 'Bench Press',
-      category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Chest', 'Triceps', 'Shoulders'],
-      defaultSets: 3,
-      defaultReps: 8,
-      defaultRestTimeSeconds: 120,
-    ),
-    Exercise(
-      id: 'deadlift',
-      name: 'Deadlift',
-      category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Hamstrings', 'Glutes', 'Back'],
-      defaultSets: 3,
-      defaultReps: 5,
-      defaultRestTimeSeconds: 180,
-    ),
-    Exercise(
-      id: 'ohp',
-      name: 'Overhead Press',
-      category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Shoulders', 'Triceps', 'Core'],
-      defaultSets: 3,
-      defaultReps: 8,
-      defaultRestTimeSeconds: 120,
-    ),
-    Exercise(
-      id: 'row',
-      name: 'Bent-Over Barbell Row',
-      category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Lats', 'Rhomboids', 'Rear Delts'],
-      defaultSets: 3,
-      defaultReps: 8,
-      defaultRestTimeSeconds: 90,
-    ),
-    Exercise(
-      id: 'pullup',
-      name: 'Pull-ups',
-      category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Lats', 'Biceps', 'Rhomboids'],
-      defaultSets: 3,
-      defaultReps: 10,
-      defaultRestTimeSeconds: 90,
-    ),
-    Exercise(
-      id: 'dips',
-      name: 'Dips',
-      category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Triceps', 'Chest', 'Shoulders'],
-      defaultSets: 3,
-      defaultReps: 12,
-      defaultRestTimeSeconds: 90,
-    ),
-    Exercise(
-      id: 'lunges',
-      name: 'Lunges',
-      category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Quadriceps', 'Glutes', 'Hamstrings'],
-      defaultSets: 3,
-      defaultReps: 12,
-      defaultRestTimeSeconds: 60,
-    ),
-    Exercise(
-      id: 'plank',
-      name: 'Plank',
-      category: ExerciseCategory.flexibility,
-      targetMuscleGroups: ['Core', 'Shoulders'],
-      defaultSets: 3,
-      defaultReps: 30,
-      defaultRestTimeSeconds: 60,
-    ),
-    Exercise(
-      id: 'running',
-      name: 'Running',
-      category: ExerciseCategory.cardio,
-      targetMuscleGroups: ['Legs', 'Cardiovascular'],
-      defaultSets: 1,
-      defaultReps: 30,
-      defaultRestTimeSeconds: 0,
-    ),
-  ];
+    return ProgramCycle(
+      id: 'mock_cycle_$cycleNumber',
+      cycleNumber: cycleNumber,
+      programId: programId,
+      isActive: isActive,
+      isCompleted: isCompleted,
+      periodicity: periodicity ?? const WorkoutPeriodicity.weekly([1, 3, 5]),
+      startDate: startDate,
+      createdAt: startDate.subtract(const Duration(days: 1)),
+      scheduledSessions: sessions,
+    );
+  }
 }
