@@ -1,5 +1,7 @@
 # TODO
 
+## MVP
+
 - [x] **Add logging service**
   - [ ] **Connect Firebase logging**
 - [x] **Add exercise repository**
@@ -23,31 +25,34 @@
 - [x] **Workout complete validation (warn about incomplete)**
   - [x] Warn about finishing workout before completing all sets (✅ WorkoutService ready)
   - [x] Warn about leaving workout page with sets recorded, but not marked complete (✅ WorkoutService ready)
+- [ ] **Add exercises page**
+- [ ] **Start program functionality**
+  - [ ] Start new program and end any previous ones
+- [ ] **Add progress page**
 - [ ] **Determine best option for location storage (Hive?)**
-- [ ] **Determine best option cloud storage (Firebase?, API?)**
 - [ ] **Add Hive for local storage (all platforms)**
   - [ ] Add hive dependencies to pubspec.yaml
   - [ ] Implement HiveStorageService
   - [ ] Update ServiceLocator to use Hive
   - [ ] Test storage persistence in PWA
-- [ ] **Rest timer**
-- [ ] **Workout summary**
-- [ ] **Start program functionality**
-  - [ ] Start new program and end any previous ones
-- [ ] **Add exercises page**
-- [ ] **Add progress page**
 - [ ] **Add program creation pages**
 - [ ] **Implement user authentication**
+  - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
+
+## Incremental updates
+
+- [ ] **UI overhaul**
+- [ ] **Rest timer**
+- [ ] **Workout summary**
+- [ ] **Determine best option cloud storage (Firebase?, API?)**
+- [ ] **Implement backend service**
 - [ ] **Add unit tests for all pages**
   - [ ] Add WorkoutService unit tests
   - [ ] Add ExerciseRepository unit tests
-- [ ] **Migrate custom exercise storage to per-user keys when auth is implemented**
 - [ ] **Implement exercise library feature**
   - [ ] Allow users to publish custom exercises to library
   - [ ] Allow users to import exercises from library
   - [ ] Add exercise discovery/search in library
-- [ ] **Decide on API vs. Firebase**
-- [ ] **Implement backend service**
 
 ## Next Steps Priority
 
