@@ -210,6 +210,9 @@ class ExerciseSet {
 class Exercise {
   final String id;
   final String name;
+
+  /// Short/abbreviated name for display in compact UI contexts
+  final String? shortName;
   final ExerciseCategory category;
   final List<String> targetMuscleGroups;
   final int defaultSets;
@@ -220,9 +223,23 @@ class Exercise {
   final String? instructions;
   final String? imageUrl;
 
+  /// Whether this is a built-in default exercise (true) or user-created custom exercise (false)
+  final bool isDefault;
+
+  // Future library fields - prepared for exercise library feature
+  /// Whether this exercise is publicly available in the exercise library
+  final bool? isPublic;
+
+  /// ID of the user who created this exercise (for library attribution)
+  final String? authorId;
+
+  /// ID from the exercise library (if imported from library)
+  final String? libraryId;
+
   Exercise({
     required this.id,
     required this.name,
+    this.shortName,
     required this.category,
     required this.targetMuscleGroups,
     required this.defaultSets,
@@ -232,13 +249,21 @@ class Exercise {
     this.notes,
     this.instructions,
     this.imageUrl,
+    this.isDefault = false,
+    this.isPublic,
+    this.authorId,
+    this.libraryId,
   });
+
+  /// Returns the display name (shortName if available, otherwise full name)
+  String get displayName => shortName ?? name;
 
   /// Creates Exercise from JSON
   factory Exercise.fromJson(Map<String, dynamic> json) {
     return Exercise(
       id: json['id'],
       name: json['name'],
+      shortName: json['shortName'],
       category: ExerciseCategory.values.firstWhere(
         (e) => e.toString() == 'ExerciseCategory.${json['category']}',
         orElse: () => ExerciseCategory.other,
@@ -251,6 +276,10 @@ class Exercise {
       notes: json['notes'],
       instructions: json['instructions'],
       imageUrl: json['imageUrl'],
+      isDefault: json['isDefault'] ?? false,
+      isPublic: json['isPublic'],
+      authorId: json['authorId'],
+      libraryId: json['libraryId'],
     );
   }
 
@@ -259,6 +288,7 @@ class Exercise {
     return {
       'id': id,
       'name': name,
+      'shortName': shortName,
       'category': category.toString().split('.').last,
       'targetMuscleGroups': targetMuscleGroups,
       'defaultSets': defaultSets,
@@ -268,7 +298,64 @@ class Exercise {
       'notes': notes,
       'instructions': instructions,
       'imageUrl': imageUrl,
+      'isDefault': isDefault,
+      'isPublic': isPublic,
+      'authorId': authorId,
+      'libraryId': libraryId,
     };
+  }
+
+  /// Creates a copy of this exercise with updated values
+  Exercise copyWith({
+    String? id,
+    String? name,
+    String? shortName,
+    ExerciseCategory? category,
+    List<String>? targetMuscleGroups,
+    int? defaultSets,
+    int? defaultReps,
+    double? defaultWeight,
+    int? defaultRestTimeSeconds,
+    String? notes,
+    String? instructions,
+    String? imageUrl,
+    bool? isDefault,
+    bool? isPublic,
+    String? authorId,
+    String? libraryId,
+  }) {
+    return Exercise(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      shortName: shortName ?? this.shortName,
+      category: category ?? this.category,
+      targetMuscleGroups: targetMuscleGroups ?? this.targetMuscleGroups,
+      defaultSets: defaultSets ?? this.defaultSets,
+      defaultReps: defaultReps ?? this.defaultReps,
+      defaultWeight: defaultWeight ?? this.defaultWeight,
+      defaultRestTimeSeconds:
+          defaultRestTimeSeconds ?? this.defaultRestTimeSeconds,
+      notes: notes ?? this.notes,
+      instructions: instructions ?? this.instructions,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isDefault: isDefault ?? this.isDefault,
+      isPublic: isPublic ?? this.isPublic,
+      authorId: authorId ?? this.authorId,
+      libraryId: libraryId ?? this.libraryId,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Exercise && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return 'Exercise{id: $id, name: $name, category: $category, isDefault: $isDefault}';
   }
 }
 

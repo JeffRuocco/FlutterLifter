@@ -2,7 +2,12 @@
 
 - [x] **Add logging service**
   - [ ] **Connect Firebase logging**
-- [ ] **Add exercise repository**
+- [x] **Add exercise repository**
+  - [x] Create ExerciseRepository with default and custom exercise support
+  - [x] Add UserExercisePreferences model for customizing default exercises
+  - [x] Add ExerciseSource enum for filtering queries
+  - [x] Expand default exercises to 40+ covering all categories
+  - [x] Deprecate exercise methods in ProgramRepository
 - [x] **WorkoutService Implementation**
   - [x] Create WorkoutService class with auto-save functionality
   - [x] Add workout session methods to ProgramRepository
@@ -33,6 +38,12 @@
 - [ ] **Implement user authentication**
 - [ ] **Add unit tests for all pages**
   - [ ] Add WorkoutService unit tests
+  - [ ] Add ExerciseRepository unit tests
+- [ ] **Migrate custom exercise storage to per-user keys when auth is implemented**
+- [ ] **Implement exercise library feature**
+  - [ ] Allow users to publish custom exercises to library
+  - [ ] Allow users to import exercises from library
+  - [ ] Add exercise discovery/search in library
 - [ ] **Decide on API vs. Firebase**
 - [ ] **Implement backend service**
 
@@ -41,4 +52,4 @@
 1. **Integrate WorkoutService with existing UI** - Update your workout_screen.dart to use the new service
 1. **Test the auto-save functionality** - Verify it works in real usage
 1. **Implement Hive for persistent storage** - Replace in-memory storage with real persistence
-1. **Add rest timer functionality** - Now that saving is handled, focus on UX features
+1. **Add rest timer functionality** - Now that saving is handled, focus on UX feature

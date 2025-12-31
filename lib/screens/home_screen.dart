@@ -13,6 +13,8 @@ import 'settings_screen.dart';
 // TODO: get current program and in-progress or next workout
 // when user clicks "Workouts" action card, continue in progress workout or start next workout
 
+// TODO: initialize exercise repository and update deprecated exercise methods (use ExerciseRepository instead of ProgramRepository for exercise-related methods)
+
 /// The home screen and dashboard of the app.
 class HomeScreen extends StatefulWidget {
   final ProgramRepository programRepository;
@@ -63,10 +65,13 @@ class _DefaultProgramRepository implements ProgramRepository {
   @override
   Future<void> refreshCache() => _instance.refreshCache();
 
+  // Exercise methods moved to ExerciseRepository
   @override
+  @Deprecated('Use ExerciseRepository.getExercises() instead')
   Future<List<Exercise>> getExercises() => _instance.getExercises();
 
   @override
+  @Deprecated('Use ExerciseRepository.getExerciseByName() instead')
   Future<Exercise?> getExerciseByName(String name) =>
       _instance.getExerciseByName(name);
 

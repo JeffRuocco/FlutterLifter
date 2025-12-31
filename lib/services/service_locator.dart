@@ -1,6 +1,8 @@
 import '../data/repositories/program_repository.dart';
+import '../data/repositories/exercise_repository.dart';
 import '../data/datasources/mock/mock_program_datasource.dart';
 import '../data/datasources/local/program_local_datasource.dart';
+import '../data/datasources/local/exercise_local_datasource.dart';
 import '../data/datasources/remote/program_api_datasource.dart';
 import '../core/network/network_info.dart';
 import '../services/api_service.dart';
@@ -54,12 +56,16 @@ class ServiceLocator {
     // Register data sources
     register<MockProgramDataSource>(MockProgramDataSource());
     register<ProgramLocalDataSource>(ProgramLocalDataSourceImpl());
+    register<ExerciseLocalDataSource>(ExerciseLocalDataSourceImpl());
 
     // Note: API data source would be registered in production
     // register<ProgramApiDataSource>(HttpProgramApiDataSource());
 
     // Register repositories
     register<ProgramRepository>(ProgramRepositoryImpl.development());
+    register<ExerciseRepository>(ExerciseRepositoryImpl.development(
+      localDataSource: get<ExerciseLocalDataSource>(),
+    ));
 
     // Register services
     register<WorkoutService>(WorkoutService(get<ProgramRepository>()));
@@ -87,14 +93,18 @@ class ServiceLocator {
     // Register production data sources
     register<ProgramApiDataSource>(HttpProgramApiDataSource());
     register<ProgramLocalDataSource>(ProgramLocalDataSourceImpl());
+    register<ExerciseLocalDataSource>(ExerciseLocalDataSourceImpl());
 
-    // Register production repository
+    // Register production repositories
     register<ProgramRepository>(
       ProgramRepositoryImpl.production(
         apiDataSource: get<ProgramApiDataSource>(),
         localDataSource: get<ProgramLocalDataSource>(),
       ),
     );
+    register<ExerciseRepository>(ExerciseRepositoryImpl.production(
+      localDataSource: get<ExerciseLocalDataSource>(),
+    ));
 
     // Register services
     register<WorkoutService>(WorkoutService(get<ProgramRepository>()));

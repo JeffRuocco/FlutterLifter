@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
+import 'package:flutter_lifter/data/repositories/exercise_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
 import 'package:flutter_lifter/models/operation_result.dart';
 import 'package:flutter_lifter/services/service_locator.dart';
@@ -191,7 +192,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) => AddExerciseBottomSheet(
-        programRepository: widget.programRepository,
+        exerciseRepository: serviceLocator.get<ExerciseRepository>(),
         onExerciseAdded: (exercise) async {
           LoggingService.logUserAction(
               "Add exercise to workout session: ${exercise.name}");
@@ -278,7 +279,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) => AddExerciseBottomSheet(
-        programRepository: widget.programRepository,
+        exerciseRepository: serviceLocator.get<ExerciseRepository>(),
         onExerciseAdded: (exercise) async {
           LoggingService.logUserAction(
               "Swap exercise in workout session: old ${workoutSession.exercises[index].name}, new ${exercise.name}");

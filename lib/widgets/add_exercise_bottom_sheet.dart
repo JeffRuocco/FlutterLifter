@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lifter/data/repositories/program_repository.dart';
+import 'package:flutter_lifter/data/repositories/exercise_repository.dart';
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -8,14 +8,14 @@ import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
 
 class AddExerciseBottomSheet extends StatefulWidget {
-  final ProgramRepository programRepository;
+  final ExerciseRepository exerciseRepository;
   final Function(WorkoutExercise exercise) onExerciseAdded;
   final bool isSwapping;
   final WorkoutExercise? currentExercise;
 
   const AddExerciseBottomSheet({
     super.key,
-    required this.programRepository,
+    required this.exerciseRepository,
     required this.onExerciseAdded,
     this.isSwapping = false,
     this.currentExercise,
@@ -46,8 +46,9 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
   }
 
   Future<void> _initializeExercises() async {
-    // TODO: support pre-defined exercises and user's custom exercises
-    _allExercises = await widget.programRepository.getExercises();
+    // Get all exercises (default + custom) with user preferences applied
+    _allExercises =
+        await widget.exerciseRepository.getExercisesWithPreferences();
     _filteredExercises = List.from(_allExercises);
     setState(() {});
   }
