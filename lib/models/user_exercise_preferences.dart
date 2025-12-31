@@ -43,16 +43,27 @@ class UserExercisePreferences {
   });
 
   /// Creates a new preference with auto-generated ID and timestamps
-  UserExercisePreferences.create({
-    required this.exerciseId,
-    this.preferredSets,
-    this.preferredReps,
-    this.preferredWeight,
-    this.preferredRestTimeSeconds,
-    this.notes,
-  })  : id = Utils.generateId(),
-        createdAt = DateTime.now(),
-        updatedAt = DateTime.now();
+  factory UserExercisePreferences.create({
+    required String exerciseId,
+    int? preferredSets,
+    int? preferredReps,
+    double? preferredWeight,
+    int? preferredRestTimeSeconds,
+    String? notes,
+  }) {
+    final now = DateTime.now();
+    return UserExercisePreferences(
+      id: Utils.generateId(),
+      exerciseId: exerciseId,
+      preferredSets: preferredSets,
+      preferredReps: preferredReps,
+      preferredWeight: preferredWeight,
+      preferredRestTimeSeconds: preferredRestTimeSeconds,
+      notes: notes,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
 
   /// Returns whether any preferences are set
   bool get hasPreferences =>
