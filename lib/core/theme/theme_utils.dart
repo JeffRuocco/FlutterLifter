@@ -240,11 +240,11 @@ class _AppCardState extends State<AppCard> {
     final effectiveRadius = widget.borderRadius ??
         BorderRadius.circular(AppDimensions.cardBorderRadius);
 
+    final scaleValue = _isPressed ? 0.98 : 1.0;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      transform: Matrix4.identity()
-        ..setEntry(3, 2, 0.001)
-        ..scale(_isPressed ? 0.98 : 1.0),
+      transform: Matrix4.diagonal3Values(scaleValue, scaleValue, 1.0),
       transformAlignment: Alignment.center,
       margin: widget.margin ?? const EdgeInsets.all(AppSpacing.sm),
       child: GestureDetector(
