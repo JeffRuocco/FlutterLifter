@@ -59,6 +59,7 @@
 - [ ] **Add unit tests for all pages**
   - [ ] Add WorkoutService unit tests
   - [x] Add ExerciseRepository unit tests
+- [ ] **Add automated UI testing**
 - [ ] **Implement exercise library feature**
   - [ ] Allow users to publish custom exercises to library
   - [ ] Allow users to import exercises from library

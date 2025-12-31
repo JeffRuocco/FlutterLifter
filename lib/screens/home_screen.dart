@@ -5,9 +5,13 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../core/providers/providers.dart';
 import '../core/router/app_router.dart';
+import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
+import '../widgets/animations/animate_on_load.dart';
+import '../widgets/progress_ring.dart';
+import '../widgets/skeleton_loader.dart';
 
 /// The home screen and dashboard of the app.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -27,11 +31,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
+  /// Get time-based greeting message
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good morning';
+    } else if (hour < 17) {
+      return 'Good afternoon';
+    } else {
+      return 'Good evening';
+    }
+  }
+
+  /// Get motivational message based on time
+  String _getMotivationalMessage() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Start your day strong! 💪';
+    } else if (hour < 17) {
+      return 'Keep pushing towards your goals!';
+    } else {
+      return 'End the day with a great workout!';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch the workout state for reactive updates
     final workoutState = ref.watch(workoutNotifierProvider);
     final currentWorkoutSession = workoutState.currentWorkout;
+    final isLoading = workoutState.isLoading;
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
@@ -67,117 +96,299 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isSmallScreen = constraints.maxHeight < 600;
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Greeting Section with time-based message
+              SlideInWidget(
+                delay: const Duration(milliseconds: 100),
+                child: Text(
+                  _getGreeting(),
+                  style: AppTextStyles.headlineLarge.copyWith(
+                    color: context.textPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              SlideInWidget(
+                delay: const Duration(milliseconds: 200),
+                child: Text(
+                  _getMotivationalMessage(),
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
+              ),
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: AppSpacing.xl),
+
+              // Hero Workout Card
+              SlideInWidget(
+                delay: const Duration(milliseconds: 300),
+                child: isLoading
+                    ? const _HeroCardSkeleton()
+                    : _HeroWorkoutCard(
+                        workoutSession: currentWorkoutSession,
+                        onStartWorkout: currentWorkoutSession != null
+                            ? () => context.go(AppRoutes.workout)
+                            : null,
+                      ),
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // Quick Actions Section
+              SlideInWidget(
+                delay: const Duration(milliseconds: 400),
+                child: Text(
+                  'Quick Actions',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: context.textPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Action Cards Grid
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                crossAxisSpacing: AppSpacing.md,
+                mainAxisSpacing: AppSpacing.md,
+                childAspectRatio: 1.1,
                 children: [
-                  // Welcome Section
-                  Text(
-                    'Welcome back!',
-                    style: AppTextStyles.headlineLarge.copyWith(
-                      color: context.textPrimary,
+                  SlideInWidget(
+                    delay: const Duration(milliseconds: 500),
+                    child: _ActionCard(
+                      title: 'Programs',
+                      subtitle: 'Browse programs',
+                      icon: HugeIcons.strokeRoundedDumbbell01,
+                      color: context.primaryColor,
+                      onTap: () {
+                        context.go(AppRoutes.programs);
+                      },
                     ),
                   ),
-                  SizedBox(
-                      height: isSmallScreen ? AppSpacing.xs : AppSpacing.xs),
-                  Text(
-                    'Ready to crush your fitness goals?',
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: context.textSecondary,
+                  SlideInWidget(
+                    delay: const Duration(milliseconds: 600),
+                    child: _ActionCard(
+                      title: 'Progress',
+                      subtitle: 'Track gains',
+                      icon: HugeIcons.strokeRoundedAnalytics01,
+                      color: context.infoColor,
+                      onTap: () {
+                        context.go(AppRoutes.progress);
+                      },
                     ),
                   ),
-
-                  SizedBox(
-                      height: isSmallScreen ? AppSpacing.lg : AppSpacing.xl),
-
-                  // Quick Actions
-                  Text(
-                    'Quick Actions',
-                    style: AppTextStyles.titleMedium.copyWith(
-                      color: context.textPrimary,
+                  SlideInWidget(
+                    delay: const Duration(milliseconds: 700),
+                    child: _ActionCard(
+                      title: 'Exercises',
+                      subtitle: 'Exercise library',
+                      icon: HugeIcons.strokeRoundedMenu01,
+                      color: context.warningColor,
+                      onTap: () {
+                        showInfoMessage(
+                            context, 'Exercise library coming soon!');
+                      },
                     ),
                   ),
-                  SizedBox(
-                      height: isSmallScreen ? AppSpacing.sm : AppSpacing.md),
-
-                  // Action Cards Grid
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, gridConstraints) {
-                        final cardWidth =
-                            (gridConstraints.maxWidth - AppSpacing.md) / 2;
-                        final shouldUseCompactLayout = cardWidth < 120;
-
-                        return GridView.count(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: AppSpacing.md,
-                          mainAxisSpacing: AppSpacing.md,
-                          childAspectRatio: shouldUseCompactLayout
-                              ? 0.85
-                              : (isSmallScreen ? 0.9 : 1.0),
-                          children: [
-                            _ActionCard(
-                              title: 'Programs',
-                              subtitle: 'Browse programs',
-                              icon: HugeIcons.strokeRoundedDumbbell01,
-                              color: context.primaryColor,
-                              onTap: () {
-                                context.go(AppRoutes.programs);
-                              },
-                            ),
-                            _ActionCard(
-                              title: 'Workouts',
-                              subtitle: currentWorkoutSession != null
-                                  ? 'Start workout'
-                                  : 'No workout available',
-                              icon: HugeIcons.strokeRoundedPlay,
-                              color: context.successColor.withValues(
-                                  alpha: currentWorkoutSession != null
-                                      ? 1.0
-                                      : 0.4),
-                              onTap: currentWorkoutSession != null
-                                  ? () {
-                                      context.go(AppRoutes.workout);
-                                    }
-                                  : () {
-                                      showInfoMessage(context,
-                                          'No workout session available. Start a program first!');
-                                    },
-                            ),
-                            _ActionCard(
-                              title: 'Progress',
-                              subtitle: 'Track gains',
-                              icon: HugeIcons.strokeRoundedAnalytics01,
-                              color: context.infoColor,
-                              onTap: () {
-                                context.go(AppRoutes.progress);
-                              },
-                            ),
-                            _ActionCard(
-                              title: 'Exercises',
-                              subtitle: 'Exercise library',
-                              icon: HugeIcons.strokeRoundedMenu01,
-                              color: context.warningColor,
-                              onTap: () {
-                                showInfoMessage(
-                                    context, 'Exercise library coming soon!');
-                              },
-                            ),
-                          ],
-                        );
+                  SlideInWidget(
+                    delay: const Duration(milliseconds: 800),
+                    child: _ActionCard(
+                      title: 'History',
+                      subtitle: 'Past workouts',
+                      icon: HugeIcons.strokeRoundedClock01,
+                      color: context.secondaryColor,
+                      onTap: () {
+                        showInfoMessage(
+                            context, 'Workout history coming soon!');
                       },
                     ),
                   ),
                 ],
-              );
-            },
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+            ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Hero workout card showing current/next workout with progress ring
+class _HeroWorkoutCard extends StatelessWidget {
+  final dynamic workoutSession;
+  final VoidCallback? onStartWorkout;
+
+  const _HeroWorkoutCard({
+    required this.workoutSession,
+    this.onStartWorkout,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasWorkout = workoutSession != null;
+
+    return AppCard.gradient(
+      gradientColors: hasWorkout
+          ? AppColors.primaryGradient
+          : [
+              context.surfaceVariant,
+              context.surfaceVariant,
+            ],
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      onTap: onStartWorkout,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Progress Ring
+              AnimatedProgressRing(
+                progress: hasWorkout ? 0.0 : 0.0,
+                size: 80,
+                strokeWidth: 8,
+                progressColor: hasWorkout ? Colors.white : context.primaryColor,
+                backgroundColor: hasWorkout
+                    ? Colors.white.withValues(alpha: 0.3)
+                    : context.outlineVariant,
+                child: HugeIcon(
+                  icon: hasWorkout
+                      ? HugeIcons.strokeRoundedPlay
+                      : HugeIcons.strokeRoundedAdd01,
+                  color: hasWorkout ? Colors.white : context.textSecondary,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              // Workout Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      hasWorkout ? 'Ready to Train' : 'No Workout Scheduled',
+                      style: AppTextStyles.titleLarge.copyWith(
+                        color: hasWorkout ? Colors.white : context.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      hasWorkout
+                          ? 'Tap to start your workout'
+                          : 'Start a program to get your next workout',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: hasWorkout
+                            ? Colors.white.withValues(alpha: 0.9)
+                            : context.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (hasWorkout) ...[
+            const SizedBox(height: AppSpacing.lg),
+            // Stats Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _WorkoutStat(
+                  label: 'Exercises',
+                  value: '${workoutSession.exercises?.length ?? 0}',
+                  icon: HugeIcons.strokeRoundedDumbbell01,
+                ),
+                _WorkoutStat(
+                  label: 'Est. Time',
+                  value: '45 min',
+                  icon: HugeIcons.strokeRoundedClock01,
+                ),
+                _WorkoutStat(
+                  label: 'Difficulty',
+                  value: 'Medium',
+                  icon: HugeIcons.strokeRoundedFire,
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Stat display for hero workout card
+class _WorkoutStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _WorkoutStat({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        HugeIcon(
+          icon: icon,
+          color: Colors.white.withValues(alpha: 0.8),
+          size: 20,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          value,
+          style: AppTextStyles.titleSmall.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: AppTextStyles.bodySmall.copyWith(
+            color: Colors.white.withValues(alpha: 0.7),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Skeleton loader for hero card
+class _HeroCardSkeleton extends StatelessWidget {
+  const _HeroCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          const SkeletonAvatar(size: 80),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonText(width: 150, height: 24),
+                const SizedBox(height: AppSpacing.sm),
+                SkeletonText(width: double.infinity, height: 16),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -204,59 +415,44 @@ class _ActionCard extends StatelessWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.sm),
-        child: LayoutBuilder(
-          builder: (context, cardConstraints) {
-            // Adjust icon size and spacing based on available space
-            final isVerySmallCard = cardConstraints.maxWidth < 150;
-
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(
-                    isVerySmallCard ? AppSpacing.xs : AppSpacing.sm,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: HugeIcon(
-                    icon: icon,
-                    color: color,
-                    size: AppDimensions.iconMedium,
-                  ),
-                ),
-                SizedBox(
-                    height: isVerySmallCard ? AppSpacing.xs : AppSpacing.sm),
-                Flexible(
-                  child: Text(
-                    title,
-                    style: AppTextStyles.titleSmall.copyWith(
-                      color: context.textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                SizedBox(height: AppSpacing.xs),
-                Flexible(
-                  flex: 2, // Give more space to subtitle
-                  child: Text(
-                    subtitle,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: context.textSecondary,
-                      height: 1.2, // Tighter line height for better fit
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            );
-          },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: HugeIcon(
+                icon: icon,
+                color: color,
+                size: AppDimensions.iconMedium,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              title,
+              style: AppTextStyles.titleSmall.copyWith(
+                color: context.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              subtitle,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: context.textSecondary,
+                height: 1.2,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

@@ -7,6 +7,11 @@ import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_utils.dart';
 import '../core/theme/theme_provider.dart';
+import '../widgets/animations/animate_on_load.dart';
+import '../widgets/skeleton_loader.dart';
+import '../widgets/empty_state.dart';
+import '../widgets/gradient_button.dart';
+import '../widgets/progress_ring.dart';
 
 /// Widget Gallery Screen for showcasing all UI components
 ///
@@ -32,6 +37,7 @@ class _WidgetGalleryScreenState extends ConsumerState<WidgetGalleryScreen>
     _GalleryTab('Cards', HugeIcons.strokeRoundedDashboardSquare01),
     _GalleryTab('Icons', HugeIcons.strokeRoundedImage01),
     _GalleryTab('Spacing', HugeIcons.strokeRoundedLayoutGrid),
+    _GalleryTab('Animations', HugeIcons.strokeRoundedMotion01),
   ];
 
   @override
@@ -78,6 +84,7 @@ class _WidgetGalleryScreenState extends ConsumerState<WidgetGalleryScreen>
           _CardsGallery(),
           _IconsGallery(),
           _SpacingGallery(),
+          _AnimationsGallery(),
         ],
       ),
     );
@@ -385,6 +392,27 @@ class _ButtonsGallery extends StatelessWidget {
           }).toList(),
           selected: const {ThemeSelection.system},
           onSelectionChanged: (_) {},
+        ),
+        VSpace.lg(),
+        _SectionHeader('Gradient Buttons'),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            GradientButton(
+              label: 'Primary Action',
+              onPressed: () {},
+            ),
+            GradientButton(
+              label: 'With Icon',
+              icon: HugeIcons.strokeRoundedAdd01,
+              onPressed: () {},
+            ),
+            GradientOutlineButton(
+              label: 'Outline Style',
+              onPressed: () {},
+            ),
+          ],
         ),
       ],
     );
@@ -902,6 +930,243 @@ class _SectionHeader extends StatelessWidget {
         title,
         style: AppTextStyles.titleMedium.copyWith(
           fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================
+// Animations Gallery
+// ============================================
+
+class _AnimationsGallery extends ConsumerStatefulWidget {
+  const _AnimationsGallery();
+
+  @override
+  ConsumerState<_AnimationsGallery> createState() => _AnimationsGalleryState();
+}
+
+class _AnimationsGalleryState extends ConsumerState<_AnimationsGallery> {
+  int _counterValue = 0;
+  double _progressValue = 0.3;
+  bool _showSkeletons = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: EdgeInsets.all(AppSpacing.md),
+      children: [
+        _SectionHeader('Progress Rings'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Column(
+              children: [
+                ProgressRing(
+                  progress: 0.75,
+                  size: 60,
+                  strokeWidth: 6,
+                  progressColor: context.primaryColor,
+                  child: Text('75%', style: AppTextStyles.labelMedium),
+                ),
+                VSpace.sm(),
+                Text('Static', style: AppTextStyles.labelSmall),
+              ],
+            ),
+            Column(
+              children: [
+                AnimatedProgressRing(
+                  progress: _progressValue,
+                  size: 60,
+                  strokeWidth: 6,
+                  progressColor: context.successColor,
+                  child: Text(
+                    '${(_progressValue * 100).toInt()}%',
+                    style: AppTextStyles.labelMedium,
+                  ),
+                ),
+                VSpace.sm(),
+                Text('Animated', style: AppTextStyles.labelSmall),
+              ],
+            ),
+            Column(
+              children: [
+                MiniProgressRing(
+                  progress: 0.5,
+                  color: context.secondaryColor,
+                ),
+                VSpace.sm(),
+                Text('Mini', style: AppTextStyles.labelSmall),
+              ],
+            ),
+          ],
+        ),
+        VSpace.sm(),
+        Slider(
+          value: _progressValue,
+          onChanged: (value) => setState(() => _progressValue = value),
+        ),
+        VSpace.lg(),
+        _SectionHeader('Animated Counter'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: () => setState(() => _counterValue -= 10),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedMinusSign,
+                color: context.primaryColor,
+              ),
+            ),
+            AnimatedCounter(
+              value: _counterValue,
+              style: AppTextStyles.displayMedium.copyWith(
+                fontWeight: FontWeight.bold,
+                color: context.primaryColor,
+              ),
+            ),
+            IconButton(
+              onPressed: () => setState(() => _counterValue += 10),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedPlusSign,
+                color: context.primaryColor,
+              ),
+            ),
+          ],
+        ),
+        VSpace.lg(),
+        _SectionHeader('Entrance Animations'),
+        StaggeredList(
+          staggerDelay: const Duration(milliseconds: 100),
+          children: [
+            _AnimationDemoCard('FadeInWidget', 'Smooth opacity transition'),
+            _AnimationDemoCard(
+                'SlideInWidget', 'Slide + fade from any direction'),
+            _AnimationDemoCard(
+                'PulseWidget', 'Subtle attention-grabbing pulse'),
+          ],
+        ),
+        VSpace.lg(),
+        _SectionHeader('Skeleton Loaders'),
+        SwitchListTile(
+          title: const Text('Show Skeletons'),
+          subtitle: const Text('Toggle to see skeleton vs content'),
+          value: _showSkeletons,
+          onChanged: (value) => setState(() => _showSkeletons = value),
+        ),
+        VSpace.sm(),
+        if (_showSkeletons) ...[
+          const SkeletonCard(height: 80),
+          VSpace.sm(),
+          const SkeletonExerciseCard(),
+          VSpace.sm(),
+          Row(
+            children: [
+              const SkeletonAvatar(),
+              HSpace.md(),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SkeletonText(width: 150, height: 16),
+                    VSpace.xs(),
+                    SkeletonText(width: 100, height: 12),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ] else ...[
+          AppCard(
+            child: Padding(
+              padding: EdgeInsets.all(AppSpacing.md),
+              child: const Text('Loaded content appears here'),
+            ),
+          ),
+          VSpace.sm(),
+          AppCard(
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: context.primaryColor,
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDumbbell01,
+                  color: context.onPrimary,
+                ),
+              ),
+              title: const Text('Bench Press'),
+              subtitle: const Text('3 sets × 10 reps'),
+            ),
+          ),
+          VSpace.sm(),
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: context.secondaryColor,
+                child: const Text('JD'),
+              ),
+              HSpace.md(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('John Doe', style: AppTextStyles.titleSmall),
+                  Text('Premium Member',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: context.textSecondary,
+                      )),
+                ],
+              ),
+            ],
+          ),
+        ],
+        VSpace.lg(),
+        _SectionHeader('Empty States'),
+        SizedBox(
+          height: 300,
+          child: EmptyState.noWorkouts(
+            onCreateWorkout: () {},
+          ),
+        ),
+        VSpace.md(),
+        SizedBox(
+          height: 250,
+          child: EmptyState.noResults(
+            searchTerm: 'burpees',
+            onClearSearch: () {},
+          ),
+        ),
+        VSpace.xxl(),
+      ],
+    );
+  }
+}
+
+class _AnimationDemoCard extends StatelessWidget {
+  final String title;
+  final String description;
+
+  const _AnimationDemoCard(this.title, this.description);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: AppCard(
+        child: ListTile(
+          leading: Container(
+            padding: EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: context.primaryColor.withValues(alpha: 0.1),
+              borderRadius:
+                  BorderRadius.circular(AppDimensions.borderRadiusSmall),
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedMotion01,
+              color: context.primaryColor,
+            ),
+          ),
+          title: Text(title),
+          subtitle: Text(description),
         ),
       ),
     );

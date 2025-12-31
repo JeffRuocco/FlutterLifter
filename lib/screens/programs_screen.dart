@@ -9,6 +9,9 @@ import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
 import '../models/models.dart';
+import '../widgets/skeleton_loader.dart';
+import '../widgets/empty_state.dart';
+import '../widgets/animations/animate_on_load.dart';
 
 /// The main screen for viewing and selecting workout programs.
 class ProgramsScreen extends ConsumerStatefulWidget {
@@ -72,28 +75,37 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Section
-              Text(
-                'Choose Your Training Program',
-                style: AppTextStyles.titleLarge.copyWith(
-                  color: context.textPrimary,
+              // Header Section with slide-in animation
+              SlideInWidget(
+                delay: const Duration(milliseconds: 100),
+                child: Text(
+                  'Choose Your Training Program',
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: context.textPrimary,
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Select a program that matches your goals and schedule',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: context.textSecondary,
+              SlideInWidget(
+                delay: const Duration(milliseconds: 200),
+                child: Text(
+                  'Select a program that matches your goals and schedule',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: context.textSecondary,
+                  ),
                 ),
               ),
 
               const SizedBox(height: AppSpacing.xl),
 
               // Predefined Programs Section
-              Text(
-                'Recommended Programs',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: context.textPrimary,
+              SlideInWidget(
+                delay: const Duration(milliseconds: 300),
+                child: Text(
+                  'Recommended Programs',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: context.textPrimary,
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -110,72 +122,27 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
 
   Widget _buildProgramsList() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return SkeletonList(
+        itemCount: 3,
+        itemBuilder: (context, index) => const Padding(
+          padding: EdgeInsets.only(bottom: AppSpacing.md),
+          child: SkeletonCard(
+            height: 140,
+          ),
+        ),
       );
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: context.errorColor,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Oops! Something went wrong',
-              style: AppTextStyles.titleMedium.copyWith(
-                color: context.textPrimary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              _errorMessage!,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: context.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            ElevatedButton(
-              onPressed: _loadPrograms,
-              child: const Text('Try Again'),
-            ),
-          ],
-        ),
+      return EmptyState.error(
+        message: _errorMessage!,
+        onRetry: _loadPrograms,
       );
     }
 
     if (_programs.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              HugeIcons.strokeRoundedDumbbell01,
-              size: 48,
-              color: context.textSecondary,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'No Programs Available',
-              style: AppTextStyles.titleMedium.copyWith(
-                color: context.textPrimary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Create your first program to get started',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: context.textSecondary,
-              ),
-            ),
-          ],
-        ),
+      return EmptyState.noPrograms(
+        onBrowsePrograms: _createCustomProgram,
       );
     }
 
@@ -183,30 +150,42 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
       onRefresh: _loadPrograms,
       child: ListView(
         children: [
-          // Program cards
-          ..._programs.map((program) => Padding(
+          // Program cards with staggered animation
+          ...List.generate(_programs.length, (index) {
+            final program = _programs[index];
+            return SlideInWidget(
+              delay: Duration(milliseconds: 400 + (index * 100)),
+              child: Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: _ProgramCard(
                   program: program,
                   duration: program.frequencyDescription,
                   onTap: () => _selectProgram(program.id),
                 ),
-              )),
+              ),
+            );
+          }),
 
           const SizedBox(height: AppSpacing.xl),
 
           // Custom Program Section
-          Text(
-            'Custom Programs',
-            style: AppTextStyles.titleMedium.copyWith(
-              color: context.textPrimary,
+          SlideInWidget(
+            delay: Duration(milliseconds: 400 + (_programs.length * 100)),
+            child: Text(
+              'Custom Programs',
+              style: AppTextStyles.titleMedium.copyWith(
+                color: context.textPrimary,
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
 
           // Create Custom Program Card
-          _CreateProgramCard(
-            onTap: () => _createCustomProgram(),
+          SlideInWidget(
+            delay: Duration(milliseconds: 500 + (_programs.length * 100)),
+            child: _CreateProgramCard(
+              onTap: () => _createCustomProgram(),
+            ),
           ),
 
           const SizedBox(height: AppSpacing.xxl),

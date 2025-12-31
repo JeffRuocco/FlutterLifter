@@ -69,6 +69,9 @@ class AppDimensions {
   static const double cardElevation = 2.0;
   static const double cardBorderRadius = borderRadiusLarge;
 
+  // Button Dimensions
+  static const double buttonRadius = borderRadiusMedium;
+
   // App Bar Height
   static const double appBarHeight = 56.0;
 

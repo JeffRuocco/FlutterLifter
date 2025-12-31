@@ -35,8 +35,10 @@ void main() {
       ),
     );
 
-    // Wait for any async operations
-    await tester.pumpAndSettle();
+    // Pump enough frames for the initial animations to render
+    // (Using pump with duration instead of pumpAndSettle because
+    // the login screen has continuous animations that never settle)
+    await tester.pump(const Duration(milliseconds: 1500));
 
     // Verify that our login page loads with key elements.
     expect(find.text('FlutterLifter'), findsOneWidget);
