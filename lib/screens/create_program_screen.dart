@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
@@ -471,6 +473,6 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
   void _createProgram() {
     showSuccessMessage(
         context, 'Program "$_programName" created successfully!');
-    Navigator.pop(context);
+    context.pop();
   }
 }

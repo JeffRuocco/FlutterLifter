@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+
+import '../core/router/app_router.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
-import 'home_screen.dart';
 
 const emailRegex =
     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$'; // Regex for email validation
@@ -45,12 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       // Navigate to home screen on successful login
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ),
-      );
+      context.go(AppRoutes.home);
     });
   }
 

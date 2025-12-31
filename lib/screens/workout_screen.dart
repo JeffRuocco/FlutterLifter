@@ -1,14 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_lifter/data/repositories/program_repository.dart';
-import 'package:flutter_lifter/data/repositories/exercise_repository.dart';
-import 'package:flutter_lifter/models/models.dart';
-import 'package:flutter_lifter/models/operation_result.dart';
-import 'package:flutter_lifter/services/service_locator.dart';
-import 'package:flutter_lifter/services/workout_service.dart';
-import 'package:flutter_lifter/services/logging_service.dart';
-import 'package:flutter_lifter/utils/operation_ui_handler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+
+import '../core/providers/providers.dart';
+import '../core/router/app_router.dart';
+import '../models/models.dart';
+import '../models/operation_result.dart';
+import '../services/logging_service.dart';
+import '../utils/operation_ui_handler.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
@@ -16,33 +17,42 @@ import '../widgets/exercise_card.dart';
 import '../widgets/add_exercise_bottom_sheet.dart';
 import '../widgets/debug_action_button.dart';
 
+// TODO: fix [_onWillPop] logic for new navigation management (doesn't work correctly with GoRouter).
+// Should warn the user if they have unsaved changes before navigating away.
+
 /// The main screen for creating and managing a workout session.
-class WorkoutScreen extends StatefulWidget {
-  // TODO: Test passing in existing WorkoutSession instance
-  final ProgramRepository programRepository;
-  final WorkoutSession workoutSession;
+///
+/// The workout session is loaded from the [workoutNotifierProvider] state,
+/// which should be populated by the HomeScreen or app initialization.
+/// An optional [workoutSession] can be passed to override the provider state.
+class WorkoutScreen extends ConsumerStatefulWidget {
+  /// Optional workout session to use instead of reading from provider state.
+  /// If null, the screen will read from [currentWorkoutProvider].
+  final WorkoutSession? workoutSession;
 
   const WorkoutScreen({
     super.key,
-    required this.programRepository,
-    required this.workoutSession,
+    this.workoutSession,
   });
 
   @override
-  State<WorkoutScreen> createState() => _WorkoutScreenState();
+  ConsumerState<WorkoutScreen> createState() => _WorkoutScreenState();
 }
 
-class _WorkoutScreenState extends State<WorkoutScreen> {
-  late WorkoutService _workoutService;
-  bool _isLoading = true;
-  String? _errorMessage;
+class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _workoutService = serviceLocator.get<WorkoutService>();
-    _initializeWorkout();
+    // If a session was passed explicitly, set it in the provider
+    if (widget.workoutSession != null) {
+      Future.microtask(() {
+        ref
+            .read(workoutNotifierProvider.notifier)
+            .setCurrentWorkout(widget.workoutSession);
+      });
+    }
   }
 
   @override
@@ -51,27 +61,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     super.dispose();
   }
 
-  void _initializeWorkout() {
-    try {
-      LoggingService.logAppEvent(
-          'Workout screen initialized: ${widget.workoutSession.programName}');
-
-      setState(() {
-        _isLoading = false;
-      });
-    } catch (error) {
-      LoggingService.error('Failed to initialize workout screen', error);
-
-      setState(() {
-        _errorMessage = error.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
   Future<void> _startWorkout(WorkoutSession workoutSession) async {
     try {
-      await _workoutService.startWorkout(workoutSession);
+      final workoutService = ref.read(workoutServiceProvider);
+      await workoutService.startWorkout(workoutSession);
       if (!mounted) return;
       setState(() {}); // Refresh UI
       showSuccessMessage(context, 'Workout started! Auto-save enabled 💪');
@@ -86,8 +79,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   Future<void> _finishWorkout(WorkoutSession workoutSession) async {
     if (!workoutSession.isInProgress) return;
 
+    final workoutService = ref.read(workoutServiceProvider);
+
     // Check for unfinished sets before finishing
-    if (_workoutService.hasUnfinishedExercises()) {
+    if (workoutService.hasUnfinishedExercises()) {
       final shouldContinue = await _showUnfinishedSetsDialog();
       if (!shouldContinue || !mounted) return;
     }
@@ -95,46 +90,46 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     if (!mounted) return;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(
           'Finish Workout?',
           style: AppTextStyles.headlineSmall.copyWith(
-            color: context.textPrimary,
+            color: dialogContext.textPrimary,
           ),
         ),
         content: Text(
           'Are you sure you want to finish this workout? Your progress will be saved.',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: context.textSecondary,
+            color: dialogContext.textSecondary,
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
               style: AppTextStyles.labelMedium.copyWith(
-                color: context.textSecondary,
+                color: dialogContext.textSecondary,
               ),
             ),
           ),
           ElevatedButton(
             onPressed: () async {
-              final navigator = Navigator.of(context);
-              navigator.pop(); // Close dialog
+              Navigator.pop(dialogContext); // Close dialog
 
               try {
-                await _workoutService.finishWorkout();
-                if (!context.mounted) return;
+                await workoutService.finishWorkout();
+                if (!mounted) return;
                 showSuccessMessage(context, 'Workout completed! Great job! 🎉');
-                Navigator.pop(context); // Return to previous screen
+                context.pop(); // Return to previous screen
               } catch (error) {
+                if (!mounted) return;
                 showErrorMessage(context, 'Failed to finish workout: $error');
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: context.successColor,
-              foregroundColor: context.onSuccessColor,
+              backgroundColor: dialogContext.successColor,
+              foregroundColor: dialogContext.onSuccessColor,
             ),
             child: const Text(
               'Finish',
@@ -148,34 +143,35 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
   /// Show dialog for unfinished sets warning
   Future<bool> _showUnfinishedSetsDialog() async {
-    final unfinishedCount = _workoutService.getUnfinishedSetsCount();
+    final workoutService = ref.read(workoutServiceProvider);
+    final unfinishedCount = workoutService.getUnfinishedSetsCount();
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(
           'Unfinished Sets',
           style: AppTextStyles.headlineSmall.copyWith(
-            color: context.textPrimary,
+            color: dialogContext.textPrimary,
           ),
         ),
         content: Text(
           'You have $unfinishedCount unfinished sets with recorded data. '
           'Are you sure you want to finish the workout?',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: context.textSecondary,
+            color: dialogContext.textSecondary,
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Continue Workout'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: context.warningColor,
-              foregroundColor: context.onWarningColor,
+              backgroundColor: dialogContext.warningColor,
+              foregroundColor: dialogContext.onWarningColor,
             ),
             child: const Text('Finish Anyway'),
           ),
@@ -187,12 +183,15 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   }
 
   void _addExercise(WorkoutSession workoutSession) {
+    final exerciseRepository = ref.read(exerciseRepositoryProvider);
+    final workoutService = ref.read(workoutServiceProvider);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => AddExerciseBottomSheet(
-        exerciseRepository: serviceLocator.get<ExerciseRepository>(),
+      builder: (sheetContext) => AddExerciseBottomSheet(
+        exerciseRepository: exerciseRepository,
         onExerciseAdded: (exercise) async {
           LoggingService.logUserAction(
               "Add exercise to workout session: ${exercise.name}");
@@ -202,10 +201,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
           // Auto-save the change
           try {
-            await _workoutService.saveWorkoutImmediate();
-            if (!context.mounted) return;
+            await workoutService.saveWorkoutImmediate();
+            if (!mounted) return;
             showSuccessMessage(context, 'Exercise added!');
           } catch (error) {
+            if (!mounted) return;
             showErrorMessage(
                 context, 'Exercise added but failed to save: $error');
           }
@@ -215,28 +215,30 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   }
 
   void _removeExercise(int index, WorkoutSession workoutSession) {
+    final workoutService = ref.read(workoutServiceProvider);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(
           'Remove Exercise?',
           style: AppTextStyles.headlineSmall.copyWith(
-            color: context.textPrimary,
+            color: dialogContext.textPrimary,
           ),
         ),
         content: Text(
           'Are you sure you want to remove ${workoutSession.exercises[index].name}?',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: context.textSecondary,
+            color: dialogContext.textSecondary,
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
               style: AppTextStyles.labelMedium.copyWith(
-                color: context.textSecondary,
+                color: dialogContext.textSecondary,
               ),
             ),
           ),
@@ -247,21 +249,22 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
               setState(() {
                 workoutSession.exercises.removeAt(index);
               });
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
 
               // Auto-save the change
               try {
-                await _workoutService.saveWorkoutImmediate();
-                if (!context.mounted) return;
+                await workoutService.saveWorkoutImmediate();
+                if (!mounted) return;
                 showInfoMessage(context, 'Exercise removed');
               } catch (error) {
+                if (!mounted) return;
                 showErrorMessage(
                     context, 'Exercise removed but failed to save: $error');
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: context.errorColor,
-              foregroundColor: context.onError,
+              backgroundColor: dialogContext.errorColor,
+              foregroundColor: dialogContext.onError,
             ),
             child: const Text(
               'Remove',
@@ -274,12 +277,15 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   }
 
   void _swapExercise(int index, WorkoutSession workoutSession) {
+    final exerciseRepository = ref.read(exerciseRepositoryProvider);
+    final workoutService = ref.read(workoutServiceProvider);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => AddExerciseBottomSheet(
-        exerciseRepository: serviceLocator.get<ExerciseRepository>(),
+      builder: (sheetContext) => AddExerciseBottomSheet(
+        exerciseRepository: exerciseRepository,
         onExerciseAdded: (exercise) async {
           LoggingService.logUserAction(
               "Swap exercise in workout session: old ${workoutSession.exercises[index].name}, new ${exercise.name}");
@@ -289,10 +295,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
           // Auto-save the change
           try {
-            await _workoutService.saveWorkoutImmediate();
-            if (!context.mounted) return;
+            await workoutService.saveWorkoutImmediate();
+            if (!mounted) return;
             showSuccessMessage(context, 'Exercise swapped!');
           } catch (error) {
+            if (!mounted) return;
             showErrorMessage(
                 context, 'Exercise swapped but failed to save: $error');
           }
@@ -318,7 +325,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   /// Save current workout session state to storage
   Future<void> _saveWorkout() async {
     try {
-      await _workoutService.saveWorkout();
+      final workoutService = ref.read(workoutServiceProvider);
+      await workoutService.saveWorkout();
     } catch (error) {
       // Silent error - don't interrupt workout flow
       if (kDebugMode) {
@@ -329,12 +337,16 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    // Watch the workout state for reactive updates
+    final workoutState = ref.watch(workoutNotifierProvider);
+    final workoutSession = workoutState.currentWorkout;
+
+    if (workoutState.isLoading) {
       return Scaffold(
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           title: Text(
-            widget.workoutSession.programName ?? 'Custom Program',
+            workoutSession?.programName ?? 'Custom Program',
             style: AppTextStyles.titleMedium.copyWith(
               color: context.onSurface,
             ),
@@ -362,12 +374,12 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       );
     }
 
-    if (_errorMessage != null) {
+    if (workoutState.error != null || workoutSession == null) {
       return Scaffold(
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           title: Text(
-            widget.workoutSession.programName ?? 'Custom Program',
+            workoutSession?.programName ?? 'Custom Program',
             style: AppTextStyles.titleMedium.copyWith(
               color: context.onSurface,
             ),
@@ -386,26 +398,45 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
               ),
               const VSpace.md(),
               Text(
-                'Error loading workout',
+                workoutState.error != null
+                    ? 'Error loading workout'
+                    : 'No Workout Available',
                 style: AppTextStyles.headlineSmall.copyWith(
                   color: context.textPrimary,
                 ),
               ),
               const VSpace.sm(),
               Text(
-                _errorMessage!,
+                workoutState.error ??
+                    'Start a program to begin your workout session.',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: context.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
+              if (workoutSession == null && workoutState.error == null) ...[
+                const VSpace.lg(),
+                ElevatedButton.icon(
+                  onPressed: () => context.go(AppRoutes.programs),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedFolder01,
+                    color: context.onPrimary,
+                    size: AppDimensions.iconMedium,
+                  ),
+                  label: const Text('Browse Programs'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.primaryColor,
+                    foregroundColor: context.onPrimary,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       );
     }
 
-    return _buildWorkoutScreen(widget.workoutSession);
+    return _buildWorkoutScreen(workoutSession);
   }
 
   /// Warn the user if they're leaving the workout screen while having
@@ -413,34 +444,36 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   Future<void> _onWillPop(bool didPop, Object? result) async {
     if (didPop) return; // Already popped, don't process further
 
+    final workoutService = ref.read(workoutServiceProvider);
+
     // Check if user has uncompleted recorded sets
-    if (_workoutService.hasUncompletedRecordedSets()) {
+    if (workoutService.hasUncompletedRecordedSets()) {
       final shouldLeave = await showDialog<bool>(
             context: context,
-            builder: (context) => AlertDialog(
+            builder: (dialogContext) => AlertDialog(
               title: Text(
                 'Incomplete Sets',
                 style: AppTextStyles.headlineSmall.copyWith(
-                  color: context.textPrimary,
+                  color: dialogContext.textPrimary,
                 ),
               ),
               content: Text(
                 'You have sets with recorded data that are not marked as complete. '
                 'Are you sure you want to leave this screen?',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: context.textSecondary,
+                  color: dialogContext.textSecondary,
                 ),
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
                   child: const Text('Stay'),
                 ),
                 ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: context.warningColor,
-                    foregroundColor: context.onWarningColor,
+                    backgroundColor: dialogContext.warningColor,
+                    foregroundColor: dialogContext.onWarningColor,
                   ),
                   child: const Text('Leave Anyway'),
                 ),
@@ -450,15 +483,17 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           false;
 
       if (shouldLeave && mounted) {
-        Navigator.of(context).pop(); // Now allow pop
+        context.pop();
       }
     } else {
       // No uncompleted sets, allow pop immediately
-      Navigator.of(context).pop();
+      context.pop();
     }
   }
 
   Widget _buildWorkoutScreen(WorkoutSession workoutSession) {
+    final workoutService = ref.read(workoutServiceProvider);
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) => _onWillPop(didPop, result),
@@ -469,7 +504,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.workoutSession.programName ?? 'Custom Program',
+                workoutSession.programName ?? 'Custom Program',
                 style: AppTextStyles.titleMedium.copyWith(
                   color: context.onSurface,
                 ),
@@ -481,7 +516,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                     color: context.successColor,
                   ),
                 ),
-                if (_workoutService.hasActiveWorkout)
+                if (workoutService.hasActiveWorkout)
                   Text(
                     'Auto-saving every 30s',
                     style: AppTextStyles.labelSmall.copyWith(
@@ -506,7 +541,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                 onPressed: () async {
                   final scaffoldMessenger = ScaffoldMessenger.of(context);
                   try {
-                    await _workoutService.saveWorkoutImmediate();
+                    await workoutService.saveWorkoutImmediate();
                     if (!mounted) return;
                     scaffoldMessenger.showSnackBar(
                       const SnackBar(

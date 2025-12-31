@@ -1,137 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lifter/data/repositories/program_repository.dart';
-import 'package:flutter_lifter/models/models.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+
+import '../core/providers/providers.dart';
+import '../core/router/app_router.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
-import '../services/logging_service.dart';
-import 'programs_screen.dart';
-import 'workout_screen.dart';
-import 'settings_screen.dart';
-
-// TODO: get current program and in-progress or next workout
-// when user clicks "Workouts" action card, continue in progress workout or start next workout
-
-// TODO: initialize exercise repository and update deprecated exercise methods (use ExerciseRepository instead of ProgramRepository for exercise-related methods)
 
 /// The home screen and dashboard of the app.
-class HomeScreen extends StatefulWidget {
-  final ProgramRepository programRepository;
-
-  const HomeScreen({super.key})
-      : programRepository = const _DefaultProgramRepository();
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _DefaultProgramRepository implements ProgramRepository {
-  const _DefaultProgramRepository();
-
-  // TODO: initialize program repository from API (add production impl)
-  static final ProgramRepository _instance =
-      ProgramRepositoryImpl.development();
-
-  @override
-  Future<List<Program>> getPrograms() => _instance.getPrograms();
-
-  @override
-  Future<Program?> getProgramById(String id) => _instance.getProgramById(id);
-
-  @override
-  Future<void> createProgram(Program program) =>
-      _instance.createProgram(program);
-
-  @override
-  Future<void> updateProgram(Program program) =>
-      _instance.updateProgram(program);
-
-  @override
-  Future<void> deleteProgram(String id) => _instance.deleteProgram(id);
-
-  @override
-  Future<List<Program>> searchPrograms(String query) =>
-      _instance.searchPrograms(query);
-
-  @override
-  Future<List<Program>> getProgramsByDifficulty(ProgramDifficulty difficulty) =>
-      _instance.getProgramsByDifficulty(difficulty);
-
-  @override
-  Future<List<Program>> getProgramsByType(ProgramType type) =>
-      _instance.getProgramsByType(type);
-
-  @override
-  Future<void> refreshCache() => _instance.refreshCache();
-
-  // Exercise methods moved to ExerciseRepository
-  @override
-  @Deprecated('Use ExerciseRepository.getExercises() instead')
-  Future<List<Exercise>> getExercises() => _instance.getExercises();
-
-  @override
-  @Deprecated('Use ExerciseRepository.getExerciseByName() instead')
-  Future<Exercise?> getExerciseByName(String name) =>
-      _instance.getExerciseByName(name);
-
-  @override
-  Future<ProgramCycle?> getProgramCycleWithProgram(String cycleId) =>
-      _instance.getProgramCycleWithProgram(cycleId);
-
-  @override
-  Future<List<ProgramCycle>> getProgramCyclesWithProgram(String programId) =>
-      _instance.getProgramCyclesWithProgram(programId);
-
-  // Workout session methods
-  @override
-  Future<void> saveWorkoutSession(WorkoutSession session) =>
-      _instance.saveWorkoutSession(session);
-
-  @override
-  Future<WorkoutSession?> getWorkoutSessionById(String sessionId) =>
-      _instance.getWorkoutSessionById(sessionId);
-
-  @override
-  Future<List<WorkoutSession>> getWorkoutHistory() =>
-      _instance.getWorkoutHistory();
-
-  @override
-  Future<void> deleteWorkoutSession(String sessionId) =>
-      _instance.deleteWorkoutSession(sessionId);
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  WorkoutSession? _currentWorkoutSession;
-
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _findActiveProgramCycle();
-  }
-
-  Future<void> _findActiveProgramCycle() async {
-    // TODO: Implement logic to find the active program + cycle
-    // Get most recent active program
-    var programs = await widget.programRepository.getPrograms();
-    Program? activeProgram;
-    try {
-      activeProgram = programs.firstWhere(
-        (program) => program.activeCycle != null,
-      );
-    } catch (e) {
-      // No active program found
-      activeProgram = null;
-    }
-
-    setState(() {
-      _currentWorkoutSession =
-          activeProgram?.activeCycle?.currentWorkoutSession;
+    // Load the next workout session into state
+    Future.microtask(() {
+      ref.read(workoutNotifierProvider.notifier).loadNextWorkout();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch the workout state for reactive updates
+    final workoutState = ref.watch(workoutNotifierProvider);
+    final currentWorkoutSession = workoutState.currentWorkout;
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
@@ -150,13 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: context.onSurface,
             ),
             onPressed: () {
-              LoggingService.logNavigation('HomeScreen', 'SettingsScreen');
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
+              context.push(AppRoutes.settings);
             },
             tooltip: 'Settings',
           ),
@@ -176,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // Adjust layout based on screen size
               final isSmallScreen = constraints.maxHeight < 600;
 
               return Column(
@@ -215,7 +109,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, gridConstraints) {
-                        // Calculate if we have enough space for the current layout
                         final cardWidth =
                             (gridConstraints.maxWidth - AppSpacing.md) / 2;
                         final shouldUseCompactLayout = cardWidth < 120;
@@ -234,40 +127,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: HugeIcons.strokeRoundedDumbbell01,
                               color: context.primaryColor,
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProgramsScreen(
-                                        programRepository:
-                                            widget.programRepository),
-                                  ),
-                                );
+                                context.go(AppRoutes.programs);
                               },
                             ),
-                            // Start current/next workout button
                             _ActionCard(
                               title: 'Workouts',
-                              subtitle: _currentWorkoutSession != null
+                              subtitle: currentWorkoutSession != null
                                   ? 'Start workout'
                                   : 'No workout available',
                               icon: HugeIcons.strokeRoundedPlay,
                               color: context.successColor.withValues(
-                                  alpha: _currentWorkoutSession != null
+                                  alpha: currentWorkoutSession != null
                                       ? 1.0
                                       : 0.4),
-                              onTap: _currentWorkoutSession != null
+                              onTap: currentWorkoutSession != null
                                   ? () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => WorkoutScreen(
-                                            programRepository:
-                                                widget.programRepository,
-                                            workoutSession:
-                                                _currentWorkoutSession!,
-                                          ),
-                                        ),
-                                      );
+                                      context.go(AppRoutes.workout);
                                     }
                                   : () {
                                       showInfoMessage(context,
@@ -280,8 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: HugeIcons.strokeRoundedAnalytics01,
                               color: context.infoColor,
                               onTap: () {
-                                showInfoMessage(
-                                    context, 'Progress tracking coming soon!');
+                                context.go(AppRoutes.progress);
                               },
                             ),
                             _ActionCard(

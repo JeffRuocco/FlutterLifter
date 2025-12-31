@@ -5,14 +5,38 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:flutter_lifter/main.dart';
+import 'package:flutter_lifter/core/theme/app_theme.dart';
+import 'package:flutter_lifter/core/theme/theme_provider.dart';
+import 'package:flutter_lifter/screens/login_screen.dart';
 
 void main() {
   testWidgets('Login page loads correctly', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const FlutterLifterApp());
+    // Set up mock SharedPreferences
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    // Build our app with ProviderScope and trigger a frame.
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          themeModeNotifierProvider.overrideWith(
+            (ref) => ThemeModeNotifier(prefs),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const LoginScreen(),
+        ),
+      ),
+    );
+
+    // Wait for any async operations
+    await tester.pumpAndSettle();
 
     // Verify that our login page loads with key elements.
     expect(find.text('FlutterLifter'), findsOneWidget);

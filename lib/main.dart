@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
-import 'screens/login_screen.dart';
-import 'services/service_locator.dart';
+import 'core/theme/theme_provider.dart';
+import 'core/router/app_router.dart';
 import 'services/logging_service.dart';
+import 'services/app_settings_service.dart';
 import 'utils/utils.dart';
 // Conditional import for web-specific functionality
 import 'utils/web_theme_helper.dart'
@@ -31,8 +34,13 @@ void main() async {
     };
   }
 
-  // Initialize service locator
-  await serviceLocator.init();
+  // Initialize SharedPreferences for theme persistence
+  final sharedPreferences = await SharedPreferences.getInstance();
+
+  // Initialize app settings service for logging
+  final settingsService = AppSettingsService();
+  await settingsService.init();
+  await LoggingService.init(settingsService);
 
   // Log app startup
   LoggingService.logAppEvent('App started');
@@ -41,22 +49,34 @@ void main() async {
   WebThemeHelper.setMetaThemeColor(
       AppTheme.lightTheme.appBarTheme.backgroundColor?.toHex() ?? '#FFFFFF');
 
-  runApp(const FlutterLifterApp());
+  runApp(
+    ProviderScope(
+      overrides: [
+        // Override theme mode notifier with initialized SharedPreferences
+        themeModeNotifierProvider.overrideWith(
+          (ref) => ThemeModeNotifier(sharedPreferences),
+        ),
+      ],
+      child: const FlutterLifterApp(),
+    ),
+  );
 }
 
-class FlutterLifterApp extends StatelessWidget {
+class FlutterLifterApp extends ConsumerWidget {
   const FlutterLifterApp({super.key});
 
-  // TODO: Implement route guard for home screen
-
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+    final themeMode = ref.watch(themeModeNotifierProvider);
+
+    return MaterialApp.router(
       title: 'FlutterLifter',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
-      home: const LoginScreen(),
+      themeMode: themeMode,
+      routerConfig: router,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
