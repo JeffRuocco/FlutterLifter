@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lifter/models/models.dart';
-import 'package:flutter_lifter/data/repositories/program_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+
+import '../core/providers/repository_providers.dart';
+import '../core/router/app_router.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
-import 'create_program_screen.dart';
+import '../models/models.dart';
 
 /// The main screen for viewing and selecting workout programs.
-class ProgramsScreen extends StatefulWidget {
-  final ProgramRepository programRepository;
-
-  const ProgramsScreen({
-    super.key,
-    required this.programRepository,
-  });
+class ProgramsScreen extends ConsumerStatefulWidget {
+  const ProgramsScreen({super.key});
 
   @override
-  State<ProgramsScreen> createState() => _ProgramsScreenState();
+  ConsumerState<ProgramsScreen> createState() => _ProgramsScreenState();
 }
 
-class _ProgramsScreenState extends State<ProgramsScreen> {
+class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
   List<Program> _programs = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -38,7 +36,8 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
         _errorMessage = null;
       });
 
-      final programs = await widget.programRepository.getPrograms();
+      final repository = ref.read(programRepositoryProvider);
+      final programs = await repository.getPrograms();
 
       setState(() {
         _programs = programs;
@@ -219,7 +218,8 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   /// Handles the selection of a program by its ID.
   void _selectProgram(String programId) async {
     try {
-      final program = await widget.programRepository.getProgramById(programId);
+      final repository = ref.read(programRepositoryProvider);
+      final program = await repository.getProgramById(programId);
       if (!mounted) return;
 
       if (program != null) {
@@ -235,12 +235,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   }
 
   void _createCustomProgram() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CreateProgramScreen(),
-      ),
-    );
+    context.push(AppRoutes.createProgram);
   }
 }
 

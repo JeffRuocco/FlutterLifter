@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-import '../core/theme/app_colors.dart';
+
+import '../core/providers/settings_provider.dart';
+import '../core/theme/app_dimensions.dart';
+import '../core/theme/app_text_styles.dart';
+import '../core/theme/theme_utils.dart';
 import '../services/logging_service.dart';
-import '../services/app_settings_service.dart';
-import '../services/service_locator.dart';
 
 /// Debug settings screen for development and troubleshooting
-class DebugSettingsScreen extends StatefulWidget {
+class DebugSettingsScreen extends ConsumerStatefulWidget {
   const DebugSettingsScreen({super.key});
 
   @override
-  State<DebugSettingsScreen> createState() => _DebugSettingsScreenState();
+  ConsumerState<DebugSettingsScreen> createState() =>
+      _DebugSettingsScreenState();
 }
 
-class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
-  late AppSettingsService _settingsService;
+class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
   bool _debugLoggingEnabled = false;
   bool _verboseLoggingEnabled = false;
   bool _isLoading = true;
@@ -23,14 +27,14 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _settingsService = serviceLocator.get<AppSettingsService>();
     _loadSettings();
   }
 
   Future<void> _loadSettings() async {
     try {
-      final debugLogging = await _settingsService.isDebugLoggingEnabled();
-      final verboseLogging = await _settingsService.isVerboseLoggingEnabled();
+      final settingsAsync = await ref.read(appSettingsServiceProvider.future);
+      final debugLogging = await settingsAsync.isDebugLoggingEnabled();
+      final verboseLogging = await settingsAsync.isVerboseLoggingEnabled();
 
       setState(() {
         _debugLoggingEnabled = debugLogging;
@@ -47,7 +51,8 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
 
   Future<void> _toggleDebugLogging(bool enabled) async {
     try {
-      await _settingsService.setDebugLoggingEnabled(enabled);
+      final settingsAsync = await ref.read(appSettingsServiceProvider.future);
+      await settingsAsync.setDebugLoggingEnabled(enabled);
       await LoggingService.updateDebugLogging(enabled);
 
       setState(() {
@@ -58,29 +63,24 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
           'Debug logging ${enabled ? 'enabled' : 'disabled'}');
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Debug logging ${enabled ? 'enabled' : 'disabled'}'),
-            backgroundColor: enabled ? Colors.green : Colors.orange,
-          ),
-        );
+        if (enabled) {
+          showSuccessMessage(context, 'Debug logging enabled');
+        } else {
+          showWarningMessage(context, 'Debug logging disabled');
+        }
       }
     } catch (e) {
       LoggingService.error('Failed to toggle debug logging', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to update debug logging setting'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorMessage(context, 'Failed to update debug logging setting');
       }
     }
   }
 
   Future<void> _toggleVerboseLogging(bool enabled) async {
     try {
-      await _settingsService.setVerboseLoggingEnabled(enabled);
+      final settingsAsync = await ref.read(appSettingsServiceProvider.future);
+      await settingsAsync.setVerboseLoggingEnabled(enabled);
       await LoggingService.updateVerboseLogging(enabled);
 
       setState(() {
@@ -91,23 +91,16 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
           'Verbose logging ${enabled ? 'enabled' : 'disabled'}');
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Verbose logging ${enabled ? 'enabled' : 'disabled'}'),
-            backgroundColor: enabled ? Colors.green : Colors.orange,
-          ),
-        );
+        if (enabled) {
+          showSuccessMessage(context, 'Verbose logging enabled');
+        } else {
+          showWarningMessage(context, 'Verbose logging disabled');
+        }
       }
     } catch (e) {
       LoggingService.error('Failed to toggle verbose logging', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to update verbose logging setting'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorMessage(context, 'Failed to update verbose logging setting');
       }
     }
   }
@@ -118,22 +111,12 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
       LoggingService.logUserAction('Logs cleared');
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Logs cleared successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSuccessMessage(context, 'Logs cleared successfully');
       }
     } catch (e) {
       LoggingService.error('Failed to clear logs', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to clear logs'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorMessage(context, 'Failed to clear logs');
       }
     }
   }
@@ -143,8 +126,6 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
       final logs = LoggingService.exportLogs();
       LoggingService.logUserAction('Logs exported');
 
-      // In a real app, you might want to share this via share_plus package
-      // or save to file. For now, we'll just show a dialog with the logs.
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -169,12 +150,7 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
     } catch (e) {
       LoggingService.error('Failed to export logs', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to export logs'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorMessage(context, 'Failed to export logs');
       }
     }
   }
@@ -185,9 +161,9 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
       MaterialPageRoute(
         builder: (context) => TalkerScreen(
           talker: LoggingService.talker,
-          theme: const TalkerScreenTheme(
-            backgroundColor: AppColors.surface,
-            textColor: AppColors.textPrimary,
+          theme: TalkerScreenTheme(
+            backgroundColor: context.surfaceColor,
+            textColor: context.onSurface,
           ),
         ),
       ),
@@ -200,186 +176,186 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
       appBar: AppBar(
         title: const Text('Debug Tools'),
         centerTitle: true,
-        backgroundColor: Colors.orange[800],
+        backgroundColor: context.warningColor,
+        foregroundColor: context.onPrimary,
         elevation: 0,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: AppLoadingIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.orange[50],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.orange[200]!),
+                      color: context.warningColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.borderRadiusMedium),
+                      border: Border.all(
+                        color: context.warningColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.orange[800],
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedAlert01,
+                              color: context.warningColor,
                               size: 20,
                             ),
-                            const SizedBox(width: 8),
+                            HSpace.sm(),
                             Text(
                               'Logging & Debug Tools',
-                              style: TextStyle(
-                                fontSize: 18,
+                              style: AppTextStyles.titleSmall.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.orange[800],
+                                color: context.warningColor,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        VSpace.sm(),
                         Text(
                           'Configure logging settings and access debugging tools. These tools help with troubleshooting and development.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.orange[700],
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: context.warningColor,
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  VSpace.lg(),
 
                   // App Info
-                  _buildSectionTitle('App Information'),
-                  _buildInfoCard([
-                    _buildInfoRow(
-                        'Debug Mode', kDebugMode ? 'Enabled' : 'Disabled'),
-                    _buildInfoRow('Total Logs', '${LoggingService.logCount}'),
-                    _buildInfoRow(
-                        'Build Mode', kReleaseMode ? 'Release' : 'Development'),
-                  ]),
+                  _buildSectionTitle(context, 'App Information'),
+                  AppCard(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSpacing.md),
+                      child: Column(
+                        children: [
+                          _buildInfoRow(context, 'Debug Mode',
+                              kDebugMode ? 'Enabled' : 'Disabled'),
+                          _buildInfoRow(context, 'Total Logs',
+                              '${LoggingService.logCount}'),
+                          _buildInfoRow(context, 'Build Mode',
+                              kReleaseMode ? 'Release' : 'Development'),
+                        ],
+                      ),
+                    ),
+                  ),
 
-                  const SizedBox(height: 24),
+                  VSpace.lg(),
 
                   // Logging Settings
-                  _buildSectionTitle('Logging Settings'),
-                  _buildSettingsCard([
-                    _buildSwitchTile(
-                      'Debug Logging',
-                      'Enable debug level logging to console',
-                      _debugLoggingEnabled,
-                      _toggleDebugLogging,
-                      Icons.bug_report,
+                  _buildSectionTitle(context, 'Logging Settings'),
+                  AppCard(
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          secondary: HugeIcon(
+                            icon: HugeIcons.strokeRoundedBug01,
+                            color: context.primaryColor,
+                            size: AppDimensions.iconMedium,
+                          ),
+                          title: const Text('Debug Logging'),
+                          subtitle: const Text(
+                              'Enable debug level logging to console'),
+                          value: _debugLoggingEnabled,
+                          onChanged: _toggleDebugLogging,
+                        ),
+                        Divider(height: 1, color: context.outlineColor),
+                        SwitchListTile(
+                          secondary: HugeIcon(
+                            icon: HugeIcons.strokeRoundedView,
+                            color: context.primaryColor,
+                            size: AppDimensions.iconMedium,
+                          ),
+                          title: const Text('Verbose Logging'),
+                          subtitle: const Text(
+                              'Enable verbose level logging (most detailed)'),
+                          value: _verboseLoggingEnabled,
+                          onChanged: _toggleVerboseLogging,
+                        ),
+                      ],
                     ),
-                    const Divider(height: 1),
-                    _buildSwitchTile(
-                      'Verbose Logging',
-                      'Enable verbose level logging (most detailed)',
-                      _verboseLoggingEnabled,
-                      _toggleVerboseLogging,
-                      Icons.visibility,
-                    ),
-                  ]),
+                  ),
 
-                  const SizedBox(height: 24),
+                  VSpace.lg(),
 
                   // Log Actions
-                  _buildSectionTitle('Log Actions'),
-                  _buildActionsCard([
-                    _buildActionTile(
-                      'View Logs',
-                      'Open the log viewer screen',
-                      Icons.visibility,
-                      _openTalkerScreen,
+                  _buildSectionTitle(context, 'Log Actions'),
+                  AppCard(
+                    child: Column(
+                      children: [
+                        _buildActionTile(
+                          context,
+                          icon: HugeIcons.strokeRoundedView,
+                          title: 'View Logs',
+                          subtitle: 'Open the log viewer screen',
+                          onTap: _openTalkerScreen,
+                        ),
+                        Divider(height: 1, color: context.outlineColor),
+                        _buildActionTile(
+                          context,
+                          icon: HugeIcons.strokeRoundedFileExport,
+                          title: 'Export Logs',
+                          subtitle: 'Export all logs as text',
+                          onTap: _exportLogs,
+                        ),
+                        Divider(height: 1, color: context.outlineColor),
+                        _buildActionTile(
+                          context,
+                          icon: HugeIcons.strokeRoundedDelete01,
+                          title: 'Clear Logs',
+                          subtitle: 'Delete all stored logs',
+                          onTap: _clearLogs,
+                          isDestructive: true,
+                        ),
+                      ],
                     ),
-                    const Divider(height: 1),
-                    _buildActionTile(
-                      'Export Logs',
-                      'Export all logs as text',
-                      Icons.file_download,
-                      _exportLogs,
-                    ),
-                    const Divider(height: 1),
-                    _buildActionTile(
-                      'Clear Logs',
-                      'Delete all stored logs',
-                      Icons.delete_outline,
-                      _clearLogs,
-                      isDestructive: true,
-                    ),
-                  ]),
+                  ),
 
-                  const SizedBox(height: 32),
+                  VSpace.xxl(),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: EdgeInsets.only(bottom: AppSpacing.sm),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 20,
+        style: AppTextStyles.titleMedium.copyWith(
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
         ),
       ),
     );
   }
 
-  Widget _buildInfoCard(List<Widget> children) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: children,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingsCard(List<Widget> children) {
-    return Card(
-      elevation: 2,
-      child: Column(children: children),
-    );
-  }
-
-  Widget _buildActionsCard(List<Widget> children) {
-    return Card(
-      elevation: 2,
-      child: Column(children: children),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 16,
-              color: AppColors.textSecondary,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: context.textSecondary,
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 16,
+            style: AppTextStyles.bodyMedium.copyWith(
               fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
             ),
           ),
         ],
@@ -387,45 +363,32 @@ class _DebugSettingsScreenState extends State<DebugSettingsScreen> {
     );
   }
 
-  Widget _buildSwitchTile(
-    String title,
-    String subtitle,
-    bool value,
-    Function(bool) onChanged,
-    IconData icon,
-  ) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeThumbColor: AppColors.primary,
-      ),
-    );
-  }
-
   Widget _buildActionTile(
-    String title,
-    String subtitle,
-    IconData icon,
-    VoidCallback onTap, {
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
     bool isDestructive = false,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive ? Colors.red : AppColors.primary,
+      leading: HugeIcon(
+        icon: icon,
+        color: isDestructive ? context.errorColor : context.primaryColor,
+        size: AppDimensions.iconMedium,
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: isDestructive ? Colors.red : null,
+          color: isDestructive ? context.errorColor : null,
         ),
       ),
       subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: HugeIcon(
+        icon: HugeIcons.strokeRoundedArrowRight01,
+        color: context.textSecondary,
+        size: AppDimensions.iconMedium,
+      ),
       onTap: onTap,
     );
   }

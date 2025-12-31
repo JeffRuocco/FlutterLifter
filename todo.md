@@ -42,6 +42,16 @@
 ## Incremental updates
 
 - [ ] **UI overhaul**
+  - [x] Migrate ServiceLocator to Riverpod state management
+  - [x] Implement GoRouter for declarative navigation
+  - [x] Add bottom navigation shell (Home, Progress, Programs)
+  - [x] Add theme provider with light/dark mode persistence
+  - [x] Standardize icons to HugeIcons (strokeRounded)
+  - [x] Create widget gallery screen for component reference
+  - [x] Create design-guidelines.md and widget-gallery.md docs
+  - [ ] Add riverpod_generator + build_runner for type-safe providers
+  - [ ] Add hero animations between screens for cards
+  - [ ] Better styling/theme
 - [ ] **Rest timer**
 - [ ] **Workout summary**
 - [ ] **Determine best option cloud storage (Firebase?, API?)**

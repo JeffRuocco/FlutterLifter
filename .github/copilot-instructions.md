@@ -186,7 +186,10 @@ git push origin v1.0.0
 ├── docs/                 # Comprehensive project documentation
 ├── ios/                  # iOS-specific configuration  
 ├── lib/                  # Main Dart/Flutter source code
-│   ├── core/            # Core functionality (theme, network, etc.)
+│   ├── core/            # Core functionality (theme, providers, router)
+│   │   ├── providers/   # Riverpod providers for state management
+│   │   ├── router/      # GoRouter configuration and routes
+│   │   └── theme/       # Theme definitions and utilities
 │   ├── data/            # Data layer (repositories, datasources)
 │   ├── models/          # Domain models and entities
 │   ├── screens/         # UI screens and pages
@@ -204,8 +207,10 @@ git push origin v1.0.0
 
 ### Important Files to Know
 - **pubspec.yaml**: Dependencies, Flutter SDK constraints, app metadata
-- **lib/main.dart**: Application entry point, theme configuration
+- **lib/main.dart**: Application entry point, ProviderScope, and GoRouter setup
 - **lib/core/theme/**: App theming system (colors, text styles, dimensions)
+- **lib/core/providers/**: Riverpod providers for dependency injection
+- **lib/core/router/**: GoRouter configuration and route definitions
 - **lib/models/**: Domain models organized by feature (exercise, program, workout)
 - **lib/data/repositories/**: Data access layer with caching strategies
 - **test/widget_test.dart**: Main widget tests covering login flow
@@ -309,7 +314,10 @@ flutter build apk --verbose
 - **Flutter SDK**: 3.32.x (as specified in .github/workflows/deploy.yml)
 - **Dart SDK**: >=2.18.0-66.0.dev <3.0.0
 - **Java**: Version 17 required for Android builds
-- **Key Packages**: cupertino_icons ^1.0.2, hugeicons ^0.0.7, flutter_lints ^6.0.0
+- **State Management**: flutter_riverpod ^2.6.1
+- **Navigation**: go_router ^14.8.1
+- **Icons**: hugeicons ^0.0.7 (use strokeRounded variant only)
+- **Other**: cupertino_icons ^1.0.2, flutter_lints ^6.0.0
 
 ## Common Tasks Output Reference
 
@@ -355,11 +363,83 @@ dev_dependencies:
 
 ## Documentation Resources
 
+- **Design Guidelines**: `docs/design-guidelines.md` - UI patterns, Riverpod, GoRouter, icons, theming
+- **Widget Gallery**: `docs/widget-gallery.md` - Component library documentation and maintenance
 - **Deployment Guide**: `docs/deployment-guide.md` - Comprehensive deployment instructions
 - **Data Architecture**: `docs/data-architecture.md` - Clean architecture patterns and data flow  
 - **Authentication**: `docs/authentication.md` - Authentication implementation details
 - **Styling System**: `docs/styling-system.md` - Design system and theming guide
 - **Programs Feature**: `docs/programs-feature.md` - Feature-specific documentation
+
+## Architecture Patterns
+
+### State Management (Riverpod)
+This project uses **Riverpod** for state management. Key patterns:
+
+```dart
+// Accessing providers in widgets
+class MyScreen extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<MyScreen> createState() => _MyScreenState();
+}
+
+class _MyScreenState extends ConsumerState<MyScreen> {
+  @override
+  Widget build(BuildContext context) {
+    // Read provider once
+    final repo = ref.read(programRepositoryProvider);
+    
+    // Watch provider for reactive updates
+    final theme = ref.watch(themeModeNotifierProvider);
+  }
+}
+```
+
+Provider files are located in `lib/core/providers/`.
+
+### Navigation (GoRouter)
+This project uses **GoRouter** for declarative navigation:
+
+```dart
+// Navigate (replace)
+context.go(AppRoutes.home);
+
+// Push (can go back)
+context.push(AppRoutes.createProgram);
+
+// Pop
+context.pop();
+```
+
+Route configuration is in `lib/core/router/app_router.dart`.
+
+### Icons (HugeIcons)
+**ALWAYS use HugeIcons** with the `strokeRounded` variant:
+
+```dart
+// ✅ Correct
+Icon(HugeIcons.strokeRoundedHome01)
+Icon(HugeIcons.strokeRoundedDumbbell01)
+
+// ❌ NEVER use Material Icons
+Icon(Icons.home)
+```
+
+### Theme Access
+Use context extensions for colors and `AppTextStyles` for typography:
+
+```dart
+// Colors via context
+context.primaryColor
+context.surfaceContainer
+context.onSurface
+context.textPrimary
+
+// Text styles (static class)
+AppTextStyles.headlineMedium
+AppTextStyles.titleSmall
+AppTextStyles.bodyLarge
+```
 
 ## Development Guidelines
 - Follow the most recent Flutter best practices and Material Design guidelines

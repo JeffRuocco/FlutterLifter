@@ -1,33 +1,38 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
-import '../services/app_settings_service.dart';
-import '../services/service_locator.dart';
-import '../services/logging_service.dart';
-import 'debug_settings_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 
-/// Main settings screen accessible only from home page
-class SettingsScreen extends StatefulWidget {
+import '../core/providers/settings_provider.dart';
+import '../core/router/app_router.dart';
+import '../core/theme/app_dimensions.dart';
+import '../core/theme/app_text_styles.dart';
+import '../core/theme/theme_provider.dart';
+import '../core/theme/theme_utils.dart';
+import '../services/logging_service.dart';
+
+/// Main settings screen accessible from home page
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  late AppSettingsService _settingsService;
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _debugModeEnabled = false;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _settingsService = serviceLocator.get<AppSettingsService>();
     _loadSettings();
   }
 
   Future<void> _loadSettings() async {
     try {
-      final debugMode = await _settingsService.isDebugModeEnabled();
+      final settingsAsync = await ref.read(appSettingsServiceProvider.future);
+      final debugMode = await settingsAsync.isDebugModeEnabled();
 
       setState(() {
         _debugModeEnabled = debugMode;
@@ -43,7 +48,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _toggleDebugMode(bool enabled) async {
     try {
-      await _settingsService.setDebugModeEnabled(enabled);
+      final settingsAsync = await ref.read(appSettingsServiceProvider.future);
+      await settingsAsync.setDebugModeEnabled(enabled);
 
       setState(() {
         _debugModeEnabled = enabled;
@@ -53,42 +59,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'Debug mode ${enabled ? 'enabled' : 'disabled'} from main settings');
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Debug mode ${enabled ? 'enabled' : 'disabled'}'),
-            backgroundColor: enabled ? Colors.green : Colors.orange,
-          ),
-        );
+        if (enabled) {
+          showSuccessMessage(context, 'Debug mode enabled');
+        } else {
+          showWarningMessage(context, 'Debug mode disabled');
+        }
       }
     } catch (e) {
       LoggingService.error('Failed to toggle debug mode', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to update debug mode setting'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorMessage(context, 'Failed to update debug mode setting');
       }
     }
   }
 
   void _openDebugSettings() {
     LoggingService.logUserAction('Opened debug settings from main settings');
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const DebugSettingsScreen(),
-      ),
-    ).then((_) {
+    context.push(AppRoutes.debugSettings).then((_) {
       // Refresh settings when returning
       _loadSettings();
     });
   }
 
+  void _openWidgetGallery() {
+    LoggingService.logUserAction('Opened widget gallery from settings');
+    context.push(AppRoutes.widgetGallery);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeNotifierProvider);
+    final themeNotifier = ref.read(themeModeNotifierProvider.notifier);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -96,237 +98,292 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: AppLoadingIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Appearance Section
+                  _buildSectionTitle(context, 'Appearance'),
+                  AppCard(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(AppSpacing.sm),
+                                decoration: BoxDecoration(
+                                  color: context.primaryColor
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(
+                                      AppDimensions.borderRadiusSmall),
+                                ),
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedPaintBrush01,
+                                  color: context.primaryColor,
+                                  size: AppDimensions.iconMedium,
+                                ),
+                              ),
+                              HSpace.md(),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Theme',
+                                      style: AppTextStyles.titleMedium),
+                                  Text(
+                                    'Choose your preferred appearance',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: context.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          VSpace.md(),
+                          SegmentedButton<ThemeSelection>(
+                            segments: ThemeSelection.values.map((selection) {
+                              return ButtonSegment<ThemeSelection>(
+                                value: selection,
+                                label: Text(selection.label),
+                                icon: HugeIcon(
+                                  icon: _getThemeIcon(selection),
+                                  color: context.onSurface,
+                                  size: 18,
+                                ),
+                              );
+                            }).toList(),
+                            selected: {ThemeSelection.fromThemeMode(themeMode)},
+                            onSelectionChanged: (selection) {
+                              themeNotifier.setThemeMode(selection.first.mode);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  VSpace.lg(),
+
                   // App Settings Section
-                  _buildSectionTitle('App Settings'),
-                  _buildSettingsCard([
-                    ListTile(
-                      leading:
-                          const Icon(Icons.palette, color: AppColors.primary),
-                      title: const Text('Theme'),
-                      subtitle: const Text('Light mode'),
-                      trailing: const Icon(Icons.chevron_right),
+                  _buildSectionTitle(context, 'App Settings'),
+                  _buildSettingsCard(context, [
+                    _buildSettingsTile(
+                      context,
+                      icon: HugeIcons.strokeRoundedNotification01,
+                      title: 'Notifications',
+                      subtitle: 'Workout reminders and updates',
                       onTap: () {
-                        // TODO: Implement theme settings
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Theme settings coming soon')),
-                        );
+                        showInfoMessage(
+                            context, 'Notification settings coming soon');
                       },
                     ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.notifications,
-                          color: AppColors.primary),
-                      title: const Text('Notifications'),
-                      subtitle: const Text('Workout reminders and updates'),
-                      trailing: const Icon(Icons.chevron_right),
+                    Divider(height: 1, color: context.outlineColor),
+                    _buildSettingsTile(
+                      context,
+                      icon: HugeIcons.strokeRoundedCloud,
+                      title: 'Backup & Sync',
+                      subtitle: 'Cloud backup and synchronization',
                       onTap: () {
-                        // TODO: Implement notification settings
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                                  Text('Notification settings coming soon')),
-                        );
-                      },
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.backup, color: AppColors.primary),
-                      title: const Text('Backup & Sync'),
-                      subtitle: const Text('Cloud backup and synchronization'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        // TODO: Implement backup settings
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Backup settings coming soon')),
-                        );
+                        showInfoMessage(context, 'Backup settings coming soon');
                       },
                     ),
                   ]),
 
-                  const SizedBox(height: 24),
+                  VSpace.lg(),
 
                   // Privacy & Security Section
-                  _buildSectionTitle('Privacy & Security'),
-                  _buildSettingsCard([
-                    ListTile(
-                      leading: const Icon(Icons.privacy_tip,
-                          color: AppColors.primary),
-                      title: const Text('Privacy Policy'),
-                      subtitle: const Text('View our privacy policy'),
-                      trailing: const Icon(Icons.chevron_right),
+                  _buildSectionTitle(context, 'Privacy & Security'),
+                  _buildSettingsCard(context, [
+                    _buildSettingsTile(
+                      context,
+                      icon: HugeIcons.strokeRoundedSecurityCheck,
+                      title: 'Privacy Policy',
+                      subtitle: 'View our privacy policy',
                       onTap: () {
-                        // TODO: Implement privacy policy view
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Privacy policy coming soon')),
-                        );
+                        showInfoMessage(context, 'Privacy policy coming soon');
                       },
                     ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.security, color: AppColors.primary),
-                      title: const Text('Data Export'),
-                      subtitle: const Text('Export your workout data'),
-                      trailing: const Icon(Icons.chevron_right),
+                    Divider(height: 1, color: context.outlineColor),
+                    _buildSettingsTile(
+                      context,
+                      icon: HugeIcons.strokeRoundedFileExport,
+                      title: 'Data Export',
+                      subtitle: 'Export your workout data',
                       onTap: () {
-                        // TODO: Implement data export
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Data export coming soon')),
-                        );
+                        showInfoMessage(context, 'Data export coming soon');
                       },
                     ),
                   ]),
 
-                  const SizedBox(height: 24),
+                  VSpace.lg(),
 
                   // Developer Options Section
-                  _buildSectionTitle('Developer Options'),
+                  _buildSectionTitle(context, 'Developer Options'),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.amber[50],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.amber[200]!),
+                      color: context.warningColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.borderRadiusMedium),
+                      border: Border.all(
+                        color: context.warningColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.amber[800],
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedAlert01,
+                              color: context.warningColor,
                               size: 20,
                             ),
-                            const SizedBox(width: 8),
+                            HSpace.sm(),
                             Text(
                               'Developer Mode',
-                              style: TextStyle(
-                                fontSize: 16,
+                              style: AppTextStyles.titleSmall.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.amber[800],
+                                color: context.warningColor,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        VSpace.sm(),
                         Text(
                           'Enable debug features and logging tools. Only enable if you need to troubleshoot issues or are developing the app.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.amber[700],
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: context.warningColor,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  _buildSettingsCard([
-                    _buildSwitchTile(
-                      'Enable Debug Mode',
-                      'Show debug buttons and enable developer features',
-                      _debugModeEnabled,
-                      _toggleDebugMode,
-                      Icons.developer_mode,
+                  VSpace.sm(),
+                  _buildSettingsCard(context, [
+                    SwitchListTile(
+                      secondary: HugeIcon(
+                        icon: HugeIcons.strokeRoundedCodeSquare,
+                        color: context.primaryColor,
+                        size: AppDimensions.iconMedium,
+                      ),
+                      title: const Text('Enable Debug Mode'),
+                      subtitle: const Text(
+                          'Show debug buttons and enable developer features'),
+                      value: _debugModeEnabled,
+                      onChanged: _toggleDebugMode,
                     ),
                     if (_debugModeEnabled) ...[
-                      const Divider(height: 1),
-                      ListTile(
-                        leading: const Icon(Icons.bug_report,
-                            color: AppColors.primary),
-                        title: const Text('Debug Tools'),
-                        subtitle:
-                            const Text('Advanced logging and debugging tools'),
-                        trailing: const Icon(Icons.chevron_right),
+                      Divider(height: 1, color: context.outlineColor),
+                      _buildSettingsTile(
+                        context,
+                        icon: HugeIcons.strokeRoundedBug01,
+                        title: 'Debug Tools',
+                        subtitle: 'Advanced logging and debugging tools',
                         onTap: _openDebugSettings,
+                      ),
+                      Divider(height: 1, color: context.outlineColor),
+                      _buildSettingsTile(
+                        context,
+                        icon: HugeIcons.strokeRoundedDashboardSquare01,
+                        title: 'Widget Gallery',
+                        subtitle: 'Preview all UI components',
+                        onTap: _openWidgetGallery,
                       ),
                     ],
                   ]),
-                  const SizedBox(height: 24),
+
+                  VSpace.lg(),
 
                   // About Section
-                  _buildSectionTitle('About'),
-                  _buildSettingsCard([
-                    ListTile(
-                      leading: const Icon(Icons.info, color: AppColors.primary),
-                      title: const Text('App Version'),
-                      subtitle: const Text('1.0.0+1'),
-                      onTap: () {
-                        // TODO: Show version details and changelog
-                      },
+                  _buildSectionTitle(context, 'About'),
+                  _buildSettingsCard(context, [
+                    _buildSettingsTile(
+                      context,
+                      icon: HugeIcons.strokeRoundedInformationCircle,
+                      title: 'App Version',
+                      subtitle: '1.0.0+1',
+                      showChevron: false,
+                      onTap: () {},
                     ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.help, color: AppColors.primary),
-                      title: const Text('Help & Support'),
-                      subtitle: const Text('Get help and contact support'),
-                      trailing: const Icon(Icons.chevron_right),
+                    Divider(height: 1, color: context.outlineColor),
+                    _buildSettingsTile(
+                      context,
+                      icon: HugeIcons.strokeRoundedHelpCircle,
+                      title: 'Help & Support',
+                      subtitle: 'Get help and contact support',
                       onTap: () {
-                        // TODO: Implement help and support
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Help & support coming soon')),
-                        );
+                        showInfoMessage(context, 'Help & support coming soon');
                       },
                     ),
                   ]),
 
-                  const SizedBox(height: 32),
+                  VSpace.xxl(),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  IconData _getThemeIcon(ThemeSelection selection) {
+    switch (selection) {
+      case ThemeSelection.light:
+        return HugeIcons.strokeRoundedSun01;
+      case ThemeSelection.dark:
+        return HugeIcons.strokeRoundedMoon01;
+      case ThemeSelection.system:
+        return HugeIcons.strokeRoundedSmartPhone01;
+    }
+  }
+
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: EdgeInsets.only(bottom: AppSpacing.sm),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 20,
+        style: AppTextStyles.titleMedium.copyWith(
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
         ),
       ),
     );
   }
 
-  Widget _buildSettingsCard(List<Widget> children) {
-    return Card(
-      elevation: 2,
+  Widget _buildSettingsCard(BuildContext context, List<Widget> children) {
+    return AppCard(
       child: Column(children: children),
     );
   }
 
-  Widget _buildSwitchTile(
-    String title,
-    String subtitle,
-    bool value,
-    Function(bool) onChanged,
-    IconData icon,
-  ) {
+  Widget _buildSettingsTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool showChevron = true,
+  }) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
+      leading: HugeIcon(
+        icon: icon,
+        color: context.primaryColor,
+        size: AppDimensions.iconMedium,
+      ),
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeThumbColor: AppColors.primary,
-      ),
+      trailing: showChevron
+          ? HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: context.textSecondary,
+              size: AppDimensions.iconMedium,
+            )
+          : null,
+      onTap: onTap,
     );
   }
 }

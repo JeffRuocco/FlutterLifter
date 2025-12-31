@@ -36,6 +36,12 @@ dependencies:
   cupertino_icons: ^1.0.2
   hugeicons: ^0.0.7
   
+  # State Management
+  flutter_riverpod: ^2.6.1
+  
+  # Navigation
+  go_router: ^14.6.2
+  
   # Logging and Debugging
   talker: ^4.4.1
   talker_flutter: ^4.4.1
