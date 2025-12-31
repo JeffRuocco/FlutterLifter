@@ -51,7 +51,7 @@
   - [x] Create design-guidelines.md and widget-gallery.md docs
   - [ ] Add riverpod_generator + build_runner for type-safe providers
   - [ ] Add hero animations between screens for cards
-  - [ ] Better styling/theme
+  - [x] Better styling/theme
 - [ ] **Rest timer**
 - [ ] **Workout summary**
 - [ ] **Determine best option cloud storage (Firebase?, API?)**
