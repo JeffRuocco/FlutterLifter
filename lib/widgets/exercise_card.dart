@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
@@ -35,61 +37,132 @@ class ExerciseCard extends StatefulWidget {
   State<ExerciseCard> createState() => _ExerciseCardState();
 }
 
-class _ExerciseCardState extends State<ExerciseCard> {
+class _ExerciseCardState extends State<ExerciseCard>
+    with SingleTickerProviderStateMixin {
   bool _isExpanded = true;
+  late AnimationController _expandController;
+  late Animation<double> _expandAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _expandController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _expandAnimation = CurvedAnimation(
+      parent: _expandController,
+      curve: Curves.easeInOut,
+    );
+    if (_isExpanded) {
+      _expandController.value = 1.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _expandController.dispose();
+    super.dispose();
+  }
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _expandController.forward();
+      } else {
+        _expandController.reverse();
+      }
+    });
+    HapticFeedback.selectionClick();
+  }
+
+  /// Get the primary muscle group color for this exercise
+  Color _getMuscleGroupColor() {
+    final primaryMuscle = widget.exercise.targetMuscleGroups.isNotEmpty
+        ? widget.exercise.targetMuscleGroups.first.toLowerCase()
+        : '';
+    return AppColors.getMuscleGroupColor(primaryMuscle);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final muscleColor = _getMuscleGroupColor();
+
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Exercise Header
-          _buildExerciseHeader(context),
+          // Muscle group color indicator stripe
+          Container(
+            height: 4,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  muscleColor,
+                  muscleColor.withValues(alpha: 0.5),
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(AppDimensions.borderRadiusLarge),
+                topRight: Radius.circular(AppDimensions.borderRadiusLarge),
+              ),
+            ),
+          ),
 
-          // Exercise Body (collapsible)
-          if (_isExpanded) ...[
-            const Divider(height: 1),
-            _buildExerciseBody(context),
-          ],
+          // Exercise Header
+          _buildExerciseHeader(context, muscleColor),
+
+          // Exercise Body (collapsible with animation)
+          SizeTransition(
+            sizeFactor: _expandAnimation,
+            child: Column(
+              children: [
+                const Divider(height: 1),
+                _buildExerciseBody(context),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildExerciseHeader(BuildContext context) {
+  Widget _buildExerciseHeader(BuildContext context, Color muscleColor) {
     return InkWell(
-      onTap: () => setState(() => _isExpanded = !_isExpanded),
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(AppDimensions.borderRadiusLarge),
-        topRight: Radius.circular(AppDimensions.borderRadiusLarge),
-      ),
+      onTap: _toggleExpanded,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            // Exercise Number
+            // Exercise Number with muscle color accent
             Container(
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: widget.exercise.isCompleted
                     ? context.successColor
-                    : context.primaryColor.withValues(alpha: 0.1),
+                    : muscleColor.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: widget.exercise.isCompleted
+                      ? context.successColor
+                      : muscleColor.withValues(alpha: 0.5),
+                  width: 2,
+                ),
               ),
               child: Center(
                 child: widget.exercise.isCompleted
                     ? HugeIcon(
                         icon: HugeIcons.strokeRoundedCheckmarkCircle02,
                         color: context.onSuccessColor,
-                        size: 16,
+                        size: 18,
                       )
                     : Text(
                         '${widget.exerciseIndex}',
                         style: AppTextStyles.labelMedium.copyWith(
-                          color: context.primaryColor,
+                          color: muscleColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -112,34 +185,49 @@ class _ExerciseCardState extends State<ExerciseCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const VSpace.xs(),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 2,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+                  Row(
                     children: [
-                      Text(
-                        widget.exercise.primaryMuscleGroupsText,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: context.textSecondary,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedClock01,
-                            color: context.textSecondary,
-                            size: 12,
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            widget.exercise.formattedRestTime,
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: context.textSecondary,
+                      // Muscle group chips with colors
+                      ...widget.exercise.targetMuscleGroups
+                          .take(2)
+                          .map((muscle) {
+                        final chipColor =
+                            AppColors.getMuscleGroupColor(muscle.toLowerCase());
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: chipColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              muscle,
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: chipColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ],
+                        );
+                      }),
+                      const HSpace.xs(),
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedClock01,
+                        color: context.textSecondary,
+                        size: 12,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        widget.exercise.formattedRestTime,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: context.textSecondary,
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
@@ -152,28 +240,7 @@ class _ExerciseCardState extends State<ExerciseCard> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (widget.exercise.sets.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: AppSpacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: widget.exercise.isCompleted
-                          ? context.successColor.withValues(alpha: 0.1)
-                          : context.outlineVariant,
-                      borderRadius: BorderRadius.circular(
-                          AppDimensions.borderRadiusSmall),
-                    ),
-                    child: Text(
-                      '${widget.exercise.completedSetsCount}/${widget.exercise.totalSetsCount}',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: widget.exercise.isCompleted
-                            ? context.successColor
-                            : context.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  _buildProgressIndicator(context),
 
                 const VSpace.xs(),
 
@@ -260,16 +327,67 @@ class _ExerciseCardState extends State<ExerciseCard> {
               ],
             ),
 
-            // Expand/Collapse Icon
-            HugeIcon(
-              icon: _isExpanded
-                  ? HugeIcons.strokeRoundedArrowUp01
-                  : HugeIcons.strokeRoundedArrowDown01,
-              color: context.textSecondary,
-              size: AppDimensions.iconMedium,
+            // Expand/Collapse Icon with rotation animation
+            AnimatedRotation(
+              turns: _isExpanded ? 0.5 : 0.0,
+              duration: const Duration(milliseconds: 200),
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowDown01,
+                color: context.textSecondary,
+                size: AppDimensions.iconMedium,
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Build a mini progress ring for the exercise
+  Widget _buildProgressIndicator(BuildContext context) {
+    final progress = widget.exercise.totalSetsCount > 0
+        ? widget.exercise.completedSetsCount / widget.exercise.totalSetsCount
+        : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: widget.exercise.isCompleted
+            ? context.successColor.withValues(alpha: 0.1)
+            : context.outlineVariant,
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 2,
+              backgroundColor: context.outlineVariant,
+              valueColor: AlwaysStoppedAnimation(
+                widget.exercise.isCompleted
+                    ? context.successColor
+                    : context.primaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${widget.exercise.completedSetsCount}/${widget.exercise.totalSetsCount}',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: widget.exercise.isCompleted
+                  ? context.successColor
+                  : context.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

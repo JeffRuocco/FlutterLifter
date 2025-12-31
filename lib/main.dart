@@ -15,6 +15,8 @@ import 'utils/utils.dart';
 import 'utils/web_theme_helper.dart'
     if (dart.library.js) 'utils/web_theme_helper_web.dart';
 
+// TODO: workout_provider vs workout_service. Are both needed? Improve documentation.
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

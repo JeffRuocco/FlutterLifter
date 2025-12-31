@@ -11,8 +11,9 @@ This document outlines the design principles, patterns, and conventions used thr
 5. [Theming System](#theming-system)
 6. [Icons (HugeIcons)](#icons-hugeicons)
 7. [UI Components](#ui-components)
-8. [Context Extensions](#context-extensions)
-9. [Common Patterns](#common-patterns)
+8. [Animation System](#animation-system)
+9. [Context Extensions](#context-extensions)
+10. [Common Patterns](#common-patterns)
 
 ---
 
@@ -26,6 +27,7 @@ Our design philosophy centers on:
 - **Consistency**: Same patterns across all screens
 - **Simplicity**: Avoid visual clutter and unnecessary complexity
 - **Functionality**: Every element serves a purpose
+- **Delight**: Subtle animations and micro-interactions enhance UX
 
 ### Material Design 3
 
@@ -53,6 +55,7 @@ lib/
 ├── services/            # Business logic services
 ├── utils/               # Utility functions
 └── widgets/             # Reusable UI components
+    └── animations/      # Animation widgets
 ```
 
 ---
@@ -206,6 +209,49 @@ class AppTheme {
 }
 ```
 
+### Color Palette
+
+Our warm, energetic color palette:
+
+```dart
+// Primary colors - Warm Coral
+static const Color primary = Color(0xFFFF6B4A);
+static const Color primaryDark = Color(0xFFFF8A70);
+
+// Secondary colors - Teal
+static const Color secondary = Color(0xFF26A69A);
+static const Color secondaryDark = Color(0xFF4DB6AC);
+
+// Gradients
+static const List<Color> primaryGradient = [primary, Color(0xFFFF8A70)];
+static const List<Color> secondaryGradient = [secondary, Color(0xFF4DB6AC)];
+static const List<Color> sunsetGradient = [Color(0xFFFF6B4A), Color(0xFFFFD54F)];
+static const List<Color> oceanGradient = [Color(0xFF26A69A), Color(0xFF42A5F5)];
+
+// Muscle Group Colors (for visual exercise indicators)
+static const Color muscleChest = Color(0xFFE53935);
+static const Color muscleBack = Color(0xFF1E88E5);
+static const Color muscleLegs = Color(0xFF43A047);
+static const Color muscleShoulders = Color(0xFFFB8C00);
+static const Color muscleArms = Color(0xFF8E24AA);
+static const Color muscleCore = Color(0xFFFFB300);
+static const Color muscleFullBody = Color(0xFF00897B);
+```
+
+### Glassmorphism Colors
+
+For frosted glass effects on cards and modals:
+
+```dart
+// Light mode glass
+static const Color glassWhite = Color(0x80FFFFFF);
+static const Color glassBorder = Color(0x40FFFFFF);
+
+// Dark mode glass
+static const Color glassBlack = Color(0x40000000);
+static const Color glassBorderDark = Color(0x30FFFFFF);
+```
+
 ### Theme Mode Persistence
 
 Theme preference is persisted using `SharedPreferences`:
@@ -219,14 +265,6 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     state = mode;
   }
 }
-```
-
-### Toggling Theme
-
-```dart
-// In a ConsumerWidget
-final themeNotifier = ref.read(themeModeNotifierProvider.notifier);
-themeNotifier.setThemeMode(ThemeMode.dark);
 ```
 
 ---
@@ -282,40 +320,81 @@ HugeIcons.duotoneRoundedSettings01
 
 ## UI Components
 
-### Custom Buttons
+### AppCard Variants
 
-Use `AppButton` from `lib/widgets/buttons/app_button.dart`:
+Use `AppCard` with different style variants:
 
 ```dart
-AppButton(
-  label: 'Start Workout',
-  onPressed: () => startWorkout(),
-  type: AppButtonType.primary,
+// Standard elevated card (default)
+AppCard(
+  child: content,
+  onTap: () => handleTap(),
 )
 
-AppButton.secondary(
-  label: 'Cancel',
-  onPressed: () => context.pop(),
+// Outlined card with border
+AppCard.outlined(
+  child: content,
 )
 
-AppButton.text(
-  label: 'Skip',
-  onPressed: () => skip(),
+// Filled card with solid background
+AppCard.filled(
+  child: content,
+)
+
+// Glassmorphism card with blur effect
+AppCard.glass(
+  child: content,
+)
+
+// Gradient background card
+AppCard.gradient(
+  gradientColors: AppColors.primaryGradient,
+  child: content,
 )
 ```
 
-### Cards
+### AppButton System
 
-Use consistent card styling with `AppCard` or themed containers:
+Use `AppButton` with various types and features:
 
 ```dart
-Container(
-  decoration: BoxDecoration(
-    color: context.surfaceContainer,
-    borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-  ),
-  padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-  child: content,
+// Standard elevated button
+AppButton.elevated(
+  text: 'Start Workout',
+  onPressed: () => startWorkout(),
+)
+
+// Outlined button
+AppButton.outlined(
+  text: 'Cancel',
+  onPressed: () => cancel(),
+)
+
+// Text-only button
+AppButton.text(
+  text: 'Skip',
+  onPressed: () => skip(),
+)
+
+// Icon-only button (circular)
+AppButton.icon(
+  icon: HugeIcon(icon: HugeIcons.strokeRoundedPlay, color: Colors.white),
+  onPressed: () => play(),
+)
+
+// Pill-shaped button
+AppButton.pill(
+  text: 'Get Started',
+  icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: Colors.white),
+  onPressed: () => getStarted(),
+)
+
+// Gradient button
+AppButton.gradient(
+  text: 'Sign In',
+  gradientColors: AppColors.primaryGradient,
+  onPressed: () => signIn(),
+  isLoading: _isLoading,  // Shows shimmer loading effect
 )
 ```
 
@@ -324,13 +403,175 @@ Container(
 Use themed `TextField` with consistent styling:
 
 ```dart
-TextField(
-  decoration: InputDecoration(
-    labelText: 'Exercise Name',
-    prefixIcon: Icon(HugeIcons.strokeRoundedDumbbell01),
+AppTextFormField(
+  labelText: 'Exercise Name',
+  prefixIcon: HugeIcon(
+    icon: HugeIcons.strokeRoundedDumbbell01,
+    color: context.onSurface,
   ),
+  validator: (value) => value?.isEmpty == true ? 'Required' : null,
 )
 ```
+
+### Progress Indicators
+
+```dart
+// Standard progress ring
+ProgressRing(
+  progress: 0.75,
+  size: 120,
+  strokeWidth: 10,
+  progressColor: context.primaryColor,
+  child: Text('75%'),
+)
+
+// Animated progress ring with entrance animation
+AnimatedProgressRing(
+  progress: 0.75,
+  size: 80,
+  animationDuration: Duration(milliseconds: 1000),
+)
+
+// Mini progress ring for compact spaces
+MiniProgressRing(
+  progress: 0.5,
+  size: 24,
+)
+```
+
+### Skeleton Loaders
+
+For loading states:
+
+```dart
+// Text placeholder
+SkeletonText(width: 200, height: 16)
+
+// Avatar placeholder
+SkeletonAvatar(size: 48)
+
+// Card placeholder
+SkeletonCard(height: 120)
+
+// Exercise card skeleton
+SkeletonExerciseCard()
+
+// Workout card skeleton
+SkeletonWorkoutCard()
+
+// List of skeletons
+SkeletonList(
+  itemCount: 3,
+  itemBuilder: (context, index) => SkeletonCard(height: 80),
+)
+```
+
+### Empty States
+
+For empty/error screens with Lottie animations:
+
+```dart
+// No workouts
+EmptyState.noWorkouts(
+  onCreateWorkout: () => navigateToCreate(),
+)
+
+// No programs
+EmptyState.noPrograms(
+  onCreateProgram: () => createProgram(),
+)
+
+// Error state with retry
+EmptyState.error(
+  message: 'Failed to load data',
+  onRetry: () => retry(),
+)
+
+// No search results
+EmptyState.noResults(
+  searchQuery: 'biceps',
+)
+
+// Offline state
+EmptyState.offline(
+  onRetry: () => checkConnection(),
+)
+```
+
+---
+
+## Animation System
+
+### Entrance Animations
+
+Use the animation widgets from `lib/widgets/animations/`:
+
+```dart
+// Fade in widget
+FadeInWidget(
+  delay: Duration(milliseconds: 200),
+  child: Text('Hello'),
+)
+
+// Slide in from bottom
+SlideInWidget(
+  delay: Duration(milliseconds: 300),
+  child: MyCard(),
+)
+
+// Staggered list animation
+StaggeredList(
+  itemCount: items.length,
+  itemBuilder: (context, index) => ItemCard(items[index]),
+)
+```
+
+### Animated Counter
+
+For numeric value animations:
+
+```dart
+AnimatedCounter(
+  value: 1234,
+  duration: Duration(milliseconds: 1500),
+  style: AppTextStyles.headlineLarge,
+)
+```
+
+### Pulse Widget
+
+For attention-grabbing elements:
+
+```dart
+PulseWidget(
+  child: Icon(HugeIcons.strokeRoundedNotification01),
+)
+```
+
+### Success Confetti
+
+For celebration moments:
+
+```dart
+SuccessConfetti(
+  isPlaying: _showConfetti,
+  onComplete: () => setState(() => _showConfetti = false),
+  child: MyContent(),
+)
+
+// Or use the extension
+myWidget.withConfetti(
+  isPlaying: _celebrate,
+  particleCount: 50,
+)
+```
+
+### Animation Best Practices
+
+1. **Stagger entrance animations**: Use increasing delays (100ms, 200ms, 300ms...)
+2. **Keep animations subtle**: 150-300ms for most transitions
+3. **Respect reduce motion**: Check accessibility settings
+4. **Use consistent curves**: Prefer `Curves.easeOutQuart` for emphasis
 
 ---
 
@@ -343,12 +584,16 @@ Access theme values through context extensions in `lib/core/theme/theme_utils.da
 ```dart
 // Surface colors
 context.primaryColor        // Primary brand color
-context.surfaceContainer    // Card/container background
+context.surfaceColor        // Card/container background
+context.surfaceVariant      // Alternate surface
 context.onSurface           // Text on surface
 context.onSurfaceVariant    // Secondary text on surface
 
 // Semantic colors
-context.error               // Error state color
+context.successColor        // Success state
+context.warningColor        // Warning state
+context.errorColor          // Error state
+context.infoColor           // Info state
 ```
 
 ### Text Colors
@@ -356,7 +601,13 @@ context.error               // Error state color
 ```dart
 context.textPrimary         // Primary text color
 context.textSecondary       // Secondary/dimmed text
-context.textTertiary        // Tertiary/hint text
+context.textDisabled        // Disabled text
+```
+
+### Theme State
+
+```dart
+context.isDarkMode          // Check if dark mode is active
 ```
 
 ### Text Styles
@@ -393,7 +644,7 @@ class _MyScreenState extends ConsumerState<MyScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+          padding: const EdgeInsets.all(AppSpacing.screenPadding),
           child: _buildContent(),
         ),
       ),
@@ -410,19 +661,30 @@ class _MyScreenState extends ConsumerState<MyScreen> {
 
 ```dart
 if (_isLoading) {
-  return const Center(child: CircularProgressIndicator());
+  return Column(
+    children: [
+      SkeletonCard(height: 120),
+      VSpace.md(),
+      SkeletonList(itemCount: 3),
+    ],
+  );
 }
 ```
 
-### Error Handling with SnackBars
+### Status Messages
 
 ```dart
-ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    content: Text('Error: $message'),
-    backgroundColor: context.error,
-  ),
-);
+// Success message
+showSuccessMessage(context, 'Workout completed! 🎉');
+
+// Error message
+showErrorMessage(context, 'Failed to save');
+
+// Info message
+showInfoMessage(context, 'Changes saved');
+
+// Warning message
+showWarningMessage(context, 'Low battery');
 ```
 
 ### Dialogs
@@ -431,19 +693,29 @@ ScaffoldMessenger.of(context).showSnackBar(
 showDialog(
   context: context,
   builder: (dialogContext) => AlertDialog(
-    title: const Text('Confirm'),
-    content: const Text('Are you sure?'),
+    title: Text(
+      'Confirm',
+      style: AppTextStyles.headlineSmall.copyWith(
+        color: dialogContext.textPrimary,
+      ),
+    ),
+    content: Text(
+      'Are you sure?',
+      style: AppTextStyles.bodyMedium.copyWith(
+        color: dialogContext.textSecondary,
+      ),
+    ),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(dialogContext),
         child: const Text('Cancel'),
       ),
-      TextButton(
+      AppButton.elevated(
+        text: 'Confirm',
         onPressed: () {
           Navigator.pop(dialogContext);
           // Perform action
         },
-        child: const Text('Confirm'),
       ),
     ],
   ),
@@ -465,11 +737,15 @@ AppDurations.slow       // 500ms - Elaborate animations
 ## Best Practices Summary
 
 1. **Icons**: Always use HugeIcons with `strokeRounded` variant
-2. **State**: Access state through Riverpod providers, not ServiceLocator
+2. **State**: Access state through Riverpod providers
 3. **Navigation**: Use GoRouter methods (`context.go`, `context.push`, `context.pop`)
 4. **Theming**: Use context extensions for colors, `AppTextStyles` for typography
-5. **Components**: Use custom widgets (`AppButton`, etc.) over raw Material widgets
-6. **Testing**: Wrap widgets in `ProviderScope` with necessary overrides
+5. **Components**: Use custom widgets (`AppCard`, `AppButton`, etc.)
+6. **Animations**: Use animation widgets for entrances, keep durations subtle
+7. **Loading**: Use skeleton loaders instead of spinners where possible
+8. **Empty States**: Always provide helpful empty states with actions
+9. **Haptics**: Add haptic feedback on important interactions
+10. **Testing**: Wrap widgets in `ProviderScope` with necessary overrides
 
 ---
 

@@ -1,22 +1,34 @@
 import 'package:flutter/material.dart';
 
 /// App Colors - Centralized color palette for FlutterLifter
+/// Updated with warmer coral/orange primary and teal secondary
 class AppColors {
-  // Primary Colors
-  static const Color primary = Color(0xFF2979FF);
-  static const Color primaryLight = Color(0xFF75A7FF);
-  static const Color primaryDark = Color(0xFF004ECF);
+  // Primary Colors - Warm Coral/Orange
+  static const Color primary = Color(0xFFFF6B4A);
+  static const Color primaryLight = Color(0xFFFF9A7A);
+  static const Color primaryDark = Color(0xFFE54525);
 
-  // Secondary Colors
-  static const Color secondary = Color(0xFFFF6D00);
-  static const Color secondaryLight = Color(0xFFFFA040);
-  static const Color secondaryDark = Color(0xFFC43E00);
+  // Secondary Colors - Teal
+  static const Color secondary = Color(0xFF26A69A);
+  static const Color secondaryLight = Color(0xFF64D8CB);
+  static const Color secondaryDark = Color(0xFF00796B);
 
   // Surface Colors
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceDark = Color(0xFF121212);
   static const Color surfaceVariant = Color(0xFFF2F4F8);
   static const Color surfaceVariantLight = Color(0xFF1E1E1E);
+
+  // Surface Tints for M3 depth perception
+  static const Color surfaceTint = primary;
+  static const Color surfaceContainer = Color(0xFFF8F9FA);
+  static const Color surfaceContainerLow = Color(0xFFFBFCFD);
+  static const Color surfaceContainerHigh = Color(0xFFF1F3F5);
+  static const Color surfaceContainerHighest = Color(0xFFE9ECEF);
+  static const Color surfaceContainerDark = Color(0xFF1A1A1A);
+  static const Color surfaceContainerLowDark = Color(0xFF141414);
+  static const Color surfaceContainerHighDark = Color(0xFF242424);
+  static const Color surfaceContainerHighestDark = Color(0xFF2E2E2E);
 
   // Outline Colors
   static const Color outline = Color(0xFFBDBDBD);
@@ -70,4 +82,70 @@ class AppColors {
   static const Color strength = Color(0xFF4ECDC4);
   static const Color flexibility = Color(0xFFFFE66D);
   static const Color rest = Color(0xFF95E1D3);
+
+  // Muscle Group Colors for exercise indicators
+  static const Color muscleChest = Color(0xFFFF6B4A);
+  static const Color muscleBack = Color(0xFF26A69A);
+  static const Color muscleLegs = Color(0xFF7C3AED);
+  static const Color muscleShoulders = Color(0xFFF59E0B);
+  static const Color muscleArms = Color(0xFF3B82F6);
+  static const Color muscleCore = Color(0xFF10B981);
+  static const Color muscleFullBody = Color(0xFFEC4899);
+
+  // Gradient Definitions
+  static const List<Color> primaryGradient = [primary, primaryLight];
+  static const List<Color> secondaryGradient = [secondary, secondaryLight];
+  static const List<Color> successGradient = [success, Color(0xFF34D399)];
+  static const List<Color> warmGradient = [
+    Color(0xFFFF6B4A),
+    Color(0xFFFFA07A)
+  ];
+  static const List<Color> coolGradient = [
+    Color(0xFF26A69A),
+    Color(0xFF4DD0E1)
+  ];
+  static const List<Color> sunsetGradient = [
+    Color(0xFFFF6B4A),
+    Color(0xFFFF9A7A),
+    Color(0xFFFFC371)
+  ];
+  static const List<Color> oceanGradient = [
+    Color(0xFF26A69A),
+    Color(0xFF64D8CB),
+    Color(0xFF80DEEA)
+  ];
+
+  // Glassmorphism Colors
+  static Color glassWhite = Colors.white.withValues(alpha: 0.15);
+  static Color glassWhiteStrong = Colors.white.withValues(alpha: 0.25);
+  static Color glassBorder = Colors.white.withValues(alpha: 0.2);
+  static Color glassBlack = Colors.black.withValues(alpha: 0.1);
+  static Color glassBlackStrong = Colors.black.withValues(alpha: 0.2);
+  static Color glassBorderDark = Colors.white.withValues(alpha: 0.1);
+
+  /// Get muscle group color by name
+  static Color getMuscleGroupColor(String muscleGroup) {
+    final normalized = muscleGroup.toLowerCase();
+    if (normalized.contains('chest') || normalized.contains('pec')) {
+      return muscleChest;
+    } else if (normalized.contains('back') || normalized.contains('lat')) {
+      return muscleBack;
+    } else if (normalized.contains('leg') ||
+        normalized.contains('quad') ||
+        normalized.contains('hamstring') ||
+        normalized.contains('glute') ||
+        normalized.contains('calf')) {
+      return muscleLegs;
+    } else if (normalized.contains('shoulder') || normalized.contains('delt')) {
+      return muscleShoulders;
+    } else if (normalized.contains('arm') ||
+        normalized.contains('bicep') ||
+        normalized.contains('tricep')) {
+      return muscleArms;
+    } else if (normalized.contains('core') || normalized.contains('ab')) {
+      return muscleCore;
+    } else {
+      return muscleFullBody;
+    }
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../core/providers/accessibility_provider.dart';
 import '../core/providers/settings_provider.dart';
 import '../core/router/app_router.dart';
 import '../core/theme/app_dimensions.dart';
@@ -166,6 +167,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ),
                   ),
+
+                  VSpace.md(),
+
+                  // Accessibility Section
+                  _buildSettingsCard(context, [
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final accessibilityState =
+                            ref.watch(accessibilityNotifierProvider);
+                        final accessibilityNotifier =
+                            ref.read(accessibilityNotifierProvider.notifier);
+
+                        return SwitchListTile(
+                          secondary: HugeIcon(
+                            icon: HugeIcons.strokeRoundedSlowWinds,
+                            color: context.primaryColor,
+                            size: AppDimensions.iconMedium,
+                          ),
+                          title: const Text('Reduce Motion'),
+                          subtitle: const Text(
+                            'Minimize animations for accessibility',
+                          ),
+                          value: accessibilityState.reduceMotion,
+                          onChanged: (value) {
+                            accessibilityNotifier.setReduceMotion(value);
+                            if (value) {
+                              showInfoMessage(context, 'Animations reduced');
+                            } else {
+                              showInfoMessage(context, 'Animations enabled');
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ]),
 
                   VSpace.lg(),
 
