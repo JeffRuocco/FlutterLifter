@@ -23,6 +23,8 @@
 - [x] **Workout complete validation (warn about incomplete)**
   - [x] Warn about finishing workout before completing all sets (✅ WorkoutService ready)
   - [x] Warn about leaving workout page with sets recorded, but not marked complete (✅ WorkoutService ready)
+- [ ] **Determine best option for location storage (Hive?)**
+- [ ] **Determine best option cloud storage (Firebase?, API?)**
 - [ ] **Add Hive for local storage (all platforms)**
   - [ ] Add hive dependencies to pubspec.yaml
   - [ ] Implement HiveStorageService
