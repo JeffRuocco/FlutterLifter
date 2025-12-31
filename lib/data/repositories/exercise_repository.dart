@@ -16,67 +16,73 @@ abstract class ExerciseRepository {
   // Default Exercises (Read-Only)
   // ============================================
 
-  /// Returns all default built-in exercises
+  /// Returns all default built-in exercises.
   Future<List<Exercise>> getDefaultExercises();
 
   // ============================================
   // Custom Exercises (Full CRUD)
   // ============================================
 
-  /// Returns all custom user-created exercises
+  /// Returns all custom user-created exercises.
   Future<List<Exercise>> getCustomExercises();
 
-  /// Creates a new custom exercise
-  /// Throws [ArgumentError] if exercise.isDefault is true
+  /// Creates a new custom exercise.
+  ///
+  /// Throws [ArgumentError] if [exercise.isDefault] is true.
   Future<void> createCustomExercise(Exercise exercise);
 
-  /// Updates an existing custom exercise
-  /// Throws [ArgumentError] if trying to update a default exercise
+  /// Updates an existing custom exercise.
+  ///
+  /// Throws [ArgumentError] if trying to update a default exercise.
   Future<void> updateCustomExercise(Exercise exercise);
 
-  /// Deletes a custom exercise by ID
-  /// Throws [ArgumentError] if trying to delete a default exercise
+  /// Deletes a custom exercise by ID.
+  ///
+  /// Throws [ArgumentError] if trying to delete a default exercise.
   Future<void> deleteCustomExercise(String exerciseId);
 
   // ============================================
   // Combined Exercise Access
   // ============================================
 
-  /// Returns exercises filtered by source (default, custom, or all)
-  /// Default is [ExerciseSource.all]
+  /// Returns exercises filtered by source (default, custom, or all).
+  ///
+  /// Default is [ExerciseSource.all].
   Future<List<Exercise>> getExercises({
     ExerciseSource source = ExerciseSource.all,
   });
 
-  /// Returns exercises with user preferences applied (modified copies)
-  /// Preferences override default values for sets, reps, weight, rest time, notes
+  /// Returns exercises with user preferences applied (modified copies).
+  ///
+  /// Preferences override default values for sets, reps, weight, rest time, notes.
   Future<List<Exercise>> getExercisesWithPreferences({
     ExerciseSource source = ExerciseSource.all,
   });
 
-  /// Returns a single exercise by ID (checks both default and custom)
+  /// Returns a single exercise by ID (checks both default and custom).
   Future<Exercise?> getExerciseById(String id);
 
-  /// Returns a single exercise by ID with user preferences applied
+  /// Returns a single exercise by ID with user preferences applied.
   Future<Exercise?> getExerciseByIdWithPreferences(String id);
 
-  /// Returns a single exercise by name (checks both default and custom)
+  /// Returns a single exercise by name (checks both default and custom).
   Future<Exercise?> getExerciseByName(String name);
 
-  /// Searches exercises by name, targeting muscle groups, or category
-  /// Returns both default and custom exercises matching the query
+  /// Searches exercises by name, targeting muscle groups, or category.
+  ///
+  /// Returns both default and custom exercises matching the query.
   Future<List<Exercise>> searchExercises(
     String query, {
     ExerciseSource source = ExerciseSource.all,
   });
 
-  /// Returns exercises filtered by category
+  /// Returns exercises filtered by category.
   Future<List<Exercise>> getExercisesByCategory(
     ExerciseCategory category, {
     ExerciseSource source = ExerciseSource.all,
   });
 
-  /// Returns exercises that target a specific muscle group
+  /// Returns exercises that target a specific muscle group.
   Future<List<Exercise>> getExercisesByMuscleGroup(
     String muscleGroup, {
     ExerciseSource source = ExerciseSource.all,
@@ -86,43 +92,45 @@ abstract class ExerciseRepository {
   // User Exercise Preferences
   // ============================================
 
-  /// Returns all user exercise preferences
+  /// Returns all user exercise preferences.
   Future<List<UserExercisePreferences>> getPreferences();
 
-  /// Returns user preference for a specific exercise (if any)
+  /// Returns user preference for a specific exercise (if any).
   Future<UserExercisePreferences?> getPreferenceForExercise(String exerciseId);
 
-  /// Creates or updates user preference for an exercise
+  /// Creates or updates user preference for an exercise.
   Future<void> setPreference(UserExercisePreferences preferences);
 
-  /// Removes user preference for an exercise
+  /// Removes user preference for an exercise.
   Future<void> removePreference(String exerciseId);
 
   // ============================================
   // Future: Exercise Library Integration
   // ============================================
 
-  /// Syncs exercises from the exercise library (future feature)
-  /// Imports public exercises that the user has added to their library
+  /// Syncs exercises from the exercise library (future feature).
+  ///
+  /// Imports public exercises that the user has added to their library.
   Future<void> syncFromLibrary();
 
-  /// Publishes a custom exercise to the exercise library (future feature)
+  /// Publishes a custom exercise to the exercise library (future feature).
   Future<void> publishToLibrary(String exerciseId);
 
   // ============================================
   // Cache Management
   // ============================================
 
-  /// Refreshes the exercise cache
+  /// Refreshes the exercise cache.
   Future<void> refreshCache();
 }
 
-/// Implementation of [ExerciseRepository]
+/// Implementation of [ExerciseRepository].
 class ExerciseRepositoryImpl implements ExerciseRepository {
   final ExerciseLocalDataSource localDataSource;
 
-  /// Default exercises loaded from mock data
-  /// These are immutable and loaded once at initialization
+  /// Default exercises loaded from mock data.
+  ///
+  /// These are immutable and loaded once at initialization.
   late final List<Exercise> _defaultExercises;
 
   ExerciseRepositoryImpl._({
@@ -132,7 +140,7 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
     _defaultExercises = List.unmodifiable(defaultExercises);
   }
 
-  /// Creates a development instance with mock default exercises
+  /// Creates a development instance with mock default exercises.
   factory ExerciseRepositoryImpl.development({
     ExerciseLocalDataSource? localDataSource,
   }) {
@@ -142,8 +150,9 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
     );
   }
 
-  /// Creates a production instance
-  /// In production, default exercises could be loaded from a remote source
+  /// Creates a production instance.
+  ///
+  /// In production, default exercises could be loaded from a remote source.
   factory ExerciseRepositoryImpl.production({
     required ExerciseLocalDataSource localDataSource,
     List<Exercise>? defaultExercises,
@@ -175,14 +184,13 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
 
   @override
   Future<void> createCustomExercise(Exercise exercise) async {
+    // Ensure the exercise is not marked as default
     if (exercise.isDefault) {
       throw ArgumentError(
           'Cannot create a custom exercise with isDefault=true');
     }
 
-    // Ensure isDefault is false
-    final customExercise = exercise.copyWith(isDefault: false);
-    await localDataSource.cacheCustomExercise(customExercise);
+    await localDataSource.cacheCustomExercise(exercise);
   }
 
   @override

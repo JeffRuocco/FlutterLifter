@@ -48,7 +48,7 @@
 - [ ] **Implement backend service**
 - [ ] **Add unit tests for all pages**
   - [ ] Add WorkoutService unit tests
-  - [ ] Add ExerciseRepository unit tests
+  - [x] Add ExerciseRepository unit tests
 - [ ] **Implement exercise library feature**
   - [ ] Allow users to publish custom exercises to library
   - [ ] Allow users to import exercises from library

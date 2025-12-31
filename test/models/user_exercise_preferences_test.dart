@@ -353,13 +353,20 @@ void main() {
         expect(copy.createdAt, equals(originalPref.createdAt));
       });
 
-      test('should update updatedAt when copying', () {
-        // Small delay to ensure different timestamp
+      test('should preserve updatedAt when not explicitly changed', () {
+        final copy = originalPref.copyWith(preferredSets: 10);
+
+        expect(copy.updatedAt, equals(originalPref.updatedAt));
+      });
+
+      test('should allow explicit updatedAt override', () {
+        final newTimestamp = DateTime.now().add(const Duration(seconds: 1));
         final copy = originalPref.copyWith(
           preferredSets: 10,
-          updatedAt: DateTime.now().add(const Duration(seconds: 1)),
+          updatedAt: newTimestamp,
         );
 
+        expect(copy.updatedAt, equals(newTimestamp));
         expect(copy.updatedAt.isAfter(originalPref.updatedAt), isTrue);
       });
 

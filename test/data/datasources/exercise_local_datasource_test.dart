@@ -9,8 +9,8 @@ void main() {
     late ExerciseLocalDataSource datasource;
 
     setUp(() {
-      // Clear static caches before each test to ensure isolation
-      ExerciseLocalDataSourceImpl.clearAllCaches();
+      // Each instance has its own cache, so simply creating a new instance
+      // provides test isolation without needing explicit cache clearing
       datasource = ExerciseLocalDataSourceImpl();
     });
 
@@ -92,20 +92,25 @@ void main() {
         expect(found!.name, equals('Test Exercise'));
       });
 
-      test('getCachedCustomExerciseById should use exact key matching',
-          () async {
+      test('getCachedCustomExerciseById should be case-insensitive', () async {
         await datasource.cacheCustomExercise(testExercise);
 
-        // Datasource uses exact key matching (repository handles case conversion)
-        final found = await datasource.getCachedCustomExerciseById(
+        // All case variations should find the exercise
+        final found1 = await datasource.getCachedCustomExerciseById(
           'test_exercise',
         );
-        final notFound = await datasource.getCachedCustomExerciseById(
+        final found2 = await datasource.getCachedCustomExerciseById(
           'TEST_EXERCISE',
         );
+        final found3 = await datasource.getCachedCustomExerciseById(
+          'Test_Exercise',
+        );
 
-        expect(found, isNotNull);
-        expect(notFound, isNull);
+        expect(found1, isNotNull);
+        expect(found2, isNotNull);
+        expect(found3, isNotNull);
+        expect(found1!.id, equals(found2!.id));
+        expect(found2.id, equals(found3!.id));
       });
 
       test('getCachedCustomExerciseById should return null for non-existent',
@@ -126,15 +131,11 @@ void main() {
         expect((await datasource.getCachedCustomExercises()).length, equals(0));
       });
 
-      test('removeCustomExercise should use exact key matching', () async {
+      test('removeCustomExercise should be case-insensitive', () async {
         await datasource.cacheCustomExercise(testExercise);
 
-        // Wrong case won't remove
+        // Different case should still remove the exercise
         await datasource.removeCustomExercise('TEST_EXERCISE');
-        expect((await datasource.getCachedCustomExercises()).length, equals(1));
-
-        // Correct case removes
-        await datasource.removeCustomExercise('test_exercise');
         expect((await datasource.getCachedCustomExercises()).length, equals(0));
       });
 
@@ -367,8 +368,8 @@ void main() {
       });
     });
 
-    group('Static Cache Clearing', () {
-      test('clearAllCaches should reset all caches across instances', () async {
+    group('Instance Cache Isolation', () {
+      test('each instance should have independent cache', () async {
         // Use one instance to cache data
         await datasource.cacheCustomExercise(
           Exercise(
@@ -388,10 +389,7 @@ void main() {
           ),
         );
 
-        // Clear all static caches
-        ExerciseLocalDataSourceImpl.clearAllCaches();
-
-        // Create new instance and verify caches are empty
+        // Create a new instance - it should have empty caches (instance isolation)
         final newDatasource = ExerciseLocalDataSourceImpl();
         expect(
           (await newDatasource.getCachedCustomExercises()).length,
@@ -401,6 +399,42 @@ void main() {
           (await newDatasource.getCachedPreferences()).length,
           equals(0),
         );
+
+        // Original instance should still have its data
+        expect(
+          (await datasource.getCachedCustomExercises()).length,
+          equals(1),
+        );
+        expect(
+          (await datasource.getCachedPreferences()).length,
+          equals(1),
+        );
+      });
+
+      test('clearAllCaches should reset caches for the instance', () async {
+        final impl = datasource as ExerciseLocalDataSourceImpl;
+        await impl.cacheCustomExercise(
+          Exercise(
+            id: 'test',
+            name: 'Test',
+            category: ExerciseCategory.strength,
+            targetMuscleGroups: ['Test'],
+            defaultSets: 3,
+            defaultReps: 10,
+            isDefault: false,
+          ),
+        );
+        await impl.cachePreference(
+          UserExercisePreferences.create(
+            exerciseId: 'bench',
+            preferredSets: 5,
+          ),
+        );
+
+        impl.clearAllCaches();
+
+        expect((await impl.getCachedCustomExercises()).length, equals(0));
+        expect((await impl.getCachedPreferences()).length, equals(0));
       });
     });
 

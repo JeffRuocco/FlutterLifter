@@ -1,8 +1,12 @@
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/user_exercise_preferences.dart';
 
-/// Local data source for exercise-related operations
-/// Handles caching of custom exercises and user preferences
+/// Local data source for exercise-related operations.
+///
+/// Handles caching of custom exercises and user preferences.
+///
+/// **ID Normalization**: All exercise IDs are normalized to lowercase when
+/// storing and retrieving to ensure consistent case-insensitive lookups.
 abstract class ExerciseLocalDataSource {
   static const Duration defaultCacheMaxAge = Duration(minutes: 5);
 
@@ -38,13 +42,20 @@ abstract class ExerciseLocalDataSource {
 }
 
 /// In-memory implementation of ExerciseLocalDataSource
+///
 /// Used for development and testing. Will be replaced by Hive implementation.
+///
+/// **Design Note**: This implementation uses instance-level caches, meaning each
+/// instance maintains its own independent cache state. For production use where
+/// singleton behavior is desired, register a single instance with your DI container.
+/// This design ensures clean test isolation without requiring explicit cache clearing
+/// between tests - simply create a new instance for each test.
 class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
-  // In-memory caches
-  static final Map<String, Exercise> _customExercisesCache = {};
-  static final Map<String, UserExercisePreferences> _preferencesCache = {};
-  static DateTime? _lastCustomExercisesUpdate;
-  static DateTime? _lastPreferencesUpdate;
+  // Instance-level caches for proper test isolation
+  final Map<String, Exercise> _customExercisesCache = {};
+  final Map<String, UserExercisePreferences> _preferencesCache = {};
+  DateTime? _lastCustomExercisesUpdate;
+  DateTime? _lastPreferencesUpdate;
 
   // Custom exercises operations
   @override
@@ -54,12 +65,12 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
 
   @override
   Future<Exercise?> getCachedCustomExerciseById(String id) async {
-    return _customExercisesCache[id];
+    return _customExercisesCache[id.toLowerCase()];
   }
 
   @override
   Future<void> cacheCustomExercise(Exercise exercise) async {
-    _customExercisesCache[exercise.id] = exercise;
+    _customExercisesCache[exercise.id.toLowerCase()] = exercise;
     _lastCustomExercisesUpdate = DateTime.now();
   }
 
@@ -67,14 +78,14 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
   Future<void> cacheCustomExercises(List<Exercise> exercises) async {
     _customExercisesCache.clear();
     for (final exercise in exercises) {
-      _customExercisesCache[exercise.id] = exercise;
+      _customExercisesCache[exercise.id.toLowerCase()] = exercise;
     }
     _lastCustomExercisesUpdate = DateTime.now();
   }
 
   @override
   Future<void> removeCustomExercise(String id) async {
-    _customExercisesCache.remove(id);
+    _customExercisesCache.remove(id.toLowerCase());
     _lastCustomExercisesUpdate = DateTime.now();
   }
 
@@ -93,13 +104,13 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
   @override
   Future<UserExercisePreferences?> getCachedPreferenceForExercise(
       String exerciseId) async {
-    return _preferencesCache[exerciseId];
+    return _preferencesCache[exerciseId.toLowerCase()];
   }
 
   @override
   Future<void> cachePreference(UserExercisePreferences preferences) async {
-    // Key by exerciseId for quick lookup
-    _preferencesCache[preferences.exerciseId] = preferences;
+    // Key by exerciseId (normalized to lowercase) for quick lookup
+    _preferencesCache[preferences.exerciseId.toLowerCase()] = preferences;
     _lastPreferencesUpdate = DateTime.now();
   }
 
@@ -108,14 +119,14 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
       List<UserExercisePreferences> preferences) async {
     _preferencesCache.clear();
     for (final pref in preferences) {
-      _preferencesCache[pref.exerciseId] = pref;
+      _preferencesCache[pref.exerciseId.toLowerCase()] = pref;
     }
     _lastPreferencesUpdate = DateTime.now();
   }
 
   @override
   Future<void> removePreference(String exerciseId) async {
-    _preferencesCache.remove(exerciseId);
+    _preferencesCache.remove(exerciseId.toLowerCase());
     _lastPreferencesUpdate = DateTime.now();
   }
 
@@ -152,8 +163,10 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
     return DateTime.now().difference(_lastPreferencesUpdate!) > maxAge;
   }
 
-  /// Clears all caches (useful for testing)
-  static void clearAllCaches() {
+  /// Clears all caches for this instance.
+  ///
+  /// Useful for resetting state during testing or when user logs out.
+  void clearAllCaches() {
     _customExercisesCache.clear();
     _preferencesCache.clear();
     _lastCustomExercisesUpdate = null;

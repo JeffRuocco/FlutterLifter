@@ -91,7 +91,10 @@ class UserExercisePreferences {
     );
   }
 
-  /// Creates a copy with updated values
+  /// Creates a copy with updated values.
+  ///
+  /// This is a pure data operation - timestamps are preserved unless explicitly
+  /// changed. If you want to mark this as an update, pass `updatedAt: DateTime.now()`.
   UserExercisePreferences copyWith({
     String? id,
     String? exerciseId,
@@ -113,7 +116,7 @@ class UserExercisePreferences {
           preferredRestTimeSeconds ?? this.preferredRestTimeSeconds,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? DateTime.now(),
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 

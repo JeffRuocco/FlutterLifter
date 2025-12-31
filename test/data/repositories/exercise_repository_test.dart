@@ -10,8 +10,8 @@ void main() {
     late ExerciseRepository repository;
 
     setUp(() {
-      // Clear static caches before each test to ensure isolation
-      ExerciseLocalDataSourceImpl.clearAllCaches();
+      // Each ExerciseLocalDataSourceImpl instance has its own cache,
+      // so creating a new repository provides test isolation
       repository = ExerciseRepositoryImpl.development();
     });
 
@@ -69,7 +69,7 @@ void main() {
         final exercises = await repository.getDefaultExercises();
 
         expect(exercises, isNotEmpty);
-        expect(exercises.length, greaterThan(40)); // We have 45+ exercises
+        expect(exercises.length, greaterThan(40)); // We have 40+ exercises
         expect(exercises.every((e) => e.isDefault), isTrue);
       });
 

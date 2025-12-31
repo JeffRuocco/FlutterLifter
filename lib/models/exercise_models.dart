@@ -256,7 +256,7 @@ class Exercise {
   });
 
   /// Returns the display name (shortName if available, otherwise full name)
-  String get displayName => shortName ?? name;
+  String get displayName => shortName?.isNotEmpty == true ? shortName! : name;
 
   /// Creates Exercise from JSON
   factory Exercise.fromJson(Map<String, dynamic> json) {
