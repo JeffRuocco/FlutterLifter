@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lifter/data/repositories/exercise_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_lifter/core/providers/repository_providers.dart';
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -7,36 +8,32 @@ import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
 
-class AddExerciseBottomSheet extends StatefulWidget {
-  final ExerciseRepository exerciseRepository;
+class AddExerciseBottomSheet extends ConsumerStatefulWidget {
   final Function(WorkoutExercise exercise) onExerciseAdded;
   final bool isSwapping;
   final WorkoutExercise? currentExercise;
 
   const AddExerciseBottomSheet({
     super.key,
-    required this.exerciseRepository,
     required this.onExerciseAdded,
     this.isSwapping = false,
     this.currentExercise,
   });
 
   @override
-  State<AddExerciseBottomSheet> createState() => _AddExerciseBottomSheetState();
+  ConsumerState<AddExerciseBottomSheet> createState() =>
+      _AddExerciseBottomSheetState();
 }
 
-class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
+class _AddExerciseBottomSheetState
+    extends ConsumerState<AddExerciseBottomSheet> {
   final TextEditingController _searchController = TextEditingController();
-  List<Exercise> _allExercises = [];
-  List<Exercise> _filteredExercises = [];
   ExerciseCategory? _selectedCategory;
 
   @override
   void initState() {
-    // TODO: update with future builder? (see workout_screen.dart)
     super.initState();
-    _initializeExercises();
-    _searchController.addListener(_filterExercises);
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
@@ -45,28 +42,9 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
     super.dispose();
   }
 
-  Future<void> _initializeExercises() async {
-    // Get all exercises (default + custom) with user preferences applied
-    _allExercises =
-        await widget.exerciseRepository.getExercisesWithPreferences();
-    _filteredExercises = List.from(_allExercises);
+  void _onSearchChanged() {
+    // Trigger rebuild to apply new search filter
     setState(() {});
-  }
-
-  void _filterExercises() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filteredExercises = _allExercises.where((exercise) {
-        final matchesSearch = exercise.name.toLowerCase().contains(query) ||
-            exercise.targetMuscleGroups
-                .any((muscle) => muscle.toLowerCase().contains(query));
-
-        final matchesCategory =
-            _selectedCategory == null || exercise.category == _selectedCategory;
-
-        return matchesSearch && matchesCategory;
-      }).toList();
-    });
   }
 
   void _selectExercise(Exercise template) {
@@ -170,18 +148,50 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
 
           // Exercise List
           Expanded(
-            child: _filteredExercises.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    itemCount: _filteredExercises.length,
-                    itemBuilder: (context, index) {
-                      final exercise = _filteredExercises[index];
-                      return _buildExerciseListItem(exercise);
-                    },
-                  ),
+            child: _buildExerciseList(),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildExerciseList() {
+    final exercisesAsync = ref.watch(exercisesProvider);
+
+    return exercisesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(
+        child: Text(
+          'Error loading exercises: $error',
+          style: AppTextStyles.bodyMedium.copyWith(color: context.errorColor),
+        ),
+      ),
+      data: (allExercises) {
+        // Apply filters
+        final query = _searchController.text.toLowerCase();
+        final filtered = allExercises.where((exercise) {
+          final matchesSearch = exercise.name.toLowerCase().contains(query) ||
+              exercise.targetMuscleGroups
+                  .any((muscle) => muscle.toLowerCase().contains(query));
+
+          final matchesCategory = _selectedCategory == null ||
+              exercise.category == _selectedCategory;
+
+          return matchesSearch && matchesCategory;
+        }).toList();
+
+        if (filtered.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return ListView.builder(
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            final exercise = filtered[index];
+            return _buildExerciseListItem(exercise);
+          },
+        );
+      },
     );
   }
 
@@ -201,7 +211,6 @@ class _AddExerciseBottomSheetState extends State<AddExerciseBottomSheet> {
           setState(() {
             _selectedCategory = selected ? category : null;
           });
-          _filterExercises();
         },
         backgroundColor: context.surfaceVariant,
         selectedColor: context.primaryColor,

@@ -48,22 +48,30 @@ abstract class ExerciseRepository {
   /// Returns exercises filtered by source (default, custom, or all).
   ///
   /// Default is [ExerciseSource.all].
-  Future<List<Exercise>> getExercises({
+  ///
+  /// This method returns exercises without applying user preferences.
+  /// In most cases, you should use [getExercises] to get exercises with user preferences applied.
+  Future<List<Exercise>> getExercisesWithoutPreferences({
     ExerciseSource source = ExerciseSource.all,
   });
 
   /// Returns exercises with user preferences applied (modified copies).
   ///
   /// Preferences override default values for sets, reps, weight, rest time, notes.
-  Future<List<Exercise>> getExercisesWithPreferences({
+  Future<List<Exercise>> getExercises({
     ExerciseSource source = ExerciseSource.all,
   });
 
-  /// Returns a single exercise by ID (checks both default and custom).
+  /// Returns a single exercise by ID with user preferences applied.
+  ///
+  /// This is the default method for getting an exercise by ID.
+  /// Use [getExerciseByIdWithoutPreferences] if you need the raw exercise data.
   Future<Exercise?> getExerciseById(String id);
 
-  /// Returns a single exercise by ID with user preferences applied.
-  Future<Exercise?> getExerciseByIdWithPreferences(String id);
+  /// Returns a single exercise by ID without user preferences applied.
+  ///
+  /// In most cases, use [getExerciseById] instead to get exercises with preferences.
+  Future<Exercise?> getExerciseByIdWithoutPreferences(String id);
 
   /// Returns a single exercise by name (checks both default and custom).
   Future<Exercise?> getExerciseByName(String name);
@@ -235,7 +243,7 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   // ============================================
 
   @override
-  Future<List<Exercise>> getExercises({
+  Future<List<Exercise>> getExercisesWithoutPreferences({
     ExerciseSource source = ExerciseSource.all,
   }) async {
     switch (source) {
@@ -250,10 +258,10 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   }
 
   @override
-  Future<List<Exercise>> getExercisesWithPreferences({
+  Future<List<Exercise>> getExercises({
     ExerciseSource source = ExerciseSource.all,
   }) async {
-    final exercises = await getExercises(source: source);
+    final exercises = await getExercisesWithoutPreferences(source: source);
     final preferences = await localDataSource.getCachedPreferences();
 
     // Create a map for quick preference lookup
@@ -272,7 +280,7 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   }
 
   @override
-  Future<Exercise?> getExerciseById(String id) async {
+  Future<Exercise?> getExerciseByIdWithoutPreferences(String id) async {
     // Check default exercises first
     final defaultMatch = _defaultExercises
         .where((e) => e.id.toLowerCase() == id.toLowerCase())
@@ -284,8 +292,8 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   }
 
   @override
-  Future<Exercise?> getExerciseByIdWithPreferences(String id) async {
-    final exercise = await getExerciseById(id);
+  Future<Exercise?> getExerciseById(String id) async {
+    final exercise = await getExerciseByIdWithoutPreferences(id);
     if (exercise == null) return null;
 
     final pref = await localDataSource.getCachedPreferenceForExercise(id);
@@ -379,7 +387,8 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   @override
   Future<void> setPreference(UserExercisePreferences preferences) async {
     // Verify the exercise exists (default or custom)
-    final exercise = await getExerciseById(preferences.exerciseId);
+    final exercise =
+        await getExerciseByIdWithoutPreferences(preferences.exerciseId);
     if (exercise == null) {
       throw ArgumentError(
         'Cannot set preference for non-existent exercise: ${preferences.exerciseId}',

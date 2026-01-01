@@ -11,6 +11,7 @@ This document explains how Riverpod is used throughout the FlutterLifter applica
 - [Provider Types Used](#provider-types-used)
 - [Provider Organization](#provider-organization)
 - [Usage Patterns](#usage-patterns)
+- [Common Usage Examples](#common-usage-examples)
 - [Testing with Riverpod](#testing-with-riverpod)
 - [Best Practices](#best-practices)
 
@@ -607,6 +608,189 @@ final workoutServiceProvider = Provider<WorkoutService>((ref) {
   return WorkoutService(repository);
 });
 ```
+
+---
+
+## Common Usage Examples
+
+This section provides copy-paste examples for the most common data access patterns.
+
+### Getting Programs
+
+```dart
+// In a ConsumerWidget - watch for reactive updates
+class ProgramsScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Option 1: Use FutureProvider with .when() for loading/error states
+    final programsAsync = ref.watch(programsProvider);
+
+    return programsAsync.when(
+      data: (programs) => ListView.builder(
+        itemCount: programs.length,
+        itemBuilder: (context, index) => Text(programs[index].name),
+      ),
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stack) => Text('Error: $error'),
+    );
+  }
+}
+
+// Get a single program by ID
+final program = ref.watch(programByIdProvider('program-123'));
+
+// Get programs filtered by difficulty
+final beginnerPrograms = ref.watch(
+  programsByDifficultyProvider(ProgramDifficulty.beginner),
+);
+
+// Direct repository access (when you need more control)
+final repository = ref.read(programRepositoryProvider);
+final programs = await repository.getPrograms();
+```
+
+### Getting Exercises
+
+```dart
+// In a ConsumerWidget - all exercises
+class ExerciseListScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final exercisesAsync = ref.watch(exercisesProvider);
+
+    return exercisesAsync.when(
+      data: (exercises) => ListView.builder(
+        itemCount: exercises.length,
+        itemBuilder: (context, index) => Text(exercises[index].name),
+      ),
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stack) => Text('Error: $error'),
+    );
+  }
+}
+
+// Get exercises by category
+final chestExercises = ref.watch(
+  exercisesByCategoryProvider(ExerciseCategory.chest),
+);
+
+// Search exercises
+final searchResults = ref.watch(searchExercisesProvider('bench press'));
+
+// Get a single exercise by ID
+final exercise = ref.watch(exerciseByIdProvider('exercise-456'));
+
+// Direct repository access (for saving/deleting or exercises without preferences)
+final repository = ref.read(exerciseRepositoryProvider);
+await repository.saveExercise(exercise);
+await repository.deleteExercise(exerciseId);
+```
+
+### Working with Workout Sessions
+
+```dart
+// In a ConsumerStatefulWidget - managing workout state
+class WorkoutScreen extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<WorkoutScreen> createState() => _WorkoutScreenState();
+}
+
+class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load workout data on screen init
+    Future.microtask(() {
+      ref.read(workoutNotifierProvider.notifier).loadNextWorkout();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Watch the workout state for reactive updates
+    final workoutState = ref.watch(workoutNotifierProvider);
+
+    // Handle loading state
+    if (workoutState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Handle error state
+    if (workoutState.error != null) {
+      return Center(child: Text('Error: ${workoutState.error}'));
+    }
+
+    // Access current workout
+    final workout = workoutState.currentWorkout;
+    if (workout == null) {
+      return const Center(child: Text('No workout available'));
+    }
+
+    return Text('Workout: ${workout.programName}');
+  }
+
+  // Start a workout
+  Future<void> _startWorkout(WorkoutSession session) async {
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    await notifier.startWorkout(session);
+  }
+
+  // Save changes (debounced)
+  Future<void> _saveChanges() async {
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    await notifier.saveWorkout();
+  }
+
+  // Save immediately
+  Future<void> _saveImmediate() async {
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    await notifier.saveWorkoutImmediate();
+  }
+
+  // Finish workout
+  Future<void> _finishWorkout() async {
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    await notifier.finishWorkout();
+  }
+}
+
+// Convenience providers for simpler access
+final currentWorkout = ref.watch(currentWorkoutProvider);  // WorkoutSession?
+final isActive = ref.watch(hasActiveWorkoutProvider);       // bool
+
+// Workout history
+final historyAsync = ref.watch(workoutHistoryProvider);
+historyAsync.when(
+  data: (sessions) => ListView.builder(
+    itemCount: sessions.length,
+    itemBuilder: (context, index) => Text(sessions[index].programName),
+  ),
+  loading: () => const CircularProgressIndicator(),
+  error: (e, _) => Text('Error: $e'),
+);
+```
+
+### Available Providers Quick Reference
+
+| Provider | Type | Returns | Use Case |
+| -------- | ---- | ------- | -------- |
+| **Programs** | | | |
+| `programRepositoryProvider` | `Provider` | `ProgramRepository` | Save/delete programs |
+| `programsProvider` | `FutureProvider` | `List<Program>` | All programs |
+| `programByIdProvider(id)` | `FutureProvider.family` | `Program?` | Single program |
+| `programsByDifficultyProvider(diff)` | `FutureProvider.family` | `List<Program>` | Filtered by difficulty |
+| **Exercises** | | | |
+| `exerciseRepositoryProvider` | `Provider` | `ExerciseRepository` | Save/delete exercises |
+| `exercisesProvider` | `FutureProvider` | `List<Exercise>` | All exercises (with preferences) |
+| `exerciseByIdProvider(id)` | `FutureProvider.family` | `Exercise?` | Single exercise |
+| `exercisesByCategoryProvider(cat)` | `FutureProvider.family` | `List<Exercise>` | Filtered by category |
+| `searchExercisesProvider(query)` | `FutureProvider.family` | `List<Exercise>` | Search results |
+| **Workouts** | | | |
+| `workoutServiceProvider` | `Provider` | `WorkoutService` | Direct service access |
+| `workoutNotifierProvider` | `StateNotifierProvider` | `WorkoutState` | Full workout state + notifier |
+| `currentWorkoutProvider` | `Provider` | `WorkoutSession?` | Current session only |
+| `hasActiveWorkoutProvider` | `Provider` | `bool` | Is workout in progress? |
+| `workoutHistoryProvider` | `FutureProvider` | `List<WorkoutSession>` | Past workouts |
 
 ---
 

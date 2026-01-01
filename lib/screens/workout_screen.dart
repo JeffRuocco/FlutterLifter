@@ -196,7 +196,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   }
 
   void _addExercise(WorkoutSession workoutSession) {
-    final exerciseRepository = ref.read(exerciseRepositoryProvider);
     final workoutService = ref.read(workoutServiceProvider);
 
     showModalBottomSheet(
@@ -204,7 +203,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (sheetContext) => AddExerciseBottomSheet(
-        exerciseRepository: exerciseRepository,
         onExerciseAdded: (exercise) async {
           LoggingService.logUserAction(
               "Add exercise to workout session: ${exercise.name}");
@@ -290,7 +288,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   }
 
   void _swapExercise(int index, WorkoutSession workoutSession) {
-    final exerciseRepository = ref.read(exerciseRepositoryProvider);
     final workoutService = ref.read(workoutServiceProvider);
 
     showModalBottomSheet(
@@ -298,7 +295,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (sheetContext) => AddExerciseBottomSheet(
-        exerciseRepository: exerciseRepository,
         onExerciseAdded: (exercise) async {
           LoggingService.logUserAction(
               "Swap exercise in workout session: old ${workoutSession.exercises[index].name}, new ${exercise.name}");
