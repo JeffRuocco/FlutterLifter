@@ -4,6 +4,8 @@
 
 FlutterLifter implements a comprehensive **Clean Architecture** data layer with the **Repository Pattern** for managing fitness and workout data. The architecture provides separation of concerns, testability, offline support, and efficient caching mechanisms.
 
+> **Scope**: This document covers the **data layer** (repositories, datasources, caching). For state management and how UI accesses this data, see [Riverpod Guide](riverpod-guide.md).
+
 ## 🎯 Architecture Principles
 
 The app follows the **Repository Pattern** with **Clean Architecture** principles:
@@ -73,11 +75,15 @@ lib/
 │       └── responses/
 │           ├── api_response.dart
 │           └── program_response.dart
+├── core/
+│   └── providers/                 # Riverpod providers (access point)
+│       └── repository_providers.dart  # Repository providers
 └── services/                      # Service layer
     ├── api_service.dart           # HTTP client management
-    ├── storage_service.dart       # Local storage operations
-    └── service_locator.dart       # Dependency injection
+    └── storage_service.dart       # Local storage operations
 ```
+
+> **Accessing Repositories**: Always access repositories through Riverpod providers, never instantiate directly. See [Riverpod Guide](riverpod-guide.md) for details.
 
 ## 🔄 Data Flow Architecture
 
@@ -537,25 +543,45 @@ These optimizations can be implemented incrementally, starting with the most imp
 ## 🔧 Service Layer
 
 ### API Service
-**File**: [`api_service.dart`](lib/services/api_service.dart)
+**File**: `lib/services/api_service.dart`
 - HTTP client management (Dio/http)
 - Request/response interceptors
 - Authentication header injection
 - Error handling and retries
 
 ### Storage Service  
-**File**: [`storage_service.dart`](lib/services/storage_service.dart)
+**File**: `lib/services/storage_service.dart`
 - Persistent local storage
 - Secure storage for tokens
 - User preferences
 - Offline data management
 
-### Service Locator
-**File**: [`service_locator.dart`](lib/services/service_locator.dart)
-- Dependency injection
-- Service instance management
-- Environment-specific configuration
-- Singleton pattern implementation
+### Dependency Injection via Riverpod
+
+Repositories and services are accessed through Riverpod providers defined in `lib/core/providers/`:
+
+```dart
+// lib/core/providers/repository_providers.dart
+final programRepositoryProvider = Provider<ProgramRepository>((ref) {
+  final mockDataSource = ref.watch(mockProgramDataSourceProvider);
+  final localDataSource = ref.watch(programLocalDataSourceProvider);
+  return ProgramRepositoryImpl(
+    mockDataSource: mockDataSource,
+    localDataSource: localDataSource,
+  );
+});
+
+// Usage in widgets
+class MyScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final repository = ref.watch(programRepositoryProvider);
+    // ...
+  }
+}
+```
+
+> **Important**: Never instantiate repositories directly. Always access via providers for proper dependency injection, testability, and lifecycle management. See [Riverpod Guide](riverpod-guide.md).
 
 ## 🔀 Environment Configuration
 
@@ -631,10 +657,23 @@ API-specific models for network communication:
 
 ## 🚀 Usage Examples
 
-### Basic Repository Usage
+### Basic Repository Usage (via Riverpod)
 ```dart
-// Inject repository (typically through service locator)
-final repository = ServiceLocator.get<ProgramRepository>();
+// In a ConsumerWidget or ConsumerStatefulWidget
+class ProgramsScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Access repository via provider
+    final repository = ref.watch(programRepositoryProvider);
+    
+    return FutureBuilder<List<Program>>(
+      future: repository.getPrograms(),
+      builder: (context, snapshot) {
+        // Handle loading, error, and data states
+      },
+    );
+  }
+}
 
 // Get all programs (cache-first)
 final programs = await repository.getPrograms();
@@ -653,32 +692,40 @@ final created = await repository.createProgram(newProgram);
 
 ### UI Integration Example
 ```dart
-// Import options for the new model structure
-import 'package:flutter_lifter/models/models.dart'; // Barrel import
-// OR specific imports:
-// import 'package:flutter_lifter/models/program_models.dart';
-// import 'package:flutter_lifter/models/shared_enums.dart';
+// Import models
+import 'package:flutter_lifter/models/models.dart';
+import 'package:flutter_lifter/core/providers/providers.dart';
 
-class ProgramsScreen extends StatefulWidget {
-  final ProgramRepository programRepository;
+class ProgramsScreen extends ConsumerStatefulWidget {
+  const ProgramsScreen({super.key});
 
-  const ProgramsScreen({
-    super.key,
-    ProgramRepository? programRepository,
-  }) : programRepository = programRepository ?? 
-       ServiceLocator.get<ProgramRepository>();
+  @override
+  ConsumerState<ProgramsScreen> createState() => _ProgramsScreenState();
+}
+
+class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
+  List<Program> _programs = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrograms();
+  }
+
+  Future<void> _loadPrograms() async {
+    final repository = ref.read(programRepositoryProvider);
+    final programs = await repository.getPrograms();
+    setState(() {
+      _programs = programs;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Program>>(
-      future: programRepository.getPrograms(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return ProgramList(programs: snapshot.data!);
-        }
-        return LoadingIndicator();
-      },
-    );
+    if (_isLoading) return const LoadingIndicator();
+    return ProgramList(programs: _programs);
   }
 }
 ```
@@ -824,10 +871,11 @@ group('Program Repository', () {
 
 ## 🔗 Related Documentation
 
-- **[Programs Feature Documentation](docs/programs-feature.md)**: User-facing program features
-- **[Authentication Guide](docs/authentication.md)**: User authentication setup
-- **[Styling System](docs/styling-system.md)**: UI styling and theming
-- **[Color Theming Guide](docs/color-theming-guide.md)**: Color system usage
+- **[Riverpod Guide](riverpod-guide.md)**: State management and provider patterns
+- **[Workout Service Integration](workout-service-integration.md)**: Service/provider architecture example
+- **[Programs Feature](programs-feature.md)**: User-facing program features
+- **[Design Guidelines](design-guidelines.md)**: Overall architecture and UI patterns
+- **[Authentication Guide](authentication.md)**: User authentication setup
 
 ---
 

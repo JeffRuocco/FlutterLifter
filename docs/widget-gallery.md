@@ -350,6 +350,5 @@ lib/screens/widget_gallery_screen.dart
 
 ## Related Documentation
 
-- [Design Guidelines](design-guidelines.md) - Overall design principles
-- [Styling System](styling-system.md) - Theme configuration details
+- [Design Guidelines](design-guidelines.md) - Overall design principles and theming
 - [Color Theming Guide](color-theming-guide.md) - Color system documentation
