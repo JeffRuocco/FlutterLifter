@@ -280,7 +280,7 @@ class _AppCardState extends State<AppCard> {
         color: widget.color ??
             (isDark
                 ? AppColors.surfaceContainerHighDark
-                : context.surfaceColor),
+                : AppColors.surfaceContainerHigh),
         borderRadius: borderRadius,
         border: Border.all(
           color: isDark
@@ -317,7 +317,7 @@ class _AppCardState extends State<AppCard> {
         color: widget.color ??
             (isDark
                 ? AppColors.surfaceContainerHighDark
-                : context.surfaceColor),
+                : AppColors.surfaceContainerHigh),
         borderRadius: borderRadius,
         border: Border.all(
           color: _isPressed
