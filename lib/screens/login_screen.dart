@@ -126,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen>
                     context.surfaceVariant,
                   ]
                 : [
-                    AppColors.primary.withValues(alpha: 0.05),
+                    context.primaryColor.withValues(alpha: 0.05),
                     context.surfaceColor,
                   ],
           ),
@@ -270,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen>
                             text: 'Sign In',
                             onPressed: _signInWithEmail,
                             isLoading: _isLoading,
-                            gradientColors: AppColors.primaryGradient,
+                            gradientColors: context.primaryGradient,
                           ),
                         ),
                       ),
@@ -421,7 +421,7 @@ class _AnimatedLogoState extends State<_AnimatedLogo>
           height: AppDimensions.avatarXLarge,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: AppColors.primaryGradient,
+              colors: context.primaryGradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

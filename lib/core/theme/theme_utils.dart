@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_dimensions.dart';
+import 'color_utils.dart';
 
 /// Theme Extensions - Easy access to theme values throughout the app
 extension AppThemeExtension on BuildContext {
@@ -83,6 +84,37 @@ extension AppThemeExtension on BuildContext {
 
   /// Check if current theme is dark
   bool get isDarkMode => theme.brightness == Brightness.dark;
+
+  // Dynamic gradients based on current theme colors
+  /// Primary gradient using theme colors (primary → lighter primary)
+  List<Color> get primaryGradient => [
+        primaryColor,
+        ColorUtils.lighten(primaryColor, 0.15),
+      ];
+
+  /// Secondary gradient using theme colors (secondary → lighter secondary)
+  List<Color> get secondaryGradient => [
+        secondaryColor,
+        ColorUtils.lighten(secondaryColor, 0.15),
+      ];
+
+  /// Success gradient
+  List<Color> get successGradient => [
+        successColor,
+        ColorUtils.lighten(successColor, 0.15),
+      ];
+
+  /// Warm gradient based on primary
+  List<Color> get warmGradient => [
+        primaryColor,
+        ColorUtils.lighten(primaryColor, 0.2),
+      ];
+
+  /// Cool gradient based on secondary
+  List<Color> get coolGradient => [
+        secondaryColor,
+        ColorUtils.lighten(secondaryColor, 0.2),
+      ];
 }
 
 /// Custom Widgets for consistent styling
@@ -397,9 +429,10 @@ class _AppCardState extends State<AppCard> {
                       ]
                     : [
                         // Subtle warm tint using primary color for branded glass effect
-                        Color.lerp(Colors.white, AppColors.primary, 0.04)!
+                        Color.lerp(Colors.white, context.primaryColor, 0.04)!
                             .withValues(alpha: 0.9),
-                        Color.lerp(Colors.white, AppColors.primaryLight, 0.06)!
+                        Color.lerp(
+                                Colors.white, context.primaryContainer, 0.06)!
                             .withValues(alpha: 0.75),
                       ],
               ),
@@ -407,7 +440,7 @@ class _AppCardState extends State<AppCard> {
               border: Border.all(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.18)
-                    : AppColors.primary.withValues(alpha: 0.12),
+                    : context.primaryColor.withValues(alpha: 0.12),
                 width: 1.5,
               ),
             ),
@@ -422,7 +455,7 @@ class _AppCardState extends State<AppCard> {
   }
 
   Widget _buildGradientCard(BuildContext context, BorderRadius borderRadius) {
-    final colors = widget.gradientColors ?? AppColors.primaryGradient;
+    final colors = widget.gradientColors ?? context.primaryGradient;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
@@ -835,7 +868,7 @@ class _AppButtonState extends State<AppButton>
   }
 
   Widget _buildGradientButton(BuildContext context) {
-    final colors = widget.gradientColors ?? AppColors.primaryGradient;
+    final colors = widget.gradientColors ?? context.primaryGradient;
     return _wrapWithExpanded(
       Stack(
         children: [

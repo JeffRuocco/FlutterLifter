@@ -5,7 +5,6 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../core/providers/providers.dart';
 import '../core/router/app_router.dart';
-import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_utils.dart';
@@ -238,7 +237,7 @@ class _HeroWorkoutCard extends StatelessWidget {
 
     return AppCard.gradient(
       gradientColors: hasWorkout
-          ? AppColors.primaryGradient
+          ? context.primaryGradient
           : [
               context.surfaceVariant,
               context.surfaceVariant,

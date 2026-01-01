@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/theme_utils.dart';
 
 /// A celebratory confetti animation widget for success moments
 /// like completing a workout, achieving a goal, etc.
@@ -53,24 +54,13 @@ class _SuccessConfettiState extends State<SuccessConfetti>
   @override
   void initState() {
     super.initState();
-    _colors = widget.colors ??
-        [
-          AppColors.primary,
-          AppColors.secondary,
-          AppColors.success,
-          AppColors.warning,
-          AppColors.info,
-          const Color(0xFFFFD700), // Gold
-          const Color(0xFFFF69B4), // Pink
-          const Color(0xFF9370DB), // Purple
-        ];
+    // Colors will be set in didChangeDependencies when context is available
+    _colors = [];
 
     _controller = AnimationController(
       vsync: this,
       duration: widget.duration,
     );
-
-    _particles = _generateParticles();
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -80,6 +70,26 @@ class _SuccessConfettiState extends State<SuccessConfetti>
 
     if (widget.isPlaying) {
       _play();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize colors with theme context
+    if (_colors.isEmpty) {
+      _colors = widget.colors ??
+          [
+            context.primaryColor,
+            context.secondaryColor,
+            AppColors.success,
+            AppColors.warning,
+            AppColors.info,
+            const Color(0xFFFFD700), // Gold
+            const Color(0xFFFF69B4), // Pink
+            const Color(0xFF9370DB), // Purple
+          ];
+      _particles = _generateParticles();
     }
   }
 

@@ -11,6 +11,7 @@ import '../../screens/progress_screen.dart';
 import '../../screens/settings_screen.dart';
 import '../../screens/debug_settings_screen.dart';
 import '../../screens/widget_gallery_screen.dart';
+import '../../screens/theme_editor_screen.dart';
 import '../../widgets/app_shell.dart';
 import '../theme/app_dimensions.dart';
 
@@ -30,6 +31,7 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String debugSettings = '/settings/debug';
   static const String widgetGallery = '/settings/widget-gallery';
+  static const String themeEditor = '/settings/theme-editor';
 
   // Private constructor to prevent instantiation
   AppRoutes._();
@@ -224,6 +226,32 @@ final routerProvider = Provider<GoRouter>((ref) {
               transitionDuration: AppDurations.medium,
             ),
           ),
+          GoRoute(
+            path: 'theme-editor',
+            name: 'themeEditor',
+            parentNavigatorKey: _rootNavigatorKey,
+            pageBuilder: (context, state) {
+              final editThemeId = state.uri.queryParameters['editThemeId'];
+              return CustomTransitionPage(
+                key: state.pageKey,
+                child: ThemeEditorScreen(editThemeId: editThemeId),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 1),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                      parent: animation,
+                      curve: AppCurves.standard,
+                    )),
+                    child: child,
+                  );
+                },
+                transitionDuration: AppDurations.medium,
+              );
+            },
+          ),
         ],
       ),
     ],
@@ -294,4 +322,13 @@ extension AppRouterExtension on BuildContext {
 
   /// Push create program screen (for back navigation)
   void pushCreateProgram() => push(AppRoutes.createProgram);
+
+  /// Navigate to theme editor screen
+  void goToThemeEditor({String? editThemeId}) {
+    if (editThemeId != null) {
+      push('${AppRoutes.themeEditor}?editThemeId=$editThemeId');
+    } else {
+      push(AppRoutes.themeEditor);
+    }
+  }
 }
