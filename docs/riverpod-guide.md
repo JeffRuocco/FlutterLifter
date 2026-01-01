@@ -74,6 +74,7 @@ class HomeScreen extends ConsumerWidget {
 ### Provider as a Contract
 
 A provider defines:
+
 - **What** is being provided (the type)
 - **How** to create it (the factory function)
 - **When** to recreate it (dependencies via `ref.watch`)
@@ -90,10 +91,11 @@ final workoutServiceProvider = Provider<WorkoutService>((ref) {
 
 ### Key Concept: Services Should Be Accessed Through Providers
 
-> ⚠️ **Important**: Never instantiate services directly (e.g., `WorkoutService(repo)`). 
+> ⚠️ **Important**: Never instantiate services directly (e.g., `WorkoutService(repo)`).
 > Always access them through their corresponding provider.
 
 This ensures:
+
 - Consistent instance across the app (singleton behavior)
 - Proper dependency injection
 - Testability via provider overrides
@@ -114,7 +116,7 @@ await notifier.startWorkout(session);
 ## Why Riverpod?
 
 | Benefit | Description |
-|---------|-------------|
+| ------- | ----------- |
 | **Type-safe** | Compile-time safety when accessing providers |
 | **No BuildContext dependency** | Access state anywhere without context |
 | **Automatic disposal** | Resources are cleaned up when no longer needed |
@@ -127,7 +129,7 @@ await notifier.startWorkout(session);
 
 FlutterLifter follows a layered architecture where Riverpod connects each layer:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │  UI Layer (Screens & Widgets)                                   │
 │  - ConsumerWidget / ConsumerStatefulWidget                      │
@@ -311,7 +313,7 @@ final reduceMotionProvider = Provider<bool>((ref) {
 All providers are organized in `lib/core/providers/`:
 
 | File | Purpose |
-|------|---------|
+| ---- | ------- |
 | `providers.dart` | Barrel file exporting all providers |
 | `repository_providers.dart` | Data repositories and datasources |
 | `workout_provider.dart` | Workout state management |
@@ -324,7 +326,7 @@ All providers are organized in `lib/core/providers/`:
 Additional providers in other locations:
 
 | File | Purpose |
-|------|---------|
+| ---- | ------- |
 | `lib/core/theme/theme_provider.dart` | Theme mode management |
 | `lib/core/router/app_router.dart` | GoRouter provider |
 
@@ -395,7 +397,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 ### ref.watch() vs ref.read()
 
 | Method | When to Use | Rebuilds UI? |
-|--------|-------------|--------------|
+| ------ | ----------- | ------------ |
 | `ref.watch()` | In `build()` method for reactive state | ✅ Yes |
 | `ref.read()` | In callbacks, `initState`, event handlers | ❌ No |
 
@@ -613,7 +615,7 @@ final workoutServiceProvider = Provider<WorkoutService>((ref) {
 ### Common Provider Patterns
 
 | Need | Provider Type | Example |
-|------|---------------|---------|
+| ---- | ------------- | ------- |
 | Singleton service | `Provider` | `apiServiceProvider` |
 | Mutable UI state | `StateNotifierProvider` | `workoutNotifierProvider` |
 | One-time async load | `FutureProvider` | `workoutHistoryProvider` |
@@ -623,7 +625,7 @@ final workoutServiceProvider = Provider<WorkoutService>((ref) {
 ### Widget Type Selection
 
 | Widget Type | Use When |
-|-------------|----------|
+| ----------- | -------- |
 | `ConsumerWidget` | Stateless widget that needs providers |
 | `ConsumerStatefulWidget` | Stateful widget that needs providers |
 | `HookConsumerWidget` | Using flutter_hooks with Riverpod |

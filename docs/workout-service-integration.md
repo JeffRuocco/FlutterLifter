@@ -8,7 +8,7 @@ This guide explains how `WorkoutService` is integrated into the workout screen v
 
 The workout system uses a layered architecture:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │  WorkoutScreen (UI)                                             │
 │  - ConsumerStatefulWidget                                       │
@@ -157,7 +157,7 @@ await workoutService.saveWorkoutImmediate();
 ### WorkoutService Methods
 
 | Method | Purpose |
-|--------|---------|
+| ------ | ------- |
 | `startWorkout(session)` | Start workout, begin auto-save timer |
 | `saveWorkout()` | Debounced save (500ms) |
 | `saveWorkoutImmediate()` | Save immediately, cancel pending debounce |
@@ -171,7 +171,7 @@ await workoutService.saveWorkoutImmediate();
 ### Provider Reference
 
 | Provider | Purpose |
-|----------|---------|
+| -------- | ------- |
 | `workoutServiceProvider` | Direct service access |
 | `workoutNotifierProvider` | State management with loading/error |
 | `currentWorkoutProvider` | Current workout session (convenience) |

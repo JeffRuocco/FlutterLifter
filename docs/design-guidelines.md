@@ -6,7 +6,7 @@ This document is the central reference for architecture, design patterns, and co
 
 1. [Design Principles](#design-principles)
 2. [Architecture Overview](#architecture-overview)
-3. [State Management](#state-management)
+3. [State Management (Riverpod)](#state-management-riverpod)
 4. [Navigation (GoRouter)](#navigation-gorouter)
 5. [Theming & Colors](#theming--colors)
 6. [Icons (HugeIcons)](#icons-hugeicons)
@@ -32,6 +32,7 @@ Our design philosophy centers on:
 ### Material Design 3
 
 We use Material Design 3 (Material You) with `useMaterial3: true` for:
+
 - Dynamic color theming
 - Updated component styles
 - Improved accessibility
@@ -41,7 +42,7 @@ We use Material Design 3 (Material You) with `useMaterial3: true` for:
 
 ## Architecture Overview
 
-```
+```text
 lib/
 ├── core/
 │   ├── providers/       # Riverpod providers (state management)
@@ -118,7 +119,7 @@ class _MyScreenState extends ConsumerState<MyScreen> {
 ### Provider Files
 
 | File | Purpose |
-|------|---------|
+| ---- | ------- |
 | `providers.dart` | Barrel file exporting all providers |
 | `repository_providers.dart` | Data repository providers |
 | `service_providers.dart` | Business logic service providers |
@@ -194,7 +195,7 @@ FlutterLifter uses **Material Design 3** with custom color schemes for light and
 ### Theme Files
 
 | File | Purpose |
-|------|---------||
+| ---- | ------- |
 | `lib/core/theme/app_theme.dart` | Main theme configuration |
 | `lib/core/theme/app_colors.dart` | Color palette definitions |
 | `lib/core/theme/app_text_styles.dart` | Typography system |
@@ -283,7 +284,7 @@ HugeIcons.duotoneRoundedSettings01
 ### Common Icons Reference
 
 | Purpose | Icon |
-|---------|------|
+| ------- | ---- |
 | Home | `HugeIcons.strokeRoundedHome01` |
 | Progress/Chart | `HugeIcons.strokeRoundedAnalytics01` |
 | Programs | `HugeIcons.strokeRoundedFolder01` |
@@ -684,25 +685,29 @@ AppDurations.slow       // 500ms - Elaborate animations
 ## Related Documentation
 
 ### Core Architecture
+
 | Document | Purpose |
-|----------|---------||
+| -------- | ------- |
 | [Riverpod Guide](riverpod-guide.md) | Complete state management reference |
 | [Data Architecture](data-architecture.md) | Repository pattern, caching, data flow |
 
 ### Theming & UI
+
 | Document | Purpose |
-|----------|---------||
+| -------- | ------- |
 | [Color Theming Guide](color-theming-guide.md) | Color usage patterns for light/dark mode |
 | [Widget Gallery](widget-gallery.md) | Component library and examples |
 
 ### Features
+
 | Document | Purpose |
-|----------|---------||
+| -------- | ------- |
 | [Workout Service Integration](workout-service-integration.md) | Workout feature architecture |
 | [Programs Feature](programs-feature.md) | Programs feature documentation |
 | [Authentication](authentication.md) | Auth implementation details |
 
 ### Operations
+
 | Document | Purpose |
-|----------|---------||
+| -------- | ------- |
 | [Deployment Guide](deployment-guide.md) | Build and deployment instructions |

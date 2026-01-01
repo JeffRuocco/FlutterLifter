@@ -20,9 +20,11 @@ The app follows the **Repository Pattern** with **Clean Architecture** principle
 ## 🏗️ Model Organization Strategy
 
 ### **Focused File Structure**
+
 The domain models have been organized into **focused, maintainable files** replacing the previous monolithic `workout_models.dart`:
 
 **Benefits**:
+
 - ✅ **Improved Maintainability**: Each file has a single, clear responsibility
 - ✅ **Better Developer Experience**: Faster file loading, easier navigation
 - ✅ **Reduced Cognitive Load**: Work with specific domains without distraction
@@ -31,7 +33,9 @@ The domain models have been organized into **focused, maintainable files** repla
 - ✅ **Import Flexibility**: Choose specific imports or convenient barrel imports
 
 ### **Migration Strategy**
+
 **Zero Breaking Changes**: All existing imports continue to work:
+
 ```dart
 // ✅ New recommended approach - specific imports
 import 'package:flutter_lifter/models/exercise_models.dart';
@@ -42,8 +46,9 @@ import 'package:flutter_lifter/models/models.dart';
 ```
 
 ### **File Responsibilities**
+
 | File | Responsibility | Key Classes |
-|------|----------------|-------------|
+| ------ | ---------------- | ------------- |
 | `shared_enums.dart` | Common types used across domains | `ExerciseCategory`, `ProgramType`, `ProgramDifficulty`, `PeriodicityType` |
 | `exercise_models.dart` | Exercise domain logic | `ExerciseSet`, `Exercise`, `WorkoutExercise` |
 | `workout_session_models.dart` | Workout session management | `WorkoutSession` |
@@ -52,7 +57,7 @@ import 'package:flutter_lifter/models/models.dart';
 
 ## 📁 File Structure
 
-```
+```text
 lib/
 ├── models/                         # Domain models (organized by concern)
 │   ├── models.dart                 # Barrel file - main import point
@@ -129,12 +134,14 @@ The repository implements a **cache-aside pattern** with intelligent cache manag
 **Purpose**: Provides fast, offline-capable data access with automatic cache management.
 
 **Current Implementation**: [`ProgramLocalDataSourceImpl`](lib/data/datasources/local/program_local_datasource.dart)
+
 - In-memory cache for development
 - 5-minute TTL (Time To Live)
 - Automatic cache expiration
 - Future: SQLite/Hive for persistent storage
 
 **Features**:
+
 ```dart
 // Cache management
 Future<bool> isCacheExpired({Duration maxAge = Duration(minutes: 5)});
@@ -152,12 +159,14 @@ Future<void> cacheProgram(Program program);
 **Purpose**: Handles all network communication with the backend API.
 
 **Implementation**: [`ProgramApiDataSource`](lib/data/datasources/remote/program_api_datasource.dart)
+
 - RESTful API communication
 - Response transformation
 - Error handling and retries
 - Network status awareness
 
 **API Endpoints**:
+
 ```dart
 // CRUD operations
 GET    /api/programs              # List all programs
@@ -172,12 +181,14 @@ DELETE /api/programs/{id}         # Delete program
 **Purpose**: Provides realistic test data for development and testing.
 
 **Implementation**: [`MockProgramDataSource`](lib/data/datasources/mock/mock_program_datasource.dart)
+
 - Predefined workout programs
 - Simulated network delays
 - Consistent test data
 - Development environment support
 
 **Sample Programs**:
+
 - **Push/Pull/Legs**: 6-day advanced strength program
 - **Upper/Lower Split**: 4-day intermediate program  
 - **Full Body**: 3-day beginner program
@@ -194,6 +205,7 @@ DELETE /api/programs/{id}         # Delete program
 ### Cache Flow Examples
 
 #### Reading Programs
+
 ```dart
 // 1. Repository called
 final programs = await repository.getPrograms();
@@ -215,6 +227,7 @@ return remotePrograms;
 ```
 
 #### Creating a Program
+
 ```dart
 // 1. Create on remote API
 final createdProgram = await remoteDataSource.createProgram(program);
@@ -238,6 +251,7 @@ return createdProgram;
 ### Scenario 1: User Updates Program in App
 
 **Flow**: User edits a program through the UI
+
 ```dart
 // User edits program in UI
 final updatedProgram = program.copyWith(name: 'New Name');
@@ -252,6 +266,7 @@ await programRepository.updateProgram(updatedProgram);
 ```
 
 **Timeline**:
+
 - ⚡ **0ms**: User submits form
 - 🔄 **50ms**: Repository validates and calls API
 - 🌐 **200ms**: API responds with updated program
@@ -259,6 +274,7 @@ await programRepository.updateProgram(updatedProgram);
 - ✅ **220ms**: UI shows updated program
 
 **Benefits**:
+
 - Immediate UI feedback
 - Consistent data across app
 - Offline resilience (write operations queued)
@@ -266,6 +282,7 @@ await programRepository.updateProgram(updatedProgram);
 ### Scenario 2: Program Updated by Another User/Device
 
 **Flow**: Another user or device updates the same program
+
 ```dart
 // Next time user opens the app or pulls to refresh:
 await programRepository.getPrograms();
@@ -278,6 +295,7 @@ await programRepository.getPrograms();
 ```
 
 **Timeline**:
+
 - 🕐 **T+0**: Other user updates program on their device
 - 🌐 **T+1s**: Update reaches API server
 - ⏰ **T+5min**: Current user's cache expires
@@ -286,6 +304,7 @@ await programRepository.getPrograms();
 - ✅ **T+5min+300ms**: User sees updated program
 
 **Conflict Handling**:
+
 - Last-write-wins strategy (current implementation)
 - Future: Conflict resolution with user choice
 - Version-based updates with conflict detection
@@ -293,6 +312,7 @@ await programRepository.getPrograms();
 ### Scenario 3: Manual Cache Refresh
 
 **Flow**: User pulls to refresh or force refreshes data
+
 ```dart
 // User pulls to refresh
 await programRepository.refreshCache();
@@ -305,6 +325,7 @@ await programRepository.refreshCache();
 ```
 
 **Implementation**:
+
 ```dart
 @override
 Future<void> refreshCache() async {
@@ -319,6 +340,7 @@ Future<void> refreshCache() async {
 ```
 
 **UI Integration**:
+
 ```dart
 RefreshIndicator(
   onRefresh: () async {
@@ -354,6 +376,7 @@ for (final program in programs) {
 ### 2. Background Sync Strategy
 
 **Implementation**: Periodic background synchronization
+
 ```dart
 // Background sync service
 class BackgroundSyncService {
@@ -382,6 +405,7 @@ class BackgroundSyncService {
 ### 3. Optimistic Updates Pattern
 
 **Purpose**: Immediate UI feedback with background API sync
+
 ```dart
 Future<void> updateProgramOptimistically(Program updatedProgram) async {
   // 1. Update UI immediately (optimistic)
@@ -409,6 +433,7 @@ Future<void> updateProgramOptimistically(Program updatedProgram) async {
 ### 4. Smart Cache Preloading
 
 **Strategy**: Preload likely-to-be-accessed data
+
 ```dart
 class SmartCachePreloader {
   Future<void> preloadUserPrograms() async {
@@ -430,6 +455,7 @@ class SmartCachePreloader {
 ### 5. Memory-Efficient Caching
 
 **Implementation**: LRU cache with size limits
+
 ```dart
 class LRUProgramCache {
   final int maxSize;
@@ -460,6 +486,7 @@ class LRUProgramCache {
 ### 6. Cache Compression
 
 **Purpose**: Reduce storage space for large datasets
+
 ```dart
 import 'dart:convert';
 import 'dart:io';
@@ -487,6 +514,7 @@ class CompressedCache {
 ### 7. Network-Aware Caching
 
 **Strategy**: Adjust cache behavior based on network conditions
+
 ```dart
 class NetworkAwareRepository extends ProgramRepositoryImpl {
   @override
@@ -518,6 +546,7 @@ class NetworkAwareRepository extends ProgramRepositoryImpl {
 ### 8. Cache Performance Monitoring
 
 **Implementation**: Track cache effectiveness
+
 ```dart
 class CacheMetrics {
   static int _hits = 0;
@@ -543,14 +572,18 @@ These optimizations can be implemented incrementally, starting with the most imp
 ## 🔧 Service Layer
 
 ### API Service
+
 **File**: `lib/services/api_service.dart`
+
 - HTTP client management (Dio/http)
 - Request/response interceptors
 - Authentication header injection
 - Error handling and retries
 
-### Storage Service  
+### Storage Service
+
 **File**: `lib/services/storage_service.dart`
+
 - Persistent local storage
 - Secure storage for tokens
 - User preferences
@@ -586,6 +619,7 @@ class MyScreen extends ConsumerWidget {
 ## 🔀 Environment Configuration
 
 ### Development Environment
+
 ```dart
 ProgramRepositoryImpl.development()
 // Uses: MockDataSource + InMemoryCache
@@ -593,6 +627,7 @@ ProgramRepositoryImpl.development()
 ```
 
 ### Testing Environment
+
 ```dart
 ProgramRepositoryImpl.testing()
 // Uses: MockDataSource + NoCache
@@ -600,6 +635,7 @@ ProgramRepositoryImpl.testing()
 ```
 
 ### Production Environment
+
 ```dart
 ProgramRepositoryImpl.production()
 // Uses: ApiDataSource + SQLiteCache
@@ -613,25 +649,30 @@ ProgramRepositoryImpl.production()
 The core domain models have been **organized into focused, maintainable files** for better code organization and developer experience:
 
 #### **`shared_enums.dart`** - Common Types
+
 - **`ExerciseCategory`**: Exercise classification (strength, cardio, flexibility, etc.)
 - **`ProgramDifficulty`**: Skill level indicators (beginner, intermediate, advanced, expert)
 - **`ProgramType`**: Program classifications (strength, hypertrophy, powerlifting, etc.)
 - **`PeriodicityType`**: Workout scheduling types (weekly, cyclic, interval, custom)
 
 #### **`exercise_models.dart`** - Exercise Domain
+
 - **`ExerciseSet`**: Individual set tracking (weight, reps, completion status, notes)
 - **`Exercise`**: Exercise definitions with metadata (category, muscle groups, defaults)
 - **`WorkoutExercise`**: Exercise instance within a workout session (sets, rest time, progress)
 
 #### **`workout_session_models.dart`** - Workout Sessions
+
 - **`WorkoutSession`**: Complete workout instances with timing, exercises, and progress tracking
 
 #### **`program_models.dart`** - Programs & Scheduling
+
 - **`WorkoutPeriodicity`**: Flexible workout scheduling system (weekly patterns, cycles, intervals)
 - **`ProgramCycle`**: Program instances with start/end dates and scheduled sessions
 - **`Program`**: Complete workout programs with cycles, metadata, and scheduling
 
 #### **Import Options**
+
 ```dart
 // Recommended: Specific imports for focused dependencies
 import 'package:flutter_lifter/models/exercise_models.dart';
@@ -649,6 +690,7 @@ API-specific models for network communication:
 - **`ProgramResponse`**: API-specific program data transfer object
 
 ### Model Features
+
 - **JSON Serialization**: Full toJson/fromJson support
 - **Null Safety**: Comprehensive null safety implementation
 - **Validation**: Built-in data validation
@@ -658,6 +700,7 @@ API-specific models for network communication:
 ## 🚀 Usage Examples
 
 ### Basic Repository Usage (via Riverpod)
+
 ```dart
 // In a ConsumerWidget or ConsumerStatefulWidget
 class ProgramsScreen extends ConsumerWidget {
@@ -691,6 +734,7 @@ final created = await repository.createProgram(newProgram);
 ```
 
 ### UI Integration Example
+
 ```dart
 // Import models
 import 'package:flutter_lifter/models/models.dart';
@@ -731,6 +775,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
 ```
 
 ### Cache Management
+
 ```dart
 // Force cache refresh
 await repository.clearCache();
@@ -744,6 +789,7 @@ final lastUpdate = await localDataSource.getLastCacheUpdate();
 ## 🧪 Testing Strategy
 
 ### Unit Tests
+
 - **Repository Layer**: Mock data sources, test cache logic
 - **Data Sources**: Test individual source implementations
 - **Domain Models**: Validate serialization and business logic per model file
@@ -753,12 +799,14 @@ final lastUpdate = await localDataSource.getLastCacheUpdate();
   - `shared_enums_test.dart`: Test enum extensions and utilities
 
 ### Integration Tests
+
 - **End-to-End**: Test complete data flow
 - **Cache Behavior**: Verify cache invalidation and updates
 - **Network Scenarios**: Test offline/online transitions
 - **Cross-Model Integration**: Test model interactions across files
 
 ### Example Test Structure
+
 ```dart
 // Test structure reflecting new model organization
 group('Exercise Models', () {
@@ -834,11 +882,13 @@ group('Program Repository', () {
 ### Model Layer Enhancements
 
 **Completed ✅**:
+
 - **Organized Model Structure**: Focused files by domain concern
 - **Backward Compatibility**: Zero-breaking-change migration
 - **Flexible Imports**: Specific and barrel import options
 
 **Future Model Improvements**:
+
 1. **Model Validation**: Enhanced validation with custom validators
 2. **Model Versioning**: Support for model schema migrations
 3. **Computed Properties**: Cached expensive calculations
@@ -857,6 +907,7 @@ group('Program Repository', () {
 ## 📈 Monitoring & Analytics
 
 ### Metrics to Track
+
 - Cache hit/miss ratios
 - API response times
 - Network failure rates
@@ -864,6 +915,7 @@ group('Program Repository', () {
 - User engagement with cached vs fresh data
 
 ### Error Handling
+
 - Graceful degradation when API unavailable
 - User-friendly error messages
 - Automatic retry mechanisms
