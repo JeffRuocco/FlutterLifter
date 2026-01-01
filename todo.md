@@ -1,9 +1,5 @@
 # TODO
 
-## Local
-
-- Automatically determine "on surface" colors based on primary and secondary colors.
-
 ## MVP
 
 - [x] **Add logging service**
