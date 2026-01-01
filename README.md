@@ -2,6 +2,9 @@
 
 A Flutter mobile application for fitness and workout tracking.
 
+Deployed application is available at:
+https://jeffruocco.github.io/FlutterLifter
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
