@@ -394,6 +394,10 @@ class _HeroCardSkeleton extends StatelessWidget {
   }
 }
 
+/// Action card used in the home screen for quick actions.
+///
+/// Displays an icon, title, and subtitle, and triggers a callback when tapped.
+/// Typically used for quick links to other parts of the app such as programs, progress, exercises, and history.
 class _ActionCard extends StatelessWidget {
   final String title;
   final String subtitle;

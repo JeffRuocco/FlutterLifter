@@ -273,11 +273,21 @@ class _AppCardState extends State<AppCard> {
   }
 
   Widget _buildElevatedCard(BuildContext context, BorderRadius borderRadius) {
+    final isDark = context.isDarkMode;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
-        color: widget.color ?? context.surfaceColor,
+        color: widget.color ??
+            (isDark
+                ? AppColors.surfaceContainerHighDark
+                : AppColors.surfaceContainerHigh),
         borderRadius: borderRadius,
+        border: Border.all(
+          color: isDark
+              ? AppColors.outlineVariantDark
+              : AppColors.outlineVariant.withValues(alpha: 0.5),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: _isPressed ? 0.05 : 0.08),
@@ -300,15 +310,21 @@ class _AppCardState extends State<AppCard> {
   }
 
   Widget _buildOutlinedCard(BuildContext context, BorderRadius borderRadius) {
+    final isDark = context.isDarkMode;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
-        color: widget.color ?? context.surfaceColor,
+        color: widget.color ??
+            (isDark
+                ? AppColors.surfaceContainerHighDark
+                : AppColors.surfaceContainerHigh),
         borderRadius: borderRadius,
         border: Border.all(
           color: _isPressed
               ? context.primaryColor.withValues(alpha: 0.5)
-              : context.outlineVariant,
+              : (isDark
+                  ? AppColors.outlineVariantDark
+                  : context.outlineVariant),
           width: _isPressed ? 1.5 : 1,
         ),
       ),
@@ -326,10 +342,14 @@ class _AppCardState extends State<AppCard> {
   }
 
   Widget _buildFilledCard(BuildContext context, BorderRadius borderRadius) {
+    final isDark = context.isDarkMode;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
-        color: widget.color ?? context.surfaceVariant,
+        color: widget.color ??
+            (isDark
+                ? AppColors.surfaceContainerHighestDark
+                : context.surfaceVariant),
         borderRadius: borderRadius,
       ),
       child: ClipRRect(

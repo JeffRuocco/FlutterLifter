@@ -246,6 +246,34 @@ VSpace.lg()   // 24px vertical
 HSpace.sm()   // 8px horizontal
 ```
 
+### Contrast Guidelines
+
+**CRITICAL: All UI elements must have adequate contrast in both light and dark modes.**
+
+#### Minimum Contrast Ratios
+| Element | Minimum Ratio |
+| ------- | ------------- |
+| Body text | 4.5:1 |
+| Large text (18pt+) | 3:1 |
+| UI components/borders | 3:1 |
+| Card vs background | 1.5:1 |
+
+#### Card Visibility Rules
+- Cards MUST be visually distinct from the app background
+- Use `AppCard` widget which automatically handles contrast
+- Cards include subtle borders in both light and dark modes
+- Never rely solely on shadows for contrast (especially in dark mode)
+
+#### Dark Mode Surface Hierarchy
+```
+Background (#121212) → Container (#1E1E1E) → High (#282828) → Highest (#323232)
+```
+
+#### Light Mode Surface Hierarchy  
+```
+Background (#FFFFFF) → Container (#F5F6F8) → High (#EEF0F2) → Highest (#E5E8EB)
+```
+
 > 📖 **Complete documentation**: [Color Theming Guide](color-theming-guide.md)
 
 ---

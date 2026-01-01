@@ -3,7 +3,7 @@
 ## MVP
 
 - [x] **Add logging service**
-  - [ ] Connect Firebase/remote logging
+  - [ ] **Connect Firebase logging**
 - [x] **Add exercise repository**
   - [x] Create ExerciseRepository with default and custom exercise support
   - [x] Add UserExercisePreferences model for customizing default exercises

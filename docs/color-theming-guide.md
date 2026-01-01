@@ -242,3 +242,139 @@ SnackBar(
 5. **Material Design**: Follows Material 3 color guidelines
 
 Remember: Always use `context.colorName` instead of `AppColors.colorName` for theme-aware coloring!
+
+---
+
+## 🔲 Contrast Guidelines
+
+### Minimum Contrast Requirements
+
+All UI elements must meet minimum contrast ratios for accessibility and visual clarity:
+
+| Element Type | Minimum Contrast Ratio | Notes |
+|--------------|----------------------|-------|
+| Body text | 4.5:1 | Against background |
+| Large text (18pt+) | 3:1 | Against background |
+| UI components | 3:1 | Buttons, inputs, borders |
+| Card surfaces | 1.5:1 | Against app background |
+| Card borders | 1.8:1 | Against card background |
+
+### Dark Mode Color Hierarchy
+
+Dark mode uses a layered surface approach for depth perception:
+
+```
+Layer 0 (Background):    #121212  - App/scaffold background
+Layer 1 (Container):     #1E1E1E  - Base card containers
+Layer 2 (High):          #282828  - Elevated cards (default)
+Layer 3 (Highest):       #323232  - Most prominent surfaces
+Border (Outline):        #404040  - Visible card borders
+Border (Primary):        #5C5C5C  - More prominent borders
+```
+
+### Light Mode Color Hierarchy
+
+Light mode uses subtle differences with visible borders:
+
+```
+Layer 0 (Background):    #FFFFFF  - App/scaffold background
+Layer 1 (Container):     #F5F6F8  - Base card containers
+Layer 2 (High):          #EEF0F2  - Elevated surfaces
+Layer 3 (Highest):       #E5E8EB  - Most distinct surfaces
+Border (Outline):        #CED4DA  - Subtle card borders
+Border (Primary):        #ADB5BD  - More prominent borders
+```
+
+### Card Contrast Rules
+
+**ALWAYS ensure cards are visually distinct from the background:**
+
+```dart
+// ✅ GOOD: Cards have both surface color AND visible border
+AppCard(
+  // Automatically uses surfaceContainerHigh + outlineVariant border
+  child: content,
+)
+
+// ✅ GOOD: Custom card with explicit contrast
+Container(
+  decoration: BoxDecoration(
+    color: context.surfaceColor,
+    border: Border.all(
+      color: context.outlineVariant,  // Visible in both modes
+      width: 1,
+    ),
+    borderRadius: BorderRadius.circular(12),
+  ),
+)
+
+// ❌ BAD: Card blends into background (no border, similar color)
+Container(
+  color: context.surfaceColor,  // May be too similar to background
+  // Missing border for definition!
+)
+```
+
+### Testing Contrast
+
+**Before committing UI changes, verify:**
+
+1. **Light mode**: Cards are distinguishable from white background
+2. **Dark mode**: Cards are distinguishable from dark background
+3. **Borders visible**: Card edges are clearly defined
+4. **Text readable**: All text has sufficient contrast against its background
+
+**Quick test:** Squint at the screen - if elements disappear or blend together, contrast is too low.
+
+### Color Values Reference
+
+#### Dark Mode Surfaces (from AppColors)
+```dart
+surfaceDark:                  #121212  // App background
+surfaceContainerDark:         #1E1E1E  // Base containers
+surfaceContainerHighDark:     #282828  // Elevated cards
+surfaceContainerHighestDark:  #323232  // Highest elevation
+outlineDark:                  #5C5C5C  // Primary borders
+outlineVariantDark:           #404040  // Card borders
+```
+
+#### Light Mode Surfaces (from AppColors)
+```dart
+surface:                      #FFFFFF  // App background
+surfaceContainer:             #F5F6F8  // Base containers
+surfaceContainerHigh:         #EEF0F2  // Elevated surfaces
+surfaceContainerHighest:      #E5E8EB  // Highest elevation
+outline:                      #ADB5BD  // Primary borders
+outlineVariant:               #CED4DA  // Card borders
+```
+
+### Common Contrast Mistakes to Avoid
+
+```dart
+// ❌ WRONG: Using same color for card and background
+Scaffold(
+  backgroundColor: context.surfaceColor,  // White
+  body: Container(
+    color: context.surfaceColor,  // Also white - no distinction!
+  ),
+)
+
+// ❌ WRONG: Border color too close to background
+Container(
+  decoration: BoxDecoration(
+    border: Border.all(color: Colors.white.withOpacity(0.1)),  // Invisible!
+  ),
+)
+
+// ❌ WRONG: Assuming shadows provide enough contrast in dark mode
+Container(
+  decoration: BoxDecoration(
+    boxShadow: [BoxShadow(...)],  // Shadows barely visible on dark backgrounds
+  ),
+)
+
+// ✅ CORRECT: Use AppCard which handles contrast automatically
+AppCard(
+  child: content,  // Has proper surface color + border in both modes
+)
+```
