@@ -111,11 +111,11 @@ class ColorUtils {
 
     return ColorScheme(
       brightness: brightness,
-      primary: isDark ? primaryLight : primary,
+      primary: primary,
       onPrimary: onPrimary,
       primaryContainer: primaryContainer,
       onPrimaryContainer: onPrimaryContainer,
-      secondary: isDark ? secondaryLight : secondary,
+      secondary: secondary,
       onSecondary: onSecondary,
       secondaryContainer: secondaryContainer,
       onSecondaryContainer: onSecondaryContainer,
