@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../core/providers/providers.dart';
 import '../core/router/app_router.dart';
 import '../core/theme/app_dimensions.dart';
+import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_utils.dart';
 
 /// Bottom navigation indices for the main shell
@@ -46,7 +48,20 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   /// Navigate to tab by index
-  void _onTabSelected(int index) {
+  void _onTabSelected(int index) async {
+    final currentIndex = _getCurrentIndex(context);
+
+    // If leaving the workout tab, check for uncompleted recorded sets
+    if (currentIndex == ShellTab.workout.tabIndex &&
+        index != ShellTab.workout.tabIndex) {
+      final workoutService = ref.read(workoutServiceProvider);
+
+      if (workoutService.hasUncompletedRecordedSets()) {
+        final shouldLeave = await _showLeaveWorkoutDialog();
+        if (!shouldLeave) return; // User chose to stay
+      }
+    }
+
     switch (index) {
       case 0:
         context.go(AppRoutes.home);
@@ -61,6 +76,43 @@ class _AppShellState extends ConsumerState<AppShell> {
         context.go(AppRoutes.progress);
         break;
     }
+  }
+
+  /// Show warning dialog when leaving workout with uncompleted sets
+  Future<bool> _showLeaveWorkoutDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(
+              'Incomplete Sets',
+              style: AppTextStyles.headlineSmall.copyWith(
+                color: dialogContext.textPrimary,
+              ),
+            ),
+            content: Text(
+              'You have sets with recorded data that are not marked as complete. '
+              'Are you sure you want to leave this screen?',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: dialogContext.textSecondary,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Stay'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: dialogContext.warningColor,
+                  foregroundColor: dialogContext.onWarningColor,
+                ),
+                child: const Text('Leave Anyway'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   @override
