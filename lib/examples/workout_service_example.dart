@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_lifter/models/models.dart';
-import 'package:flutter_lifter/services/service_locator.dart';
-import 'package:flutter_lifter/services/workout_service.dart';
+import 'package:flutter_lifter/core/providers/providers.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_utils.dart';
 
@@ -12,7 +12,7 @@ import '../core/theme/theme_utils.dart';
 /// - Auto-saving workout progress
 /// - Handling workout completion with validation
 /// - Error handling and user feedback
-class WorkoutServiceExample extends StatefulWidget {
+class WorkoutServiceExample extends ConsumerStatefulWidget {
   final WorkoutSession workoutSession;
 
   const WorkoutServiceExample({
@@ -21,25 +21,23 @@ class WorkoutServiceExample extends StatefulWidget {
   });
 
   @override
-  State<WorkoutServiceExample> createState() => _WorkoutServiceExampleState();
+  ConsumerState<WorkoutServiceExample> createState() =>
+      _WorkoutServiceExampleState();
 }
 
-class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
-  late WorkoutService _workoutService;
+class _WorkoutServiceExampleState extends ConsumerState<WorkoutServiceExample> {
   bool _isLoading = true;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _workoutService = serviceLocator.get<WorkoutService>();
     _initializeWorkout();
   }
 
   @override
   void dispose() {
-    // WorkoutService is managed by ServiceLocator, so no need to dispose here
-    // But if you were managing it locally, you would call _workoutService.dispose()
+    // WorkoutService is managed by Riverpod, so no need to dispose here
     super.dispose();
   }
 
@@ -59,7 +57,8 @@ class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
   /// Start workout with automatic saving
   Future<void> _startWorkout() async {
     try {
-      await _workoutService.startWorkout(widget.workoutSession);
+      final workoutService = ref.read(workoutServiceProvider);
+      await workoutService.startWorkout(widget.workoutSession);
       setState(() {}); // Refresh UI
 
       if (mounted) {
@@ -85,7 +84,8 @@ class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
   /// Update workout data and trigger save
   Future<void> _updateWorkoutData() async {
     try {
-      await _workoutService.saveWorkout();
+      final workoutService = ref.read(workoutServiceProvider);
+      await workoutService.saveWorkout();
       // No need to show success message for auto-save
     } catch (error) {
       if (mounted) {
@@ -101,14 +101,16 @@ class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
 
   /// Finish workout with validation
   Future<void> _finishWorkout() async {
+    final workoutService = ref.read(workoutServiceProvider);
+
     // Check for unfinished sets before finishing
-    if (_workoutService.hasUnfinishedExercises()) {
+    if (workoutService.hasUnfinishedExercises()) {
       final shouldContinue = await _showUnfinishedSetsDialog();
       if (!shouldContinue) return;
     }
 
     try {
-      await _workoutService.finishWorkout();
+      await workoutService.finishWorkout();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -139,7 +141,8 @@ class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
     if (!shouldCancel) return;
 
     try {
-      await _workoutService.cancelWorkout();
+      final workoutService = ref.read(workoutServiceProvider);
+      await workoutService.cancelWorkout();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -165,7 +168,8 @@ class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
 
   /// Show dialog for unfinished sets warning
   Future<bool> _showUnfinishedSetsDialog() async {
-    final unfinishedCount = _workoutService.getUnfinishedSetsCount();
+    final workoutService = ref.read(workoutServiceProvider);
+    final unfinishedCount = workoutService.getUnfinishedSetsCount();
 
     final result = await showDialog<bool>(
       context: context,
@@ -276,7 +280,8 @@ class _WorkoutServiceExampleState extends State<WorkoutServiceExample> {
       );
     }
 
-    final isWorkoutActive = _workoutService.hasActiveWorkout;
+    final workoutService = ref.read(workoutServiceProvider);
+    final isWorkoutActive = workoutService.hasActiveWorkout;
 
     return Scaffold(
       appBar: AppBar(

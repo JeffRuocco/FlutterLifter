@@ -77,7 +77,7 @@ Navigator.push(
 
 // Select a predefined program
 void _selectProgram(String programName) {
-  // TODO: Navigate to program details or start program
+  // Navigate to program details or start program
 }
 
 // Create custom program

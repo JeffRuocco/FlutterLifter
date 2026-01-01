@@ -133,7 +133,7 @@ When you create a new reusable component, add it to the Widget Gallery:
 Choose or create a tab that best categorizes your component:
 
 | Component Type | Tab |
-|---------------|-----|
+| -------------- | --- |
 | Buttons, CTAs | Buttons |
 | Containers, tiles | Cards |
 | Form fields | Inputs |
@@ -344,12 +344,11 @@ When the design system changes:
 
 ## File Location
 
-```
+```text
 lib/screens/widget_gallery_screen.dart
 ```
 
 ## Related Documentation
 
-- [Design Guidelines](design-guidelines.md) - Overall design principles
-- [Styling System](styling-system.md) - Theme configuration details
+- [Design Guidelines](design-guidelines.md) - Overall design principles and theming
 - [Color Theming Guide](color-theming-guide.md) - Color system documentation

@@ -363,12 +363,13 @@ dev_dependencies:
 
 ## Documentation Resources
 
-- **Design Guidelines**: `docs/design-guidelines.md` - UI patterns, Riverpod, GoRouter, icons, theming
+- **Design Guidelines**: `docs/design-guidelines.md` - Architecture overview, UI patterns, conventions
+- **Riverpod Guide**: `docs/riverpod-guide.md` - Complete state management reference
 - **Widget Gallery**: `docs/widget-gallery.md` - Component library documentation and maintenance
 - **Deployment Guide**: `docs/deployment-guide.md` - Comprehensive deployment instructions
 - **Data Architecture**: `docs/data-architecture.md` - Clean architecture patterns and data flow  
 - **Authentication**: `docs/authentication.md` - Authentication implementation details
-- **Styling System**: `docs/styling-system.md` - Design system and theming guide
+- **Color Theming Guide**: `docs/color-theming-guide.md` - Color usage patterns for light/dark mode
 - **Programs Feature**: `docs/programs-feature.md` - Feature-specific documentation
 
 ## Architecture Patterns

@@ -1,6 +1,6 @@
 # FlutterLifter Design Guidelines
 
-This document outlines the design principles, patterns, and conventions used throughout the FlutterLifter application.
+This document is the central reference for architecture, design patterns, and conventions used throughout FlutterLifter. It provides an overview and links to specialized documentation for detailed guidance.
 
 ## Table of Contents
 
@@ -8,12 +8,12 @@ This document outlines the design principles, patterns, and conventions used thr
 2. [Architecture Overview](#architecture-overview)
 3. [State Management (Riverpod)](#state-management-riverpod)
 4. [Navigation (GoRouter)](#navigation-gorouter)
-5. [Theming System](#theming-system)
+5. [Theming & Colors](#theming--colors)
 6. [Icons (HugeIcons)](#icons-hugeicons)
 7. [UI Components](#ui-components)
 8. [Animation System](#animation-system)
-9. [Context Extensions](#context-extensions)
-10. [Common Patterns](#common-patterns)
+9. [Common Patterns](#common-patterns)
+10. [Related Documentation](#related-documentation)
 
 ---
 
@@ -32,6 +32,7 @@ Our design philosophy centers on:
 ### Material Design 3
 
 We use Material Design 3 (Material You) with `useMaterial3: true` for:
+
 - Dynamic color theming
 - Updated component styles
 - Improved accessibility
@@ -41,7 +42,7 @@ We use Material Design 3 (Material You) with `useMaterial3: true` for:
 
 ## Architecture Overview
 
-```
+```text
 lib/
 ├── core/
 │   ├── providers/       # Riverpod providers (state management)
@@ -118,7 +119,7 @@ class _MyScreenState extends ConsumerState<MyScreen> {
 ### Provider Files
 
 | File | Purpose |
-|------|---------|
+| ---- | ------- |
 | `providers.dart` | Barrel file exporting all providers |
 | `repository_providers.dart` | Data repository providers |
 | `service_providers.dart` | Business logic service providers |
@@ -187,85 +188,65 @@ StatefulShellRoute.indexedStack(
 
 ---
 
-## Theming System
+## Theming & Colors
 
-### Theme Configuration
+FlutterLifter uses **Material Design 3** with custom color schemes for light and dark modes.
 
-Themes are defined in `lib/core/theme/app_theme.dart`:
+### Theme Files
 
-```dart
-class AppTheme {
-  static ThemeData get lightTheme => ThemeData(
-    useMaterial3: true,
-    colorScheme: _lightColorScheme,
-    // ...
-  );
-  
-  static ThemeData get darkTheme => ThemeData(
-    useMaterial3: true,
-    colorScheme: _darkColorScheme,
-    // ...
-  );
-}
-```
+| File | Purpose |
+| ---- | ------- |
+| `lib/core/theme/app_theme.dart` | Main theme configuration |
+| `lib/core/theme/app_colors.dart` | Color palette definitions |
+| `lib/core/theme/app_text_styles.dart` | Typography system |
+| `lib/core/theme/app_dimensions.dart` | Spacing and sizing |
+| `lib/core/theme/theme_utils.dart` | Context extensions |
 
-### Color Palette
-
-Our warm, energetic color palette:
+### Quick Reference
 
 ```dart
-// Primary colors - Warm Coral
-static const Color primary = Color(0xFFFF6B4A);
-static const Color primaryDark = Color(0xFFFF8A70);
+// ✅ ALWAYS use context extensions for theme-aware colors
+Container(
+  color: context.surfaceColor,
+  child: Text('Hello', style: TextStyle(color: context.textPrimary)),
+)
 
-// Secondary colors - Teal
-static const Color secondary = Color(0xFF26A69A);
-static const Color secondaryDark = Color(0xFF4DB6AC);
-
-// Gradients
-static const List<Color> primaryGradient = [primary, Color(0xFFFF8A70)];
-static const List<Color> secondaryGradient = [secondary, Color(0xFF4DB6AC)];
-static const List<Color> sunsetGradient = [Color(0xFFFF6B4A), Color(0xFFFFD54F)];
-static const List<Color> oceanGradient = [Color(0xFF26A69A), Color(0xFF42A5F5)];
-
-// Muscle Group Colors (for visual exercise indicators)
-static const Color muscleChest = Color(0xFFE53935);
-static const Color muscleBack = Color(0xFF1E88E5);
-static const Color muscleLegs = Color(0xFF43A047);
-static const Color muscleShoulders = Color(0xFFFB8C00);
-static const Color muscleArms = Color(0xFF8E24AA);
-static const Color muscleCore = Color(0xFFFFB300);
-static const Color muscleFullBody = Color(0xFF00897B);
+// ❌ NEVER use hard-coded AppColors in UI
+Container(color: AppColors.surface)  // Won't adapt to dark mode
 ```
 
-### Glassmorphism Colors
-
-For frosted glass effects on cards and modals:
+### Context Extensions
 
 ```dart
-// Light mode glass
-static const Color glassWhite = Color(0x80FFFFFF);
-static const Color glassBorder = Color(0x40FFFFFF);
+// Colors
+context.primaryColor       // Primary brand color
+context.surfaceColor       // Card/container backgrounds
+context.textPrimary        // Main text color
+context.textSecondary      // Secondary text
+context.successColor       // Success states (auto light/dark)
+context.errorColor         // Error states
 
-// Dark mode glass
-static const Color glassBlack = Color(0x40000000);
-static const Color glassBorderDark = Color(0x30FFFFFF);
+// Theme state
+context.isDarkMode         // Check current mode
 ```
 
-### Theme Mode Persistence
-
-Theme preference is persisted using `SharedPreferences`:
+### Text Styles
 
 ```dart
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  final SharedPreferences _prefs;
-  
-  Future<void> setThemeMode(ThemeMode mode) async {
-    await _prefs.setString('theme_mode', mode.name);
-    state = mode;
-  }
-}
+Text('Headline', style: AppTextStyles.headlineMedium)
+Text('Body', style: AppTextStyles.bodyLarge)
+Text('Label', style: AppTextStyles.labelMedium)
 ```
+
+### Spacing (8dp Grid)
+
+```dart
+Padding(padding: EdgeInsets.all(AppSpacing.md))  // 16px
+VSpace.lg()   // 24px vertical
+HSpace.sm()   // 8px horizontal
+```
+
+> 📖 **Complete documentation**: [Color Theming Guide](color-theming-guide.md)
 
 ---
 
@@ -303,7 +284,7 @@ HugeIcons.duotoneRoundedSettings01
 ### Common Icons Reference
 
 | Purpose | Icon |
-|---------|------|
+| ------- | ---- |
 | Home | `HugeIcons.strokeRoundedHome01` |
 | Progress/Chart | `HugeIcons.strokeRoundedAnalytics01` |
 | Programs | `HugeIcons.strokeRoundedFolder01` |
@@ -575,54 +556,6 @@ myWidget.withConfetti(
 
 ---
 
-## Context Extensions
-
-Access theme values through context extensions in `lib/core/theme/theme_utils.dart`:
-
-### Colors
-
-```dart
-// Surface colors
-context.primaryColor        // Primary brand color
-context.surfaceColor        // Card/container background
-context.surfaceVariant      // Alternate surface
-context.onSurface           // Text on surface
-context.onSurfaceVariant    // Secondary text on surface
-
-// Semantic colors
-context.successColor        // Success state
-context.warningColor        // Warning state
-context.errorColor          // Error state
-context.infoColor           // Info state
-```
-
-### Text Colors
-
-```dart
-context.textPrimary         // Primary text color
-context.textSecondary       // Secondary/dimmed text
-context.textDisabled        // Disabled text
-```
-
-### Theme State
-
-```dart
-context.isDarkMode          // Check if dark mode is active
-```
-
-### Text Styles
-
-Use static `AppTextStyles` class:
-
-```dart
-Text('Headline', style: AppTextStyles.headlineMedium)
-Text('Title', style: AppTextStyles.titleSmall)
-Text('Body', style: AppTextStyles.bodyLarge)
-Text('Label', style: AppTextStyles.labelMedium)
-```
-
----
-
 ## Common Patterns
 
 ### Screen Structure
@@ -749,9 +682,32 @@ AppDurations.slow       // 500ms - Elaborate animations
 
 ---
 
-## See Also
+## Related Documentation
 
-- [Widget Gallery Documentation](widget-gallery.md)
-- [Data Architecture](data-architecture.md)
-- [Authentication](authentication.md)
-- [Deployment Guide](deployment-guide.md)
+### Core Architecture
+
+| Document | Purpose |
+| -------- | ------- |
+| [Riverpod Guide](riverpod-guide.md) | Complete state management reference |
+| [Data Architecture](data-architecture.md) | Repository pattern, caching, data flow |
+
+### Theming & UI
+
+| Document | Purpose |
+| -------- | ------- |
+| [Color Theming Guide](color-theming-guide.md) | Color usage patterns for light/dark mode |
+| [Widget Gallery](widget-gallery.md) | Component library and examples |
+
+### Features
+
+| Document | Purpose |
+| -------- | ------- |
+| [Workout Service Integration](workout-service-integration.md) | Workout feature architecture |
+| [Programs Feature](programs-feature.md) | Programs feature documentation |
+| [Authentication](authentication.md) | Auth implementation details |
+
+### Operations
+
+| Document | Purpose |
+| -------- | ------- |
+| [Deployment Guide](deployment-guide.md) | Build and deployment instructions |

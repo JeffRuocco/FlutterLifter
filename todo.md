@@ -3,7 +3,7 @@
 ## MVP
 
 - [x] **Add logging service**
-  - [ ] **Connect Firebase logging**
+  - [ ] Connect Firebase/remote logging
 - [x] **Add exercise repository**
   - [x] Create ExerciseRepository with default and custom exercise support
   - [x] Add UserExercisePreferences model for customizing default exercises
@@ -52,6 +52,7 @@
   - [ ] Add riverpod_generator + build_runner for type-safe providers
   - [ ] Add hero animations between screens for cards
   - [x] Better styling/theme
+  - [ ] Additional optional themes (blue and red, white and gold, etc.). Custom themes?
 - [ ] **Rest timer**
 - [ ] **Workout summary**
 - [ ] **Determine best option cloud storage (Firebase?, API?)**

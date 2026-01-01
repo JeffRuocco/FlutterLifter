@@ -1,8 +1,6 @@
-import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 
-import 'default_exercises.dart';
 import 'mock_data.dart';
 
 /// Mock data source for program-related operations
@@ -109,19 +107,5 @@ class MockProgramDataSource implements ProgramDataSource {
     return _programs
         .where((program) => program.hasSchedulingPeriodicity)
         .toList();
-  }
-
-  // TODO: move this to ExerciseDataSource
-  /// Get all exercises
-  Future<List<Exercise>> getExercises() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
-    return List.from(DefaultExercises.exercises);
-  }
-
-  /// Get an exercise by name
-  Future<Exercise?> getExerciseByName(String name) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return DefaultExercises.getExerciseByName(name);
   }
 }

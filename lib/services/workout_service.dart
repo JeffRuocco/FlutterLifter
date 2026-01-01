@@ -4,13 +4,54 @@ import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/models.dart';
 import 'logging_service.dart';
 
-/// Service for managing workout sessions with automatic persistence
+/// Core business logic service for managing workout sessions.
 ///
-/// This service handles:
-/// - Current workout session state management
-/// - Automatic saving during workouts
-/// - Workout lifecycle (start, update, finish)
-/// - Data persistence through the repository layer
+/// ## Purpose
+/// This is the **business logic layer** for workout management. It handles
+/// the core workout operations and persistence, independent of any UI framework.
+///
+/// ## Responsibilities
+/// - **Session State**: Maintains the current active workout session
+/// - **Auto-Save**: Periodic background saving (every 5 seconds) during workouts
+/// - **Debounced Saves**: Prevents duplicate saves within 500ms window
+/// - **Lifecycle Management**: Start, finish, cancel, and resume workouts
+/// - **Persistence**: Saves/loads workout data through [ProgramRepository]
+/// - **Change Detection**: Only saves when workout state actually changes (hash-based)
+///
+/// ## Architecture
+/// This service is framework-agnostic and contains no Riverpod/Flutter dependencies.
+/// For reactive UI state management, use [WorkoutNotifier] from `workout_provider.dart`
+/// which wraps this service and adds:
+/// - Loading/error states for UI feedback
+/// - Reactive state updates via Riverpod
+/// - UI-specific orchestration methods
+///
+/// ## Usage
+///
+/// > ⚠️ **Important**: Do not instantiate this service directly.
+/// > Always access it through Riverpod providers to ensure proper
+/// > dependency injection, singleton behavior, and testability.
+///
+/// For most use cases, prefer [WorkoutNotifier] which provides reactive
+/// UI state (loading indicators, error handling, automatic rebuilds):
+///
+/// ```dart
+/// // ✅ RECOMMENDED: Use notifier for UI code
+/// final notifier = ref.read(workoutNotifierProvider.notifier);
+/// await notifier.startWorkout(session);
+///
+/// // ✅ OK: Direct service access for non-UI code
+/// final service = ref.read(workoutServiceProvider);
+/// await service.startWorkout(session);
+///
+/// // ❌ NEVER: Direct instantiation
+/// final service = WorkoutService(repository); // Don't do this!
+/// ```
+///
+/// See also:
+/// - [WorkoutNotifier] - Riverpod state wrapper for UI integration
+/// - [WorkoutState] - Immutable state class for UI consumption
+/// - [ProgramRepository] - Data persistence layer
 class WorkoutService {
   final ProgramRepository _programRepository;
   WorkoutSession? _currentWorkout;

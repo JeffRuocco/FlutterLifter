@@ -23,9 +23,6 @@ import '../widgets/empty_state.dart';
 import '../widgets/animations/animate_on_load.dart';
 import '../widgets/animations/success_confetti.dart';
 
-// TODO: fix [_onWillPop] logic for new navigation management (doesn't work correctly with GoRouter).
-// Should warn the user if they have unsaved changes before navigating away.
-
 /// The main screen for creating and managing a workout session.
 ///
 /// The workout session is loaded from the [workoutNotifierProvider] state,
@@ -137,7 +134,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                 if (!mounted) return;
 
                 showSuccessMessage(context, 'Workout completed! Great job! 🎉');
-                context.pop(); // Return to previous screen
+                context.goToHome(); // Navigate to home screen
               } catch (error) {
                 if (!mounted) return;
                 showErrorMessage(context, 'Failed to finish workout: $error');
@@ -199,7 +196,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   }
 
   void _addExercise(WorkoutSession workoutSession) {
-    final exerciseRepository = ref.read(exerciseRepositoryProvider);
     final workoutService = ref.read(workoutServiceProvider);
 
     showModalBottomSheet(
@@ -207,7 +203,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (sheetContext) => AddExerciseBottomSheet(
-        exerciseRepository: exerciseRepository,
         onExerciseAdded: (exercise) async {
           LoggingService.logUserAction(
               "Add exercise to workout session: ${exercise.name}");
@@ -293,7 +288,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   }
 
   void _swapExercise(int index, WorkoutSession workoutSession) {
-    final exerciseRepository = ref.read(exerciseRepositoryProvider);
     final workoutService = ref.read(workoutServiceProvider);
 
     showModalBottomSheet(
@@ -301,7 +295,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (sheetContext) => AddExerciseBottomSheet(
-        exerciseRepository: exerciseRepository,
         onExerciseAdded: (exercise) async {
           LoggingService.logUserAction(
               "Swap exercise in workout session: old ${workoutSession.exercises[index].name}, new ${exercise.name}");
@@ -484,11 +477,13 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
           false;
 
       if (shouldLeave && mounted) {
-        context.pop();
+        context.goToHome();
       }
     } else {
-      // No uncompleted sets, allow pop immediately
-      context.pop();
+      // No uncompleted sets, navigate to home immediately
+      if (mounted) {
+        context.goToHome();
+      }
     }
   }
 

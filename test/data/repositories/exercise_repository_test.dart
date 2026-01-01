@@ -637,9 +637,8 @@ void main() {
         );
       });
 
-      test('getExercisesWithPreferences should apply stored preferences',
-          () async {
-        final exercises = await repository.getExercisesWithPreferences();
+      test('getExercises should apply stored preferences', () async {
+        final exercises = await repository.getExercises();
 
         final bench = exercises.firstWhere((e) => e.id == 'bench');
 
@@ -649,11 +648,11 @@ void main() {
         expect(bench.notes, equals('Heavy day'));
       });
 
-      test(
-          'getExercisesWithPreferences should not modify exercises without preferences',
+      test('getExercises should not modify exercises without preferences',
           () async {
-        final exercises = await repository.getExercisesWithPreferences();
-        final original = await repository.getExerciseById('squat');
+        final exercises = await repository.getExercises();
+        final original =
+            await repository.getExerciseByIdWithoutPreferences('squat');
 
         final squat = exercises.firstWhere((e) => e.id == 'squat');
 
@@ -661,35 +660,32 @@ void main() {
         expect(squat.defaultReps, equals(original.defaultReps));
       });
 
-      test('getExerciseByIdWithPreferences should apply preference', () async {
-        final bench = await repository.getExerciseByIdWithPreferences('bench');
+      test('getExerciseById should apply preference', () async {
+        final bench = await repository.getExerciseById('bench');
 
         expect(bench, isNotNull);
         expect(bench!.defaultSets, equals(5));
         expect(bench.defaultWeight, equals(315.0));
       });
 
-      test(
-          'getExerciseByIdWithPreferences should return original if no preference',
-          () async {
-        final squat = await repository.getExerciseByIdWithPreferences('squat');
-        final original = await repository.getExerciseById('squat');
+      test('getExerciseById should return original if no preference', () async {
+        final squat = await repository.getExerciseById('squat');
+        final original =
+            await repository.getExerciseByIdWithoutPreferences('squat');
 
         expect(squat, isNotNull);
         expect(squat!.defaultSets, equals(original!.defaultSets));
       });
 
-      test('getExerciseByIdWithPreferences should return null for non-existent',
-          () async {
-        final result = await repository.getExerciseByIdWithPreferences(
+      test('getExerciseById should return null for non-existent', () async {
+        final result = await repository.getExerciseById(
           'does_not_exist',
         );
 
         expect(result, isNull);
       });
 
-      test('getExercisesWithPreferences should respect ExerciseSource',
-          () async {
+      test('getExercises should respect ExerciseSource', () async {
         await repository.createCustomExercise(
           Exercise(
             id: 'custom_with_pref',
@@ -708,7 +704,7 @@ void main() {
           ),
         );
 
-        final customOnly = await repository.getExercisesWithPreferences(
+        final customOnly = await repository.getExercises(
           source: ExerciseSource.customOnly,
         );
 

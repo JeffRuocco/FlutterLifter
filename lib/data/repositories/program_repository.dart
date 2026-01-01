@@ -1,4 +1,3 @@
-import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/models/workout_session_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
@@ -19,14 +18,6 @@ abstract class ProgramRepository {
   Future<List<Program>> getProgramsByDifficulty(ProgramDifficulty difficulty);
   Future<List<Program>> getProgramsByType(ProgramType type);
   Future<void> refreshCache();
-
-  /// @deprecated Use ExerciseRepository.getExercises() instead
-  @Deprecated('Use ExerciseRepository.getExercises() instead')
-  Future<List<Exercise>> getExercises();
-
-  /// @deprecated Use ExerciseRepository.getExerciseByName() instead
-  @Deprecated('Use ExerciseRepository.getExerciseByName() instead')
-  Future<Exercise?> getExerciseByName(String name);
 
   // Program cycle methods
   Future<ProgramCycle?> getProgramCycleWithProgram(String cycleId);
@@ -256,40 +247,6 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
     // Trigger a fresh fetch
     await getPrograms();
-  }
-
-  /// @deprecated Use ExerciseRepository.getExercises() instead
-  /// This method is kept for backward compatibility but will be removed.
-  @override
-  @Deprecated('Use ExerciseRepository.getExercises() instead')
-  Future<List<Exercise>> getExercises() async {
-    if (useMockData && mockDataSource != null) {
-      return await mockDataSource!.getExercises();
-    }
-
-    // If remote API is used, we could implement a similar method in the API data source
-    if (useRemoteApi && remoteDataSource != null) {
-      // return await remoteDataSource!.get  Exercises();
-    }
-
-    // Fallback to empty list if no data source is available
-    return [];
-  }
-
-  /// @deprecated Use ExerciseRepository.getExerciseByName() instead
-  /// This method is kept for backward compatibility but will be removed.
-  @override
-  @Deprecated('Use ExerciseRepository.getExerciseByName() instead')
-  Future<Exercise?> getExerciseByName(String name) async {
-    if (useMockData && mockDataSource != null) {
-      return await mockDataSource!.getExerciseByName(name);
-    }
-
-    if (useRemoteApi && remoteDataSource != null) {
-      // return await remoteDataSource!.getExerciseByName(name);
-    }
-
-    return null;
   }
 
   @override
