@@ -231,7 +231,7 @@ class _ProgramCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
+    return AppCard.glass(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

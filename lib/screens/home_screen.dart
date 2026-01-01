@@ -415,7 +415,7 @@ class _ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
+    return AppCard.glass(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.sm),

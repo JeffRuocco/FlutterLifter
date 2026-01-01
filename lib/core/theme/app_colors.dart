@@ -20,14 +20,12 @@ class AppColors {
   static const Color surfaceVariantLight = Color(0xFF1E1E1E);
 
   // Surface Tints for M3 depth perception
-  // Light mode - improved contrast hierarchy for card visibility
   static const Color surfaceTint = primary;
   static const Color surfaceContainer = Color(0xFFF5F6F8);
   static const Color surfaceContainerLow = Color(0xFFF8F9FA);
   static const Color surfaceContainerHigh = Color(0xFFEEF0F2);
   static const Color surfaceContainerHighest = Color(0xFFE5E8EB);
   // Dark mode surface containers - improved contrast for visibility
-  // Background (#121212) -> Container (#1E1E1E) -> High (#282828) -> Highest (#323232)
   static const Color surfaceContainerDark = Color(0xFF1E1E1E);
   static const Color surfaceContainerLowDark = Color(0xFF1A1A1A);
   static const Color surfaceContainerHighDark = Color(0xFF282828);
@@ -120,12 +118,17 @@ class AppColors {
   ];
 
   // Glassmorphism Colors
-  static Color glassWhite = Colors.white.withValues(alpha: 0.15);
-  static Color glassWhiteStrong = Colors.white.withValues(alpha: 0.25);
-  static Color glassBorder = Colors.white.withValues(alpha: 0.2);
-  static Color glassBlack = Colors.black.withValues(alpha: 0.1);
-  static Color glassBlackStrong = Colors.black.withValues(alpha: 0.2);
-  static Color glassBorderDark = Colors.white.withValues(alpha: 0.1);
+  // Light mode: Use subtle dark tint for glass effect on light backgrounds
+  static Color glassWhite = Colors.white.withValues(alpha: 0.7);
+  static Color glassWhiteStrong = Colors.white.withValues(alpha: 0.85);
+  static Color glassBorder = Color(0xFF000000).withValues(alpha: 0.08);
+  // Dark mode: Use light tint for glass effect on dark backgrounds
+  static Color glassBlack = Colors.white.withValues(alpha: 0.08);
+  static Color glassBlackStrong = Colors.white.withValues(alpha: 0.15);
+  static Color glassBorderDark = Colors.white.withValues(alpha: 0.15);
+  // Glass shadow for depth
+  static Color glassShadow = Colors.black.withValues(alpha: 0.1);
+  static Color glassShadowDark = Colors.black.withValues(alpha: 0.3);
 
   /// Get muscle group color by name
   static Color getMuscleGroupColor(String muscleGroup) {

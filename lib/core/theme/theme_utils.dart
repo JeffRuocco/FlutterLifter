@@ -280,7 +280,7 @@ class _AppCardState extends State<AppCard> {
         color: widget.color ??
             (isDark
                 ? AppColors.surfaceContainerHighDark
-                : AppColors.surfaceContainerHigh),
+                : context.surfaceColor),
         borderRadius: borderRadius,
         border: Border.all(
           color: isDark
@@ -317,7 +317,7 @@ class _AppCardState extends State<AppCard> {
         color: widget.color ??
             (isDark
                 ? AppColors.surfaceContainerHighDark
-                : AppColors.surfaceContainerHigh),
+                : context.surfaceColor),
         borderRadius: borderRadius,
         border: Border.all(
           color: _isPressed
@@ -367,23 +367,54 @@ class _AppCardState extends State<AppCard> {
 
   Widget _buildGlassCard(BuildContext context, BorderRadius borderRadius) {
     final isDark = context.isDarkMode;
-    return ClipRRect(
-      borderRadius: borderRadius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.glassBlack : AppColors.glassWhite,
-            borderRadius: borderRadius,
-            border: Border.all(
-              color: isDark ? AppColors.glassBorderDark : AppColors.glassBorder,
-              width: 1,
-            ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? AppColors.glassShadowDark : AppColors.glassShadow,
+            blurRadius: _isPressed ? 8 : 16,
+            offset: Offset(0, _isPressed ? 2 : 4),
+            spreadRadius: -2,
           ),
-          child: Padding(
-            padding: widget.padding ?? const EdgeInsets.all(AppSpacing.md),
-            child: widget.child,
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        Colors.white.withValues(alpha: 0.12),
+                        Colors.white.withValues(alpha: 0.05),
+                      ]
+                    : [
+                        // Subtle warm tint using primary color for branded glass effect
+                        Color.lerp(Colors.white, AppColors.primary, 0.04)!
+                            .withValues(alpha: 0.9),
+                        Color.lerp(Colors.white, AppColors.primaryLight, 0.06)!
+                            .withValues(alpha: 0.75),
+                      ],
+              ),
+              borderRadius: borderRadius,
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.18)
+                    : AppColors.primary.withValues(alpha: 0.12),
+                width: 1.5,
+              ),
+            ),
+            child: Padding(
+              padding: widget.padding ?? const EdgeInsets.all(AppSpacing.md),
+              child: widget.child,
+            ),
           ),
         ),
       ),

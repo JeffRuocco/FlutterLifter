@@ -40,13 +40,14 @@ class ProgressScreen extends ConsumerWidget {
               // Stats Preview Section
               SlideInWidget(
                 delay: const Duration(milliseconds: 100),
-                child: Container(
+                child: AppCard.glass(
                   padding: const EdgeInsets.all(AppSpacing.lg),
-                  decoration: BoxDecoration(
-                    color: context.surfaceVariant,
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.borderRadiusLarge),
-                  ),
+                  margin: const EdgeInsets.all(AppSpacing.none),
+                  // decoration: BoxDecoration(
+                  //   color: context.surfaceVariant,
+                  //   borderRadius:
+                  //       BorderRadius.circular(AppDimensions.borderRadiusLarge),
+                  // ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
