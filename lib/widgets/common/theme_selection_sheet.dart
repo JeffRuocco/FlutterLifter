@@ -6,7 +6,8 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../core/providers/custom_theme_provider.dart';
 import '../../core/theme/app_dimensions.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/theme/theme_utils.dart';
+import '../../core/theme/theme_extensions.dart';
+import 'app_widgets.dart';
 import '../../models/custom_theme.dart';
 import 'theme_preview_card.dart';
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/core/theme/app_colors.dart';
 import '../../core/theme/app_dimensions.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/color_utils.dart';
@@ -43,9 +44,11 @@ class ThemePreviewCard extends StatelessWidget {
     final primary = primaryColor ?? theme?.primaryColor ?? Colors.blue;
     final secondary = secondaryColor ?? theme?.secondaryColor ?? Colors.teal;
 
-    final backgroundColor = isDarkMode ? const Color(0xFF121212) : Colors.white;
-    final surfaceColor =
-        isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFF5F6F8);
+    final backgroundColor =
+        isDarkMode ? AppColors.surfaceDark : AppColors.surface;
+    final surfaceColor = isDarkMode
+        ? AppColors.surfaceContainerDark
+        : AppColors.surfaceContainer;
     final textColor = isDarkMode ? Colors.white : const Color(0xFF212121);
     final secondaryTextColor =
         isDarkMode ? Colors.white70 : const Color(0xFF616161);

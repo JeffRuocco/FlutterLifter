@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/core/theme/color_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../widgets/animations/animate_on_load.dart';
 import '../widgets/progress_ring.dart';
 
@@ -119,7 +121,8 @@ class ProgressScreen extends ConsumerWidget {
                           ),
                           child: HugeIcon(
                             icon: HugeIcons.strokeRoundedFire,
-                            color: Colors.white,
+                            color: ColorUtils.getContrastingTextColor(
+                                context.primaryColor),
                             size: AppDimensions.iconLarge,
                           ),
                         ),

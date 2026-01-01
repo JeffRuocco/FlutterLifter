@@ -7,7 +7,8 @@ import 'package:talker_flutter/talker_flutter.dart';
 import '../core/providers/settings_provider.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../services/logging_service.dart';
 
 /// Debug settings screen for development and troubleshooting

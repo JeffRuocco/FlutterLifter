@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/theme_utils.dart';
+import '../../core/theme/theme_extensions.dart';
 
 /// A celebratory confetti animation widget for success moments
 /// like completing a workout, achieving a goal, etc.

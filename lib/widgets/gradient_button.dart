@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_lifter/core/theme/color_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/providers/accessibility_provider.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
 
 /// A gradient button with animated effects
 class GradientButton extends ConsumerStatefulWidget {
@@ -86,8 +87,12 @@ class _GradientButtonState extends ConsumerState<GradientButton>
             borderRadius: widget.borderRadius ??
                 BorderRadius.circular(AppDimensions.borderRadiusMedium),
             onTap: widget.onPressed,
-            splashColor: Colors.white.withValues(alpha: 0.2),
-            highlightColor: Colors.white.withValues(alpha: 0.1),
+            splashColor:
+                ColorUtils.getContrastingTextColor(context.primaryColor)
+                    .withValues(alpha: 0.2),
+            highlightColor:
+                ColorUtils.getContrastingTextColor(context.primaryColor)
+                    .withValues(alpha: 0.1),
             child: Center(
               child: widget.isLoading
                   ? SizedBox(

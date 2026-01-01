@@ -6,7 +6,8 @@ import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import 'common/app_widgets.dart';
 
 class AddExerciseBottomSheet extends ConsumerStatefulWidget {
   final Function(WorkoutExercise exercise) onExerciseAdded;

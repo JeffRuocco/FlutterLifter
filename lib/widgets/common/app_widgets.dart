@@ -2,122 +2,17 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_lifter/core/theme/color_utils.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'app_colors.dart';
-import 'app_text_styles.dart';
-import 'app_dimensions.dart';
-import 'color_utils.dart';
 
-/// Theme Extensions - Easy access to theme values throughout the app
-extension AppThemeExtension on BuildContext {
-  /// Get the current theme
-  ThemeData get theme => Theme.of(this);
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_dimensions.dart';
+import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/theme_extensions.dart';
 
-  /// Get the current color scheme
-  ColorScheme get colorScheme => theme.colorScheme;
-
-  /// Get the current text theme
-  TextTheme get textTheme => theme.textTheme;
-
-  // PREFERRED: Use ColorScheme colors (automatically adapts to light/dark mode)
-  /// Primary colors
-  Color get primaryColor => colorScheme.primary;
-  Color get primaryContainer => colorScheme.primaryContainer;
-  Color get onPrimary => colorScheme.onPrimary;
-  Color get onPrimaryContainer => colorScheme.onPrimaryContainer;
-
-  /// Secondary colors
-  Color get secondaryColor => colorScheme.secondary;
-  Color get secondaryContainer => colorScheme.secondaryContainer;
-  Color get onSecondary => colorScheme.onSecondary;
-  Color get onSecondaryContainer => colorScheme.onSecondaryContainer;
-
-  /// Surface colors
-  Color get surfaceColor => colorScheme.surface;
-  Color get surfaceVariant => colorScheme.surfaceContainerHighest;
-  Color get onSurface => colorScheme.onSurface;
-  Color get onSurfaceVariant => colorScheme.onSurfaceVariant;
-
-  /// Background colors (Material 3: background = surface)
-  Color get backgroundColor => colorScheme.surface;
-  Color get onBackground => colorScheme.onSurface;
-
-  /// Border and outline colors
-  Color get outlineColor => colorScheme.outline;
-  Color get outlineVariant => colorScheme.outlineVariant;
-
-  /// Error colors
-  Color get errorColor => colorScheme.error;
-  Color get onError => colorScheme.onError;
-  Color get errorContainer => colorScheme.errorContainer;
-  Color get onErrorContainer => colorScheme.onErrorContainer;
-
-  /// Custom status colors (manually handled for light/dark mode)
-  Color get successColor => isDarkMode
-      ? AppColors.successLight // Lighter green for dark mode
-      : AppColors.success; // Darker green for light mode
-
-  Color get onSuccessColor => isDarkMode
-      ? AppColors.onSuccessLight // Dark text on light background
-      : AppColors.onSuccess; // Light text on dark background
-
-  Color get warningColor => isDarkMode
-      ? AppColors.warningLight // Lighter amber for dark mode
-      : AppColors.warning; // Darker amber for light mode
-
-  Color get onWarningColor => isDarkMode
-      ? AppColors.onWarningLight // Dark text on light background
-      : AppColors.onWarning; // Light text on dark background
-
-  Color get infoColor => isDarkMode
-      ? AppColors.infoLight // Lighter blue for dark mode
-      : AppColors.info; // Darker blue for light mode
-
-  Color get onInfoColor => isDarkMode
-      ? AppColors.onInfoLight // Dark text on light background
-      : AppColors.onInfo; // Light text on dark background
-
-  /// Semantic text colors (use ColorScheme for better theming)
-  Color get textPrimary => onSurface;
-  Color get textSecondary => onSurfaceVariant;
-  Color get textDisabled => onSurface.withValues(alpha: 0.38);
-
-  /// Check if current theme is dark
-  bool get isDarkMode => theme.brightness == Brightness.dark;
-
-  // Dynamic gradients based on current theme colors
-  /// Primary gradient using theme colors (primary → lighter primary)
-  List<Color> get primaryGradient => [
-        primaryColor,
-        ColorUtils.lighten(primaryColor, 0.15),
-      ];
-
-  /// Secondary gradient using theme colors (secondary → lighter secondary)
-  List<Color> get secondaryGradient => [
-        secondaryColor,
-        ColorUtils.lighten(secondaryColor, 0.15),
-      ];
-
-  /// Success gradient
-  List<Color> get successGradient => [
-        successColor,
-        ColorUtils.lighten(successColor, 0.15),
-      ];
-
-  /// Warm gradient based on primary
-  List<Color> get warmGradient => [
-        primaryColor,
-        ColorUtils.lighten(primaryColor, 0.2),
-      ];
-
-  /// Cool gradient based on secondary
-  List<Color> get coolGradient => [
-        secondaryColor,
-        ColorUtils.lighten(secondaryColor, 0.2),
-      ];
-}
-
-/// Custom Widgets for consistent styling
+// ============================================
+// APP CARD
+// ============================================
 
 /// Card style variants
 enum AppCardStyle {
@@ -405,7 +300,8 @@ class _AppCardState extends State<AppCard> {
         borderRadius: borderRadius,
         boxShadow: [
           BoxShadow(
-            color: isDark ? AppColors.glassShadowDark : AppColors.glassShadow,
+            color:
+                isDark ? AppColors.glassShadowDark : AppColors.glassShadowLight,
             blurRadius: _isPressed ? 8 : 16,
             offset: Offset(0, _isPressed ? 2 : 4),
             spreadRadius: -2,
@@ -428,7 +324,6 @@ class _AppCardState extends State<AppCard> {
                         Colors.white.withValues(alpha: 0.05),
                       ]
                     : [
-                        // Subtle warm tint using primary color for branded glass effect
                         Color.lerp(Colors.white, context.primaryColor, 0.04)!
                             .withValues(alpha: 0.9),
                         Color.lerp(
@@ -486,6 +381,10 @@ class _AppCardState extends State<AppCard> {
     );
   }
 }
+
+// ============================================
+// APP BUTTON
+// ============================================
 
 /// Button style variants
 enum AppButtonType {
@@ -699,7 +598,7 @@ class _AppButtonState extends State<AppButton>
           child: CircularProgressIndicator(
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(
-              color ?? Colors.white,
+              color ?? ColorUtils.getContrastingTextColor(context.primaryColor),
             ),
           ),
         );
@@ -907,7 +806,8 @@ class _AppButtonState extends State<AppButton>
                           : Text(
                               widget.text ?? '',
                               style: AppTextStyles.buttonText.copyWith(
-                                color: Colors.white,
+                                color: ColorUtils.getContrastingTextColor(
+                                    context.primaryColor),
                               ),
                             ),
                     ],
@@ -922,6 +822,10 @@ class _AppButtonState extends State<AppButton>
     );
   }
 }
+
+// ============================================
+// OTHER COMMON WIDGETS
+// ============================================
 
 class AppTextFormField extends StatelessWidget {
   final String? labelText;
@@ -1025,6 +929,10 @@ class AppLoadingIndicator extends StatelessWidget {
   }
 }
 
+// ============================================
+// SPACING WIDGETS
+// ============================================
+
 class AppSpacingWidget extends StatelessWidget {
   final double size;
   final bool isVertical;
@@ -1042,7 +950,7 @@ class AppSpacingWidget extends StatelessWidget {
   }
 }
 
-/// Quick spacing widgets
+/// Vertical spacing widget
 class VSpace extends AppSpacingWidget {
   const VSpace.xs({super.key}) : super.vertical(AppSpacing.xs);
   const VSpace.sm({super.key}) : super.vertical(AppSpacing.sm);
@@ -1053,6 +961,7 @@ class VSpace extends AppSpacingWidget {
   const VSpace(super.size, {super.key}) : super.vertical();
 }
 
+/// Horizontal spacing widget
 class HSpace extends AppSpacingWidget {
   const HSpace.xs({super.key}) : super.horizontal(AppSpacing.xs);
   const HSpace.sm({super.key}) : super.horizontal(AppSpacing.sm);
@@ -1063,7 +972,11 @@ class HSpace extends AppSpacingWidget {
   const HSpace(super.size, {super.key}) : super.horizontal();
 }
 
-/// Helper methods for showing themed status messages
+// ============================================
+// SNACKBAR HELPERS
+// ============================================
+
+/// Shows a success snackbar message
 void showSuccessMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -1090,6 +1003,7 @@ void showSuccessMessage(BuildContext context, String message, {int? duration}) {
   );
 }
 
+/// Shows an error snackbar message
 void showErrorMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -1117,6 +1031,7 @@ void showErrorMessage(BuildContext context, String message, {int? duration}) {
   );
 }
 
+/// Shows a warning snackbar message
 void showWarningMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -1143,6 +1058,7 @@ void showWarningMessage(BuildContext context, String message, {int? duration}) {
   );
 }
 
+/// Shows an info snackbar message
 void showInfoMessage(BuildContext context, String message, {int? duration}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

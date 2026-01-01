@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
 
-/// Utility functions for color manipulation and theme generation
+/// Utility functions for color manipulation.
+///
+/// ## Usage
+/// ```dart
+/// // Lighten/darken colors
+/// ColorUtils.lighten(color, 0.2);
+/// ColorUtils.darken(color, 0.1);
+///
+/// // Get contrasting text color
+/// ColorUtils.getContrastingTextColor(backgroundColor);
+/// ```
 class ColorUtils {
   ColorUtils._();
 
@@ -39,25 +48,6 @@ class ColorUtils {
         .toColor();
   }
 
-  /// Creates a light variant of a color suitable for light theme containers
-  static Color createLightVariant(Color color) {
-    return lighten(color, 0.25);
-  }
-
-  /// Creates a dark variant of a color suitable for dark theme containers
-  static Color createDarkVariant(Color color) {
-    return darken(color, 0.15);
-  }
-
-  /// Creates a container color (lighter, less saturated version)
-  static Color createContainerColor(Color color, {required bool isDark}) {
-    if (isDark) {
-      return darken(desaturate(color, 0.2), 0.3);
-    } else {
-      return lighten(desaturate(color, 0.3), 0.35);
-    }
-  }
-
   /// Determines if a color is considered "light" based on luminance
   static bool isLightColor(Color color) {
     return color.computeLuminance() > 0.5;
@@ -68,75 +58,123 @@ class ColorUtils {
     return isLightColor(backgroundColor) ? Colors.black : Colors.white;
   }
 
-  /// Generates a full ColorScheme from primary and secondary colors
-  static ColorScheme generateColorScheme({
-    required Color primary,
-    required Color secondary,
-    required Brightness brightness,
+  /// Gets an "on" color for a given background that meets WCAG AA contrast.
+  ///
+  /// Unlike [getContrastingTextColor] which only returns black/white,
+  /// this method tries to find a tinted version of the background color
+  /// that still provides sufficient contrast, giving a more cohesive look.
+  ///
+  /// Falls back to black or white if no tinted option works.
+  static Color getOnColor(Color backgroundColor,
+      {double minContrastRatio = 4.5}) {
+    final bgLuminance = backgroundColor.computeLuminance();
+    final isLightBg = bgLuminance > 0.5;
+
+    // First, check if pure black or white is needed
+    final pureContrast = isLightBg ? Colors.black : Colors.white;
+
+    // For very light or very dark backgrounds, just use black/white
+    if (bgLuminance > 0.85 || bgLuminance < 0.15) {
+      return pureContrast;
+    }
+
+    // Try to find a tinted version that works
+    final hsl = HSLColor.fromColor(backgroundColor);
+
+    // Target lightness: very dark for light backgrounds, very light for dark
+    final targetLightness = isLightBg ? 0.15 : 0.95;
+
+    // Create a tinted version
+    var tinted = hsl.withLightness(targetLightness).toColor();
+
+    // Check if it meets contrast requirements
+    final contrastRatio =
+        ContrastUtils.getContrastRatio(tinted, backgroundColor);
+
+    if (contrastRatio >= minContrastRatio) {
+      return tinted;
+    }
+
+    // If tinted doesn't work, try adjusting further
+    final adjustStep = isLightBg ? -0.05 : 0.05;
+    var currentLightness = targetLightness;
+
+    for (var i = 0; i < 10; i++) {
+      currentLightness = (currentLightness + adjustStep).clamp(0.0, 1.0);
+      tinted = hsl.withLightness(currentLightness).toColor();
+
+      if (ContrastUtils.getContrastRatio(tinted, backgroundColor) >=
+          minContrastRatio) {
+        return tinted;
+      }
+    }
+
+    // Fallback to pure black or white
+    return pureContrast;
+  }
+
+  /// Generates a container color from a primary/secondary color.
+  ///
+  /// Container colors are muted versions used for backgrounds (like chips,
+  /// cards, etc.) that still relate to the source color.
+  ///
+  /// [forDarkTheme] - Whether this is for dark mode
+  /// [opacity] - How much of the color to preserve (0.0-1.0)
+  static Color getContainerColor(
+    Color sourceColor, {
+    required bool forDarkTheme,
+    double opacity = 0.2,
   }) {
-    final isDark = brightness == Brightness.dark;
+    final hsl = HSLColor.fromColor(sourceColor);
 
-    // Generate primary variants
-    final primaryLight = lighten(primary, 0.2);
-    final primaryDark = darken(primary, 0.15);
-    final primaryContainer =
-        isDark ? darken(primary, 0.25) : lighten(primary, 0.35);
-    final onPrimary = getContrastingTextColor(primary);
-    final onPrimaryContainer = isDark ? primaryLight : primaryDark;
+    if (forDarkTheme) {
+      // For dark theme: darker, less saturated version
+      return hsl
+          .withLightness((hsl.lightness * 0.4).clamp(0.1, 0.3))
+          .withSaturation((hsl.saturation * 0.7).clamp(0.0, 0.8))
+          .toColor();
+    } else {
+      // For light theme: lighter, less saturated version
+      return hsl
+          .withLightness(
+              (hsl.lightness + (1 - hsl.lightness) * 0.7).clamp(0.85, 0.95))
+          .withSaturation((hsl.saturation * 0.5).clamp(0.0, 0.6))
+          .toColor();
+    }
+  }
 
-    // Generate secondary variants
-    final secondaryLight = lighten(secondary, 0.2);
-    final secondaryDark = darken(secondary, 0.15);
-    final secondaryContainer =
-        isDark ? darken(secondary, 0.25) : lighten(secondary, 0.35);
-    final onSecondary = getContrastingTextColor(secondary);
-    final onSecondaryContainer = isDark ? secondaryLight : secondaryDark;
+  /// Generates a complete "on" color set for a given source color.
+  ///
+  /// Returns a [ColorSet] with:
+  /// - `onColor`: For use on the source color directly
+  /// - `container`: A muted container version of the source
+  /// - `onContainer`: For use on the container color
+  static ColorSet getColorSet(
+    Color sourceColor, {
+    required bool forDarkTheme,
+  }) {
+    final container =
+        getContainerColor(sourceColor, forDarkTheme: forDarkTheme);
 
-    // Surface colors
-    final surface = isDark ? AppColors.surfaceDark : AppColors.surface;
-    final onSurface = isDark ? AppColors.onSurfaceLight : AppColors.onSurface;
-    final surfaceVariant = isDark
-        ? AppColors.surfaceContainerHighestDark
-        : AppColors.surfaceVariant;
-    final onSurfaceVariant = isDark ? Colors.white70 : AppColors.textSecondary;
-
-    // Outline colors
-    final outline = isDark ? AppColors.outlineDark : AppColors.outline;
-    final outlineVariant =
-        isDark ? AppColors.outlineVariantDark : AppColors.outlineVariant;
-
-    // Error colors remain constant
-    const error = AppColors.error;
-    final errorContainer = isDark ? darken(error, 0.3) : lighten(error, 0.35);
-
-    return ColorScheme(
-      brightness: brightness,
-      primary: primary,
-      onPrimary: onPrimary,
-      primaryContainer: primaryContainer,
-      onPrimaryContainer: onPrimaryContainer,
-      secondary: secondary,
-      onSecondary: onSecondary,
-      secondaryContainer: secondaryContainer,
-      onSecondaryContainer: onSecondaryContainer,
-      error: error,
-      onError: Colors.white,
-      errorContainer: errorContainer,
-      onErrorContainer: isDark ? lighten(error, 0.3) : darken(error, 0.3),
-      surface: surface,
-      onSurface: onSurface,
-      surfaceContainerHighest: surfaceVariant,
-      onSurfaceVariant: onSurfaceVariant,
-      outline: outline,
-      outlineVariant: outlineVariant,
-      shadow: Colors.black,
-      scrim: Colors.black,
-      inverseSurface: isDark ? AppColors.surface : AppColors.surfaceDark,
-      onInverseSurface: isDark ? AppColors.onSurface : AppColors.onSurfaceLight,
-      inversePrimary: isDark ? primary : primaryLight,
-      surfaceTint: isDark ? primaryLight : primary,
+    return ColorSet(
+      onColor: getOnColor(sourceColor),
+      container: container,
+      onContainer: getOnColor(container),
     );
   }
+}
+
+/// A set of related colors for a primary/secondary color.
+class ColorSet {
+  final Color onColor;
+  final Color container;
+  final Color onContainer;
+
+  const ColorSet({
+    required this.onColor,
+    required this.container,
+    required this.onContainer,
+  });
 }
 
 /// Utilities for WCAG contrast ratio validation

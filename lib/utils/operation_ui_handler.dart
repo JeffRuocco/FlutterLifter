@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_lifter/core/theme/theme_utils.dart';
+import 'package:flutter_lifter/widgets/common/app_widgets.dart';
 import 'package:flutter_lifter/models/operation_result.dart';
 
 /// Handles UI responses for operations

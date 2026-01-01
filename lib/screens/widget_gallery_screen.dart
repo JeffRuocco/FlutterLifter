@@ -5,7 +5,8 @@ import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../core/theme/theme_provider.dart';
 import '../widgets/animations/animate_on_load.dart';
 import '../widgets/skeleton_loader.dart';
@@ -132,11 +133,10 @@ class _ColorsGallery extends StatelessWidget {
         _ColorRow('Info', context.infoColor),
         VSpace.lg(),
         _SectionHeader('Brand Colors (Static)'),
-        _ColorRow('Primary Brand', AppColors.primary),
-        _ColorRow('Secondary Brand', AppColors.secondary),
         _ColorRow('Cardio', AppColors.cardio),
         _ColorRow('Strength', AppColors.strength),
         _ColorRow('Flexibility', AppColors.flexibility),
+        _ColorRow('Rest', AppColors.rest),
       ],
     );
   }

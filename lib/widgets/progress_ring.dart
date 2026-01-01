@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/providers/accessibility_provider.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
 
 /// A circular progress indicator with customizable appearance
 class ProgressRing extends StatelessWidget {

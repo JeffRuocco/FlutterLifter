@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lifter/core/theme/theme_utils.dart';
+import 'package:flutter_lifter/core/theme/theme_extensions.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:flutter_lifter/models/workout_session_models.dart';
 import 'package:flutter_lifter/utils/utils.dart';

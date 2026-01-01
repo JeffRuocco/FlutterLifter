@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/core/theme/color_utils.dart';
 import 'package:flutter_lifter/core/theme/preset_themes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +11,8 @@ import '../core/router/app_router.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_provider.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../services/logging_service.dart';
 import '../widgets/common/theme_preview_card.dart';
 import '../widgets/common/theme_selection_sheet.dart';
@@ -287,6 +289,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           'Show debug buttons and enable developer features'),
                       value: _debugModeEnabled,
                       onChanged: _toggleDebugMode,
+                      activeThumbColor: context.primaryColor,
                     ),
                     if (_debugModeEnabled) ...[
                       Divider(height: 1, color: context.outlineColor),
@@ -462,9 +465,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => context.goToThemeEditor(),
-                    icon: const HugeIcon(
+                    icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedAdd01,
-                      color: Colors.white,
+                      color: ColorUtils.getContrastingTextColor(
+                          context.primaryColor),
                       size: 18,
                     ),
                     label: const Text('Create New'),
