@@ -75,7 +75,7 @@ class AppTheme {
     secondary: AppColors.secondaryLight,
     secondaryContainer: AppColors.secondaryDark,
     surface: AppColors.surfaceDark,
-    surfaceContainerHighest: AppColors.surfaceVariantLight,
+    surfaceContainerHighest: AppColors.surfaceContainerHighestDark,
     error: AppColors.error,
     onPrimary: AppColors.onPrimary,
     onSecondary: AppColors.onSecondary,
@@ -202,18 +202,18 @@ class AppTheme {
   static final InputDecorationTheme _inputDecorationThemeDark =
       InputDecorationTheme(
     filled: true,
-    fillColor: const Color(0xFF2C2C2C),
+    fillColor: AppColors.surfaceContainerHighDark,
     contentPadding: const EdgeInsets.symmetric(
       horizontal: AppSpacing.md,
       vertical: AppSpacing.md,
     ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-      borderSide: const BorderSide(color: Color(0xFF4A4A4A)),
+      borderSide: BorderSide(color: AppColors.outlineVariantDark),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-      borderSide: const BorderSide(color: Color(0xFF4A4A4A)),
+      borderSide: BorderSide(color: AppColors.outlineVariantDark),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
@@ -227,20 +227,24 @@ class AppTheme {
     hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.white54),
   );
 
-  // Card Theme
+  // Card Theme - light mode with subtle border for definition
   static final CardThemeData _cardTheme = CardThemeData(
     elevation: AppDimensions.cardElevation,
+    color: AppColors.surface,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppDimensions.cardBorderRadius),
+      side: BorderSide(
+          color: AppColors.outlineVariant.withValues(alpha: 0.5), width: 1),
     ),
     margin: const EdgeInsets.all(AppSpacing.sm),
   );
 
   static final CardThemeData _cardThemeDark = CardThemeData(
     elevation: AppDimensions.cardElevation,
-    color: const Color(0xFF2C2C2C),
+    color: AppColors.surfaceContainerHighDark,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppDimensions.cardBorderRadius),
+      side: BorderSide(color: AppColors.outlineVariantDark, width: 1),
     ),
     margin: const EdgeInsets.all(AppSpacing.sm),
   );
@@ -252,7 +256,7 @@ class AppTheme {
   );
 
   static const DividerThemeData _dividerThemeDark = DividerThemeData(
-    color: Color(0xFF4A4A4A),
+    color: AppColors.outlineVariantDark,
     thickness: 1,
   );
 
@@ -276,7 +280,7 @@ class AppTheme {
       BottomNavigationBarThemeData(
     type: BottomNavigationBarType.fixed,
     elevation: 8,
-    backgroundColor: Color(0xFF2C2C2C),
+    backgroundColor: AppColors.surfaceContainerDark,
     selectedItemColor: AppColors.primaryLight,
     unselectedItemColor: Colors.white54,
   );
@@ -299,9 +303,9 @@ class AppTheme {
   );
 
   static final ChipThemeData _chipThemeDark = ChipThemeData(
-    backgroundColor: const Color(0xFF4A4A4A),
+    backgroundColor: AppColors.surfaceContainerHighDark,
     selectedColor: AppColors.primaryLight,
-    disabledColor: const Color(0xFF2C2C2C),
+    disabledColor: AppColors.surfaceContainerDark,
     labelStyle: AppTextStyles.labelMedium.copyWith(color: Colors.white),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppDimensions.borderRadiusRound),

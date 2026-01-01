@@ -300,7 +300,9 @@ flutter build apk --verbose
 1. Build and run the web version: `flutter run -d chrome`
 2. Verify login screen loads correctly with all expected elements
 3. Test basic navigation and user interactions
-4. Take screenshots of UI changes for documentation
+4. **Test in BOTH light mode and dark mode** for contrast issues
+5. Verify cards are visually distinct from backgrounds with visible borders
+6. Take screenshots of UI changes for documentation
 
 ### Release Validation
 **Before creating releases:**
@@ -442,6 +444,63 @@ AppTextStyles.titleSmall
 AppTextStyles.bodyLarge
 ```
 
+### Contrast and Accessibility Guidelines
+**CRITICAL: All UI changes must maintain adequate contrast in BOTH light and dark modes.**
+
+#### Minimum Contrast Ratios
+| Element Type | Minimum Ratio | Notes |
+|--------------|---------------|-------|
+| Body text | 4.5:1 | Against background |
+| Large text (18pt+) | 3:1 | Against background |
+| UI components | 3:1 | Buttons, inputs, borders |
+| Card surfaces | 1.5:1 | Against app background |
+| Card borders | 1.8:1 | Against card background |
+
+#### Card Contrast Rules
+- **ALWAYS use `AppCard` widget** - it handles contrast automatically
+- Cards MUST be visually distinct from the app background
+- Cards include subtle borders in both light and dark modes
+- **NEVER rely solely on shadows** for card contrast (shadows are barely visible in dark mode)
+
+#### Dark Mode Surface Hierarchy
+```
+Background:    #121212  (surfaceDark)
+Container:     #1E1E1E  (surfaceContainerDark)
+High:          #282828  (surfaceContainerHighDark) ← Default card background
+Highest:       #323232  (surfaceContainerHighestDark)
+Border:        #404040  (outlineVariantDark) ← Card borders
+```
+
+#### Light Mode Surface Hierarchy
+```
+Background:    #FFFFFF  (surface)
+Container:     #F5F6F8  (surfaceContainer)
+High:          #EEF0F2  (surfaceContainerHigh)
+Highest:       #E5E8EB  (surfaceContainerHighest)
+Border:        #CED4DA  (outlineVariant) ← Card borders
+```
+
+#### Before Committing UI Changes
+1. Test in **BOTH** light mode and dark mode
+2. Verify cards are visually distinct from background
+3. Verify borders are visible
+4. Quick test: Squint at screen - elements should not disappear
+
+#### Common Contrast Mistakes to AVOID
+```dart
+// ❌ WRONG: Card without border in dark mode
+Container(
+  color: context.surfaceColor,
+  // Missing border - blends into dark background!
+)
+
+// ❌ WRONG: Border too subtle
+Border.all(color: Colors.white.withOpacity(0.1))  // Invisible!
+
+// ✅ CORRECT: Use AppCard
+AppCard(child: content)  // Handles contrast automatically
+```
+
 ## Development Guidelines
 - Follow the most recent Flutter best practices and Material Design guidelines
 - Maintain compatibility with at minimum Flutter 3.32.x
@@ -459,6 +518,9 @@ AppTextStyles.bodyLarge
 - Ensure compatibility with mobile platforms (iOS and Android) as well as PWA for web support
 - Maintain a consistent theme and styling system across the app
 - Use context-aware theming for colors and styles to support light/dark mode
+- **Ensure adequate contrast in both light and dark modes** - see Contrast Guidelines above
+- **Always use `AppCard` for card components** to ensure automatic contrast handling
+- **Test UI changes in both light and dark mode** before committing
 - Implement optimistic UI updates for better user experience
 - Implement offline-first support using a Stream where applicable
 

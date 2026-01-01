@@ -20,21 +20,25 @@ class AppColors {
   static const Color surfaceVariantLight = Color(0xFF1E1E1E);
 
   // Surface Tints for M3 depth perception
+  // Light mode - improved contrast hierarchy for card visibility
   static const Color surfaceTint = primary;
-  static const Color surfaceContainer = Color(0xFFF8F9FA);
-  static const Color surfaceContainerLow = Color(0xFFFBFCFD);
-  static const Color surfaceContainerHigh = Color(0xFFF1F3F5);
-  static const Color surfaceContainerHighest = Color(0xFFE9ECEF);
-  static const Color surfaceContainerDark = Color(0xFF1A1A1A);
-  static const Color surfaceContainerLowDark = Color(0xFF141414);
-  static const Color surfaceContainerHighDark = Color(0xFF242424);
-  static const Color surfaceContainerHighestDark = Color(0xFF2E2E2E);
+  static const Color surfaceContainer = Color(0xFFF5F6F8);
+  static const Color surfaceContainerLow = Color(0xFFF8F9FA);
+  static const Color surfaceContainerHigh = Color(0xFFEEF0F2);
+  static const Color surfaceContainerHighest = Color(0xFFE5E8EB);
+  // Dark mode surface containers - improved contrast for visibility
+  // Background (#121212) -> Container (#1E1E1E) -> High (#282828) -> Highest (#323232)
+  static const Color surfaceContainerDark = Color(0xFF1E1E1E);
+  static const Color surfaceContainerLowDark = Color(0xFF1A1A1A);
+  static const Color surfaceContainerHighDark = Color(0xFF282828);
+  static const Color surfaceContainerHighestDark = Color(0xFF323232);
 
-  // Outline Colors
-  static const Color outline = Color(0xFFBDBDBD);
-  static const Color outlineVariant = Color(0xFFE0E7EF);
-  static const Color outlineDark = Color(0xFF4A4A4A);
-  static const Color outlineVariantDark = Color(0xFF2C2C2C);
+  // Outline Colors - Light mode improved for visibility
+  static const Color outline = Color(0xFFADB5BD);
+  static const Color outlineVariant = Color(0xFFCED4DA);
+  // Dark mode outlines - improved visibility against dark surfaces
+  static const Color outlineDark = Color(0xFF5C5C5C);
+  static const Color outlineVariantDark = Color(0xFF404040);
 
   // Text Colors
   static const Color onPrimary = Color(0xFFFFFFFF);
@@ -66,10 +70,10 @@ class AppColors {
   static const Color onInfo = Color(0xFFFFFFFF);
   static const Color onInfoLight = Color(0xFF1E3A8A);
 
-  // Border Colors
-  static const Color border = Color(0xFFE0E0E0);
-  static const Color borderLight = Color(0xFFF5F5F5);
-  static const Color borderDark = Color(0xFFBDBDBD);
+  // Border Colors - improved for light mode visibility
+  static const Color border = Color(0xFFCED4DA);
+  static const Color borderLight = Color(0xFFE9ECEF);
+  static const Color borderDark = Color(0xFFADB5BD);
 
   // Social Colors
   // static const Color google = Color(0xFF4285F4);
