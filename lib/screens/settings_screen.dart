@@ -106,7 +106,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: _isLoading
           ? Center(child: AppLoadingIndicator())
           : SingleChildScrollView(
-              padding: EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -114,14 +114,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _buildSectionTitle(context, 'Appearance'),
                   AppCard(
                     child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.md),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
                               Container(
-                                padding: EdgeInsets.all(AppSpacing.sm),
+                                padding: const EdgeInsets.all(AppSpacing.sm),
                                 decoration: BoxDecoration(
                                   color: context.primaryColor
                                       .withValues(alpha: 0.1),
@@ -237,7 +237,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _buildSectionTitle(context, 'Developer Options'),
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(AppSpacing.md),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: context.warningColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(
@@ -356,7 +356,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Text(
         title,
         style: AppTextStyles.titleMedium.copyWith(
@@ -405,14 +405,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return AppCard(
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(AppSpacing.sm),
+                  padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
                     color: context.secondaryColor.withValues(alpha: 0.1),
                     borderRadius:

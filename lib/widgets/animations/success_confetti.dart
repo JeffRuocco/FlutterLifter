@@ -54,8 +54,14 @@ class _SuccessConfettiState extends State<SuccessConfetti>
   @override
   void initState() {
     super.initState();
-    // Colors will be set in didChangeDependencies when context is available
-    _colors = [];
+    // Initialize colors so they're available before any animation starts.
+    // These can still be overridden later in didChangeDependencies if needed.
+    _colors = widget.colors ??
+        [
+          Theme.of(context).colorScheme.primary,
+          Theme.of(context).colorScheme.secondary,
+          Theme.of(context).colorScheme.tertiary,
+        ];
 
     _controller = AnimationController(
       vsync: this,

@@ -34,8 +34,8 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
 
-  Color? _primaryColor;
-  Color? _secondaryColor;
+  Color _primaryColor = PresetThemes.defaultTheme.primaryColor;
+  Color _secondaryColor = PresetThemes.defaultTheme.secondaryColor;
   bool _isEditing = false;
   bool _isSaving = false;
   bool _colorsInitialized = false;
@@ -90,7 +90,7 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
     super.dispose();
   }
 
-  Future<void> _saveThem() async {
+  Future<void> _saveTheme() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
@@ -102,8 +102,8 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
         // Update existing theme
         final updatedTheme = _existingTheme!.copyWith(
           name: _nameController.text.trim(),
-          primaryColor: _primaryColor!,
-          secondaryColor: _secondaryColor!,
+          primaryColor: _primaryColor,
+          secondaryColor: _secondaryColor,
         );
         await notifier.updateTheme(updatedTheme);
 
@@ -115,8 +115,8 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
         // Create new theme
         final newTheme = CustomTheme.create(
           name: _nameController.text.trim(),
-          primaryColor: _primaryColor!,
-          secondaryColor: _secondaryColor!,
+          primaryColor: _primaryColor,
+          secondaryColor: _secondaryColor,
         );
         await notifier.createAndActivateTheme(newTheme);
 
@@ -193,7 +193,7 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
 
               // Primary color picker
               ColorPickerButton(
-                color: _primaryColor!,
+                color: _primaryColor,
                 label: 'Primary Color',
                 onColorChanged: (color) {
                   HapticFeedback.selectionClick();
@@ -206,7 +206,7 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
 
               // Secondary color picker
               ColorPickerButton(
-                color: _secondaryColor!,
+                color: _secondaryColor,
                 label: 'Secondary Color',
                 onColorChanged: (color) {
                   HapticFeedback.selectionClick();
@@ -249,8 +249,8 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
                             name: _nameController.text.isEmpty
                                 ? 'Preview'
                                 : _nameController.text,
-                            primaryColor: _primaryColor!,
-                            secondaryColor: _secondaryColor!,
+                            primaryColor: _primaryColor,
+                            secondaryColor: _secondaryColor,
                             createdAt: DateTime.now(),
                           ),
                         ),
@@ -279,8 +279,8 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
                             name: _nameController.text.isEmpty
                                 ? 'Preview'
                                 : _nameController.text,
-                            primaryColor: _primaryColor!,
-                            secondaryColor: _secondaryColor!,
+                            primaryColor: _primaryColor,
+                            secondaryColor: _secondaryColor,
                             createdAt: DateTime.now(),
                           ),
                         ),
@@ -300,10 +300,10 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
               // Save button
               AppButton.gradient(
                 text: _isEditing ? 'Save Changes' : 'Create Theme',
-                onPressed: _isSaving ? null : _saveThem,
+                onPressed: _isSaving ? null : _saveTheme,
                 isLoading: _isSaving,
                 expanded: true,
-                gradientColors: [_primaryColor!, _secondaryColor!],
+                gradientColors: [_primaryColor, _secondaryColor],
               ),
 
               const SizedBox(height: AppSpacing.md),
@@ -371,9 +371,9 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
 
   Widget _buildContrastInfo(BuildContext context, Color surfaceColor) {
     final primaryContrast =
-        ContrastUtils.getContrastLevel(_primaryColor!, surfaceColor);
+        ContrastUtils.getContrastLevel(_primaryColor, surfaceColor);
     final secondaryContrast =
-        ContrastUtils.getContrastLevel(_secondaryColor!, surfaceColor);
+        ContrastUtils.getContrastLevel(_secondaryColor, surfaceColor);
 
     return AppCard.outlined(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -397,9 +397,9 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          _buildContrastRow('Primary', _primaryColor!, primaryContrast),
+          _buildContrastRow('Primary', _primaryColor, primaryContrast),
           const SizedBox(height: AppSpacing.sm),
-          _buildContrastRow('Secondary', _secondaryColor!, secondaryContrast),
+          _buildContrastRow('Secondary', _secondaryColor, secondaryContrast),
           if (!primaryContrast.passesMinimum ||
               !secondaryContrast.passesMinimum) ...[
             const SizedBox(height: AppSpacing.md),

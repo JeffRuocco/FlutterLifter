@@ -65,7 +65,7 @@ Container(
     color: context.surfaceContainer,
     borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
   ),
-  padding: EdgeInsets.all(AppDimensions.paddingMedium),
+  padding: const EdgeInsets.all(AppDimensions.paddingMedium),
   child: content,
 )
 
@@ -149,7 +149,7 @@ Edit `lib/screens/widget_gallery_screen.dart`:
 // Add to the appropriate tab builder method
 Widget _buildButtonsTab() {
   return ListView(
-    padding: EdgeInsets.all(AppDimensions.paddingMedium),
+    padding: const EdgeInsets.all(AppDimensions.paddingMedium),
     children: [
       // Existing buttons...
       
@@ -274,7 +274,7 @@ TabBarView(
 ```dart
 Widget _buildNewCategoryTab() {
   return ListView(
-    padding: EdgeInsets.all(AppDimensions.paddingMedium),
+    padding: const EdgeInsets.all(AppDimensions.paddingMedium),
     children: [
       _buildSection(
         title: 'Component Name',

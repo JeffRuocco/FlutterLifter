@@ -241,7 +241,7 @@ Text('Label', style: AppTextStyles.labelMedium)
 ### Spacing (8dp Grid)
 
 ```dart
-Padding(padding: EdgeInsets.all(AppSpacing.md))  // 16px
+Padding(padding: const EdgeInsets.all(AppSpacing.md))  // 16px
 VSpace.lg()   // 24px vertical
 HSpace.sm()   // 8px horizontal
 ```
