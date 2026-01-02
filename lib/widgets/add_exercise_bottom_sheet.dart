@@ -172,8 +172,9 @@ class _AddExerciseBottomSheetState
         final query = _searchController.text.toLowerCase();
         final filtered = allExercises.where((exercise) {
           final matchesSearch = exercise.name.toLowerCase().contains(query) ||
-              exercise.targetMuscleGroups
-                  .any((muscle) => muscle.toLowerCase().contains(query));
+              exercise.targetMuscleGroups.any(
+                (muscle) => muscle.displayName.toLowerCase().contains(query),
+              );
 
           final matchesCategory = _selectedCategory == null ||
               exercise.category == _selectedCategory;

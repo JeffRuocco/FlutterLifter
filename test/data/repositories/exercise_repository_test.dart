@@ -45,7 +45,7 @@ void main() {
             id: 'custom_default',
             name: 'Custom Default Exercise',
             category: ExerciseCategory.strength,
-            targetMuscleGroups: ['Test'],
+            targetMuscleGroups: [MuscleGroup.fullBody],
             defaultSets: 3,
             defaultReps: 10,
             isDefault: true,
@@ -111,7 +111,7 @@ void main() {
           name: 'Custom Push-up Variation',
           shortName: 'Custom Push',
           category: ExerciseCategory.strength,
-          targetMuscleGroups: ['Chest', 'Triceps'],
+          targetMuscleGroups: [MuscleGroup.chest, MuscleGroup.triceps],
           defaultSets: 3,
           defaultReps: 15,
           isDefault: false,
@@ -214,7 +214,7 @@ void main() {
           id: 'custom_combined',
           name: 'Custom for Combined Test',
           category: ExerciseCategory.cardio,
-          targetMuscleGroups: ['Full Body'],
+          targetMuscleGroups: [MuscleGroup.fullBody],
           defaultSets: 2,
           defaultReps: 20,
           isDefault: false,
@@ -295,7 +295,7 @@ void main() {
             id: 'my_custom',
             name: 'My Custom Exercise',
             category: ExerciseCategory.strength,
-            targetMuscleGroups: ['Arms'],
+            targetMuscleGroups: [MuscleGroup.arms],
             defaultSets: 3,
             defaultReps: 10,
             isDefault: false,
@@ -366,7 +366,7 @@ void main() {
               e.category.displayName.toLowerCase().contains('cardio') ||
               e.name.toLowerCase().contains('cardio') ||
               e.targetMuscleGroups
-                  .any((m) => m.toLowerCase().contains('cardio'))),
+                  .any((m) => m.displayName.toLowerCase().contains('cardio'))),
           isTrue,
         );
       });
@@ -376,8 +376,8 @@ void main() {
 
         expect(results, isNotEmpty);
         expect(
-          results.every(
-              (e) => e.targetMuscleGroups.any((m) => m.contains('Biceps'))),
+          results.every((e) => e.targetMuscleGroups
+              .any((m) => m.displayName.contains('Biceps'))),
           isTrue,
         );
       });
@@ -403,7 +403,7 @@ void main() {
             id: 'custom_squat',
             name: 'Custom Squat Variation',
             category: ExerciseCategory.strength,
-            targetMuscleGroups: ['Legs'],
+            targetMuscleGroups: [MuscleGroup.legs],
             defaultSets: 3,
             defaultReps: 10,
             isDefault: false,
@@ -449,7 +449,7 @@ void main() {
             id: 'custom_cardio',
             name: 'Custom Cardio Exercise',
             category: ExerciseCategory.cardio,
-            targetMuscleGroups: ['Cardiovascular'],
+            targetMuscleGroups: [MuscleGroup.cardiovascular],
             defaultSets: 1,
             defaultReps: 30,
             isDefault: false,
@@ -488,33 +488,28 @@ void main() {
       test('getExercisesByMuscleGroup should return matching exercises',
           () async {
         final chestExercises = await repository.getExercisesByMuscleGroup(
-          'Chest',
+          MuscleGroup.chest,
         );
 
         expect(chestExercises, isNotEmpty);
         expect(
-          chestExercises.every(
-              (e) => e.targetMuscleGroups.any((m) => m.contains('Chest'))),
+          chestExercises
+              .every((e) => e.targetMuscleGroups.contains(MuscleGroup.chest)),
           isTrue,
         );
       });
 
-      test('getExercisesByMuscleGroup should be case-insensitive', () async {
-        final results1 = await repository.getExercisesByMuscleGroup('CHEST');
-        final results2 = await repository.getExercisesByMuscleGroup('chest');
-
-        expect(results1.length, equals(results2.length));
-      });
-
-      test('getExercisesByMuscleGroup should support partial matching',
+      test('getExercisesByMuscleGroup should return exercises with that muscle',
           () async {
-        final results = await repository.getExercisesByMuscleGroup('Quad');
+        final results = await repository.getExercisesByMuscleGroup(
+          MuscleGroup.quadriceps,
+        );
 
         expect(results, isNotEmpty);
-        // Should match 'Quadriceps'
+        // Should match exercises targeting quadriceps
         expect(
           results.every(
-              (e) => e.targetMuscleGroups.any((m) => m.contains('Quad'))),
+              (e) => e.targetMuscleGroups.contains(MuscleGroup.quadriceps)),
           isTrue,
         );
       });
@@ -525,7 +520,7 @@ void main() {
             id: 'custom_chest',
             name: 'Custom Chest Exercise',
             category: ExerciseCategory.strength,
-            targetMuscleGroups: ['Chest'],
+            targetMuscleGroups: [MuscleGroup.chest],
             defaultSets: 3,
             defaultReps: 10,
             isDefault: false,
@@ -533,11 +528,11 @@ void main() {
         );
 
         final defaultOnly = await repository.getExercisesByMuscleGroup(
-          'Chest',
+          MuscleGroup.chest,
           source: ExerciseSource.defaultOnly,
         );
         final customOnly = await repository.getExercisesByMuscleGroup(
-          'Chest',
+          MuscleGroup.chest,
           source: ExerciseSource.customOnly,
         );
 
@@ -691,7 +686,7 @@ void main() {
             id: 'custom_with_pref',
             name: 'Custom With Pref',
             category: ExerciseCategory.strength,
-            targetMuscleGroups: ['Test'],
+            targetMuscleGroups: [MuscleGroup.fullBody],
             defaultSets: 3,
             defaultReps: 10,
             isDefault: false,

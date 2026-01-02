@@ -214,7 +214,7 @@ class Exercise {
   /// Short/abbreviated name for display in compact UI contexts
   final String? shortName;
   final ExerciseCategory category;
-  final List<String> targetMuscleGroups;
+  final List<MuscleGroup> targetMuscleGroups;
   final int defaultSets;
   final int defaultReps;
   final double? defaultWeight;
@@ -268,7 +268,13 @@ class Exercise {
         (e) => e.toString() == 'ExerciseCategory.${json['category']}',
         orElse: () => ExerciseCategory.other,
       ),
-      targetMuscleGroups: List<String>.from(json['targetMuscleGroups'] ?? []),
+      targetMuscleGroups: (json['targetMuscleGroups'] as List<dynamic>?)
+              ?.map((m) => MuscleGroup.values.firstWhere(
+                    (e) => e.toString() == 'MuscleGroup.$m' || e.name == m,
+                    orElse: () => MuscleGroup.fullBody,
+                  ))
+              .toList() ??
+          [],
       defaultSets: json['defaultSets'] ?? 3,
       defaultReps: json['defaultReps'] ?? 10,
       defaultWeight: json['defaultWeight']?.toDouble(),
@@ -290,7 +296,7 @@ class Exercise {
       'name': name,
       'shortName': shortName,
       'category': category.toString().split('.').last,
-      'targetMuscleGroups': targetMuscleGroups,
+      'targetMuscleGroups': targetMuscleGroups.map((m) => m.name).toList(),
       'defaultSets': defaultSets,
       'defaultReps': defaultReps,
       'defaultWeight': defaultWeight,
@@ -311,7 +317,7 @@ class Exercise {
     String? name,
     String? shortName,
     ExerciseCategory? category,
-    List<String>? targetMuscleGroups,
+    List<MuscleGroup>? targetMuscleGroups,
     int? defaultSets,
     int? defaultReps,
     double? defaultWeight,
@@ -394,7 +400,7 @@ class WorkoutExercise {
   String? get instructions => exercise.instructions;
 
   /// Returns the target muscle groups for the exercise
-  List<String> get targetMuscleGroups => exercise.targetMuscleGroups;
+  List<MuscleGroup> get targetMuscleGroups => exercise.targetMuscleGroups;
 
   /// Returns the number of completed sets
   int get completedSetsCount => sets.where((set) => set.isCompleted).length;
@@ -428,9 +434,9 @@ class WorkoutExercise {
     final targetMuscleGroups = exercise.targetMuscleGroups;
     if (targetMuscleGroups.isEmpty) return 'Various muscles';
     if (targetMuscleGroups.length <= 2) {
-      return targetMuscleGroups.join(', ');
+      return targetMuscleGroups.map((m) => m.displayName).join(', ');
     } else {
-      return '${targetMuscleGroups.take(2).join(', ')}, +${targetMuscleGroups.length - 2} more';
+      return '${targetMuscleGroups.take(2).map((m) => m.displayName).join(', ')}, +${targetMuscleGroups.length - 2} more';
     }
   }
 

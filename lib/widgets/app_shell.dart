@@ -13,8 +13,9 @@ import '../core/theme/theme_extensions.dart';
 enum ShellTab {
   home(0),
   programs(1),
-  workout(2),
-  progress(3);
+  exercises(2),
+  workout(3),
+  progress(4);
 
   final int tabIndex;
   const ShellTab(this.tabIndex);
@@ -39,6 +40,8 @@ class _AppShellState extends ConsumerState<AppShell> {
     final location = GoRouterState.of(context).uri.path;
     if (location.startsWith(AppRoutes.programs)) {
       return ShellTab.programs.tabIndex;
+    } else if (location.startsWith(AppRoutes.exercises)) {
+      return ShellTab.exercises.tabIndex;
     } else if (location.startsWith(AppRoutes.workout)) {
       return ShellTab.workout.tabIndex;
     } else if (location.startsWith(AppRoutes.progress)) {
@@ -70,9 +73,12 @@ class _AppShellState extends ConsumerState<AppShell> {
         context.go(AppRoutes.programs);
         break;
       case 2:
-        context.go(AppRoutes.workout);
+        context.go(AppRoutes.exercises);
         break;
       case 3:
+        context.go(AppRoutes.workout);
+        break;
+      case 4:
         context.go(AppRoutes.progress);
         break;
     }
@@ -152,6 +158,19 @@ class _AppShellState extends ConsumerState<AppShell> {
               size: AppDimensions.iconMedium,
             ),
             label: 'Programs',
+          ),
+          NavigationDestination(
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedBookOpen01,
+              color: context.onSurfaceVariant,
+              size: AppDimensions.iconMedium,
+            ),
+            selectedIcon: HugeIcon(
+              icon: HugeIcons.strokeRoundedBookOpen01,
+              color: context.onSecondary,
+              size: AppDimensions.iconMedium,
+            ),
+            label: 'Exercises',
           ),
           NavigationDestination(
             icon: HugeIcon(

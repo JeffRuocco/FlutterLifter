@@ -39,7 +39,11 @@ class DefaultExercises {
       name: 'Bench Press',
       shortName: 'Bench',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Chest', 'Triceps', 'Shoulders'],
+      targetMuscleGroups: [
+        MuscleGroup.chest,
+        MuscleGroup.triceps,
+        MuscleGroup.shoulders
+      ],
       defaultSets: 3,
       defaultReps: 8,
       defaultRestTimeSeconds: 120,
@@ -52,7 +56,11 @@ class DefaultExercises {
       name: 'Incline Bench Press',
       shortName: 'Inc Bench',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Upper Chest', 'Shoulders', 'Triceps'],
+      targetMuscleGroups: [
+        MuscleGroup.upperChest,
+        MuscleGroup.shoulders,
+        MuscleGroup.triceps
+      ],
       defaultSets: 3,
       defaultReps: 8,
       defaultRestTimeSeconds: 120,
@@ -65,7 +73,7 @@ class DefaultExercises {
       name: 'Dumbbell Fly',
       shortName: 'DB Fly',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Chest', 'Shoulders'],
+      targetMuscleGroups: [MuscleGroup.chest, MuscleGroup.shoulders],
       defaultSets: 3,
       defaultReps: 12,
       defaultRestTimeSeconds: 90,
@@ -82,7 +90,12 @@ class DefaultExercises {
       name: 'Deadlift',
       shortName: 'Dead',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Hamstrings', 'Glutes', 'Back', 'Core'],
+      targetMuscleGroups: [
+        MuscleGroup.hamstrings,
+        MuscleGroup.glutes,
+        MuscleGroup.back,
+        MuscleGroup.core
+      ],
       defaultSets: 3,
       defaultReps: 5,
       defaultRestTimeSeconds: 180,
@@ -95,7 +108,12 @@ class DefaultExercises {
       name: 'Bent-Over Barbell Row',
       shortName: 'BB Row',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Lats', 'Rhomboids', 'Rear Delts', 'Biceps'],
+      targetMuscleGroups: [
+        MuscleGroup.lats,
+        MuscleGroup.rhomboids,
+        MuscleGroup.rearDelts,
+        MuscleGroup.biceps
+      ],
       defaultSets: 3,
       defaultReps: 8,
       defaultRestTimeSeconds: 90,
@@ -108,7 +126,11 @@ class DefaultExercises {
       name: 'Pull-ups',
       shortName: 'Pull-up',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Lats', 'Biceps', 'Rhomboids'],
+      targetMuscleGroups: [
+        MuscleGroup.lats,
+        MuscleGroup.biceps,
+        MuscleGroup.rhomboids
+      ],
       defaultSets: 3,
       defaultReps: 10,
       defaultRestTimeSeconds: 90,
@@ -121,7 +143,11 @@ class DefaultExercises {
       name: 'Lat Pulldown',
       shortName: 'Lat Pull',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Lats', 'Biceps', 'Rhomboids'],
+      targetMuscleGroups: [
+        MuscleGroup.lats,
+        MuscleGroup.biceps,
+        MuscleGroup.rhomboids
+      ],
       defaultSets: 3,
       defaultReps: 10,
       defaultRestTimeSeconds: 90,
@@ -134,7 +160,11 @@ class DefaultExercises {
       name: 'Seated Cable Row',
       shortName: 'Cable Row',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Lats', 'Rhomboids', 'Rear Delts'],
+      targetMuscleGroups: [
+        MuscleGroup.lats,
+        MuscleGroup.rhomboids,
+        MuscleGroup.rearDelts
+      ],
       defaultSets: 3,
       defaultReps: 10,
       defaultRestTimeSeconds: 90,
@@ -151,7 +181,11 @@ class DefaultExercises {
       name: 'Overhead Press',
       shortName: 'OHP',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Shoulders', 'Triceps', 'Core'],
+      targetMuscleGroups: [
+        MuscleGroup.shoulders,
+        MuscleGroup.triceps,
+        MuscleGroup.core
+      ],
       defaultSets: 3,
       defaultReps: 8,
       defaultRestTimeSeconds: 120,
@@ -164,7 +198,7 @@ class DefaultExercises {
       name: 'Lateral Raise',
       shortName: 'Lat Raise',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Side Delts'],
+      targetMuscleGroups: [MuscleGroup.sideDelts],
       defaultSets: 3,
       defaultReps: 15,
       defaultRestTimeSeconds: 60,
@@ -177,7 +211,11 @@ class DefaultExercises {
       name: 'Face Pull',
       shortName: 'Face Pull',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Rear Delts', 'Rotator Cuff', 'Traps'],
+      targetMuscleGroups: [
+        MuscleGroup.rearDelts,
+        MuscleGroup.rotatorCuff,
+        MuscleGroup.traps
+      ],
       defaultSets: 3,
       defaultReps: 15,
       defaultRestTimeSeconds: 60,
@@ -194,7 +232,11 @@ class DefaultExercises {
       name: 'Dips',
       shortName: 'Dips',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Triceps', 'Chest', 'Shoulders'],
+      targetMuscleGroups: [
+        MuscleGroup.triceps,
+        MuscleGroup.chest,
+        MuscleGroup.shoulders
+      ],
       defaultSets: 3,
       defaultReps: 12,
       defaultRestTimeSeconds: 90,
@@ -207,7 +249,7 @@ class DefaultExercises {
       name: 'Barbell Curl',
       shortName: 'BB Curl',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Biceps', 'Forearms'],
+      targetMuscleGroups: [MuscleGroup.biceps, MuscleGroup.forearms],
       defaultSets: 3,
       defaultReps: 10,
       defaultRestTimeSeconds: 60,
@@ -220,7 +262,7 @@ class DefaultExercises {
       name: 'Tricep Pushdown',
       shortName: 'Tri Push',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Triceps'],
+      targetMuscleGroups: [MuscleGroup.triceps],
       defaultSets: 3,
       defaultReps: 12,
       defaultRestTimeSeconds: 60,
@@ -233,7 +275,11 @@ class DefaultExercises {
       name: 'Hammer Curl',
       shortName: 'Hammer',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Biceps', 'Brachialis', 'Forearms'],
+      targetMuscleGroups: [
+        MuscleGroup.biceps,
+        MuscleGroup.brachialis,
+        MuscleGroup.forearms
+      ],
       defaultSets: 3,
       defaultReps: 10,
       defaultRestTimeSeconds: 60,
@@ -250,7 +296,12 @@ class DefaultExercises {
       name: 'Barbell Back Squat',
       shortName: 'Squat',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Quadriceps', 'Glutes', 'Hamstrings', 'Core'],
+      targetMuscleGroups: [
+        MuscleGroup.quadriceps,
+        MuscleGroup.glutes,
+        MuscleGroup.hamstrings,
+        MuscleGroup.core
+      ],
       defaultSets: 4,
       defaultReps: 8,
       defaultRestTimeSeconds: 180,
@@ -263,7 +314,11 @@ class DefaultExercises {
       name: 'Front Squat',
       shortName: 'Front Squat',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Quadriceps', 'Glutes', 'Core'],
+      targetMuscleGroups: [
+        MuscleGroup.quadriceps,
+        MuscleGroup.glutes,
+        MuscleGroup.core
+      ],
       defaultSets: 3,
       defaultReps: 8,
       defaultRestTimeSeconds: 150,
@@ -276,7 +331,11 @@ class DefaultExercises {
       name: 'Lunges',
       shortName: 'Lunges',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Quadriceps', 'Glutes', 'Hamstrings'],
+      targetMuscleGroups: [
+        MuscleGroup.quadriceps,
+        MuscleGroup.glutes,
+        MuscleGroup.hamstrings
+      ],
       defaultSets: 3,
       defaultReps: 12,
       defaultRestTimeSeconds: 60,
@@ -289,7 +348,11 @@ class DefaultExercises {
       name: 'Leg Press',
       shortName: 'Leg Press',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Quadriceps', 'Glutes', 'Hamstrings'],
+      targetMuscleGroups: [
+        MuscleGroup.quadriceps,
+        MuscleGroup.glutes,
+        MuscleGroup.hamstrings
+      ],
       defaultSets: 3,
       defaultReps: 10,
       defaultRestTimeSeconds: 120,
@@ -302,7 +365,11 @@ class DefaultExercises {
       name: 'Romanian Deadlift',
       shortName: 'RDL',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Hamstrings', 'Glutes', 'Lower Back'],
+      targetMuscleGroups: [
+        MuscleGroup.hamstrings,
+        MuscleGroup.glutes,
+        MuscleGroup.lowerBack
+      ],
       defaultSets: 3,
       defaultReps: 10,
       defaultRestTimeSeconds: 90,
@@ -315,7 +382,7 @@ class DefaultExercises {
       name: 'Leg Curl',
       shortName: 'Leg Curl',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Hamstrings'],
+      targetMuscleGroups: [MuscleGroup.hamstrings],
       defaultSets: 3,
       defaultReps: 12,
       defaultRestTimeSeconds: 60,
@@ -328,7 +395,7 @@ class DefaultExercises {
       name: 'Leg Extension',
       shortName: 'Leg Ext',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Quadriceps'],
+      targetMuscleGroups: [MuscleGroup.quadriceps],
       defaultSets: 3,
       defaultReps: 12,
       defaultRestTimeSeconds: 60,
@@ -341,7 +408,7 @@ class DefaultExercises {
       name: 'Standing Calf Raise',
       shortName: 'Calf Raise',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Calves'],
+      targetMuscleGroups: [MuscleGroup.calves],
       defaultSets: 4,
       defaultReps: 15,
       defaultRestTimeSeconds: 45,
@@ -358,7 +425,7 @@ class DefaultExercises {
       name: 'Plank',
       shortName: 'Plank',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Core', 'Shoulders'],
+      targetMuscleGroups: [MuscleGroup.core, MuscleGroup.shoulders],
       defaultSets: 3,
       defaultReps: 60, // seconds
       defaultRestTimeSeconds: 60,
@@ -371,7 +438,7 @@ class DefaultExercises {
       name: 'Hanging Leg Raise',
       shortName: 'Leg Raise',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Lower Abs', 'Hip Flexors'],
+      targetMuscleGroups: [MuscleGroup.lowerAbs, MuscleGroup.hipFlexors],
       defaultSets: 3,
       defaultReps: 12,
       defaultRestTimeSeconds: 60,
@@ -384,7 +451,7 @@ class DefaultExercises {
       name: 'Cable Crunch',
       shortName: 'Cable Crunch',
       category: ExerciseCategory.strength,
-      targetMuscleGroups: ['Abs'],
+      targetMuscleGroups: [MuscleGroup.abs],
       defaultSets: 3,
       defaultReps: 15,
       defaultRestTimeSeconds: 60,
@@ -401,7 +468,7 @@ class DefaultExercises {
       name: 'Running',
       shortName: 'Run',
       category: ExerciseCategory.cardio,
-      targetMuscleGroups: ['Legs', 'Cardiovascular'],
+      targetMuscleGroups: [MuscleGroup.legs, MuscleGroup.cardiovascular],
       defaultSets: 1,
       defaultReps: 30, // minutes
       defaultRestTimeSeconds: 0,
@@ -413,7 +480,7 @@ class DefaultExercises {
       name: 'Cycling',
       shortName: 'Cycle',
       category: ExerciseCategory.cardio,
-      targetMuscleGroups: ['Legs', 'Cardiovascular'],
+      targetMuscleGroups: [MuscleGroup.legs, MuscleGroup.cardiovascular],
       defaultSets: 1,
       defaultReps: 30, // minutes
       defaultRestTimeSeconds: 0,
@@ -425,7 +492,12 @@ class DefaultExercises {
       name: 'Rowing Machine',
       shortName: 'Row',
       category: ExerciseCategory.cardio,
-      targetMuscleGroups: ['Back', 'Legs', 'Arms', 'Cardiovascular'],
+      targetMuscleGroups: [
+        MuscleGroup.back,
+        MuscleGroup.legs,
+        MuscleGroup.arms,
+        MuscleGroup.cardiovascular
+      ],
       defaultSets: 1,
       defaultReps: 20, // minutes
       defaultRestTimeSeconds: 0,
@@ -437,7 +509,11 @@ class DefaultExercises {
       name: 'Jump Rope',
       shortName: 'Jump Rope',
       category: ExerciseCategory.cardio,
-      targetMuscleGroups: ['Calves', 'Shoulders', 'Cardiovascular'],
+      targetMuscleGroups: [
+        MuscleGroup.calves,
+        MuscleGroup.shoulders,
+        MuscleGroup.cardiovascular
+      ],
       defaultSets: 3,
       defaultReps: 100, // skips
       defaultRestTimeSeconds: 60,
@@ -453,7 +529,7 @@ class DefaultExercises {
       name: 'Hamstring Stretch',
       shortName: 'Ham Stretch',
       category: ExerciseCategory.flexibility,
-      targetMuscleGroups: ['Hamstrings'],
+      targetMuscleGroups: [MuscleGroup.hamstrings],
       defaultSets: 2,
       defaultReps: 30, // seconds per side
       defaultRestTimeSeconds: 15,
@@ -466,7 +542,7 @@ class DefaultExercises {
       name: 'Hip Flexor Stretch',
       shortName: 'Hip Stretch',
       category: ExerciseCategory.flexibility,
-      targetMuscleGroups: ['Hip Flexors', 'Quadriceps'],
+      targetMuscleGroups: [MuscleGroup.hipFlexors, MuscleGroup.quadriceps],
       defaultSets: 2,
       defaultReps: 30, // seconds per side
       defaultRestTimeSeconds: 15,
@@ -479,7 +555,7 @@ class DefaultExercises {
       name: 'Cross-Body Shoulder Stretch',
       shortName: 'Shoulder Str',
       category: ExerciseCategory.flexibility,
-      targetMuscleGroups: ['Shoulders', 'Upper Back'],
+      targetMuscleGroups: [MuscleGroup.shoulders, MuscleGroup.back],
       defaultSets: 2,
       defaultReps: 30, // seconds per side
       defaultRestTimeSeconds: 15,
@@ -495,7 +571,7 @@ class DefaultExercises {
       name: 'Single Leg Stand',
       shortName: 'SL Stand',
       category: ExerciseCategory.balance,
-      targetMuscleGroups: ['Core', 'Legs'],
+      targetMuscleGroups: [MuscleGroup.core, MuscleGroup.legs],
       defaultSets: 3,
       defaultReps: 30, // seconds per side
       defaultRestTimeSeconds: 30,
@@ -507,7 +583,11 @@ class DefaultExercises {
       name: 'BOSU Ball Squat',
       shortName: 'BOSU Squat',
       category: ExerciseCategory.balance,
-      targetMuscleGroups: ['Quadriceps', 'Glutes', 'Core'],
+      targetMuscleGroups: [
+        MuscleGroup.quadriceps,
+        MuscleGroup.glutes,
+        MuscleGroup.core
+      ],
       defaultSets: 3,
       defaultReps: 12,
       defaultRestTimeSeconds: 60,
@@ -524,7 +604,7 @@ class DefaultExercises {
       name: 'Burpees',
       shortName: 'Burpees',
       category: ExerciseCategory.endurance,
-      targetMuscleGroups: ['Full Body', 'Cardiovascular'],
+      targetMuscleGroups: [MuscleGroup.fullBody, MuscleGroup.cardiovascular],
       defaultSets: 3,
       defaultReps: 15,
       defaultRestTimeSeconds: 60,
@@ -537,7 +617,11 @@ class DefaultExercises {
       name: 'Mountain Climbers',
       shortName: 'Mt Climbers',
       category: ExerciseCategory.endurance,
-      targetMuscleGroups: ['Core', 'Shoulders', 'Cardiovascular'],
+      targetMuscleGroups: [
+        MuscleGroup.core,
+        MuscleGroup.shoulders,
+        MuscleGroup.cardiovascular
+      ],
       defaultSets: 3,
       defaultReps: 30, // per side
       defaultRestTimeSeconds: 45,
@@ -549,7 +633,12 @@ class DefaultExercises {
       name: 'Kettlebell Swing',
       shortName: 'KB Swing',
       category: ExerciseCategory.endurance,
-      targetMuscleGroups: ['Glutes', 'Hamstrings', 'Core', 'Shoulders'],
+      targetMuscleGroups: [
+        MuscleGroup.glutes,
+        MuscleGroup.hamstrings,
+        MuscleGroup.core,
+        MuscleGroup.shoulders
+      ],
       defaultSets: 3,
       defaultReps: 20,
       defaultRestTimeSeconds: 60,
@@ -566,7 +655,11 @@ class DefaultExercises {
       name: 'Box Jump',
       shortName: 'Box Jump',
       category: ExerciseCategory.sports,
-      targetMuscleGroups: ['Quadriceps', 'Glutes', 'Calves'],
+      targetMuscleGroups: [
+        MuscleGroup.quadriceps,
+        MuscleGroup.glutes,
+        MuscleGroup.calves
+      ],
       defaultSets: 3,
       defaultReps: 10,
       defaultRestTimeSeconds: 90,
@@ -579,7 +672,11 @@ class DefaultExercises {
       name: 'Medicine Ball Slam',
       shortName: 'MB Slam',
       category: ExerciseCategory.sports,
-      targetMuscleGroups: ['Core', 'Shoulders', 'Lats'],
+      targetMuscleGroups: [
+        MuscleGroup.core,
+        MuscleGroup.shoulders,
+        MuscleGroup.lats
+      ],
       defaultSets: 3,
       defaultReps: 12,
       defaultRestTimeSeconds: 60,
@@ -592,7 +689,12 @@ class DefaultExercises {
       name: 'Battle Ropes',
       shortName: 'Ropes',
       category: ExerciseCategory.sports,
-      targetMuscleGroups: ['Arms', 'Shoulders', 'Core', 'Cardiovascular'],
+      targetMuscleGroups: [
+        MuscleGroup.arms,
+        MuscleGroup.shoulders,
+        MuscleGroup.core,
+        MuscleGroup.cardiovascular
+      ],
       defaultSets: 3,
       defaultReps: 30, // seconds
       defaultRestTimeSeconds: 60,
