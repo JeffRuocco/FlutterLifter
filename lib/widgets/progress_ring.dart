@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/providers/accessibility_provider.dart';
-import '../core/theme/app_colors.dart';
+import '../core/theme/theme_extensions.dart';
 
 /// A circular progress indicator with customizable appearance
 class ProgressRing extends StatelessWidget {
@@ -34,7 +34,7 @@ class ProgressRing extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveBackgroundColor =
         backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
-    final effectiveProgressColor = progressColor ?? AppColors.primary;
+    final effectiveProgressColor = progressColor ?? context.primaryColor;
 
     return SizedBox(
       width: size,
@@ -265,7 +265,7 @@ class MiniProgressRing extends StatelessWidget {
       progress: progress,
       size: size,
       strokeWidth: 3,
-      progressColor: color ?? AppColors.primary,
+      progressColor: color ?? context.primaryColor,
       animationDuration: const Duration(milliseconds: 500),
     );
   }

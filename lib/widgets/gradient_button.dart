@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_lifter/core/theme/color_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/providers/accessibility_provider.dart';
-import '../core/theme/app_colors.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
+import '../core/theme/theme_extensions.dart';
 
 /// A gradient button with animated effects
 class GradientButton extends ConsumerStatefulWidget {
@@ -38,17 +39,14 @@ class _GradientButtonState extends ConsumerState<GradientButton>
     with SingleTickerProviderStateMixin {
   bool _isPressed = false;
 
-  List<Color> get _colors =>
-      widget.gradientColors ??
-      [
-        AppColors.primary,
-        AppColors.primaryLight,
-      ];
+  List<Color> _getColors(BuildContext context) =>
+      widget.gradientColors ?? context.primaryGradient;
 
   @override
   Widget build(BuildContext context) {
     final reduceMotion = ref.watch(reduceMotionProvider);
     final isEnabled = widget.onPressed != null && !widget.isLoading;
+    final colors = _getColors(context);
 
     Widget button = GestureDetector(
       onTapDown: isEnabled ? (_) => setState(() => _isPressed = true) : null,
@@ -66,8 +64,8 @@ class _GradientButtonState extends ConsumerState<GradientButton>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isEnabled
-                ? _colors
-                : _colors.map((c) => c.withValues(alpha: 0.5)).toList(),
+                ? colors
+                : colors.map((c) => c.withValues(alpha: 0.5)).toList(),
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -76,7 +74,7 @@ class _GradientButtonState extends ConsumerState<GradientButton>
           boxShadow: isEnabled && !_isPressed
               ? [
                   BoxShadow(
-                    color: _colors.first.withValues(alpha: 0.4),
+                    color: colors.first.withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -89,8 +87,12 @@ class _GradientButtonState extends ConsumerState<GradientButton>
             borderRadius: widget.borderRadius ??
                 BorderRadius.circular(AppDimensions.borderRadiusMedium),
             onTap: widget.onPressed,
-            splashColor: Colors.white.withValues(alpha: 0.2),
-            highlightColor: Colors.white.withValues(alpha: 0.1),
+            splashColor:
+                ColorUtils.getContrastingTextColor(context.primaryColor)
+                    .withValues(alpha: 0.2),
+            highlightColor:
+                ColorUtils.getContrastingTextColor(context.primaryColor)
+                    .withValues(alpha: 0.1),
             child: Center(
               child: widget.isLoading
                   ? SizedBox(
@@ -99,7 +101,7 @@ class _GradientButtonState extends ConsumerState<GradientButton>
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.onPrimary,
+                          context.onPrimary,
                         ),
                       ),
                     )
@@ -110,7 +112,7 @@ class _GradientButtonState extends ConsumerState<GradientButton>
                         if (widget.icon != null) ...[
                           Icon(
                             widget.icon,
-                            color: AppColors.onPrimary,
+                            color: context.onPrimary,
                             size: 20,
                           ),
                           SizedBox(width: AppSpacing.sm),
@@ -118,7 +120,7 @@ class _GradientButtonState extends ConsumerState<GradientButton>
                         Text(
                           widget.label,
                           style: AppTextStyles.labelLarge.copyWith(
-                            color: AppColors.onPrimary,
+                            color: context.onPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

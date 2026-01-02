@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
+import 'core/providers/custom_theme_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
@@ -56,6 +57,8 @@ void main() async {
         themeModeNotifierProvider.overrideWith(
           (ref) => ThemeModeNotifier(sharedPreferences),
         ),
+        // Override custom theme providers
+        ...createThemeProviderOverrides(sharedPreferences),
       ],
       child: const FlutterLifterApp(),
     ),
@@ -70,10 +73,14 @@ class FlutterLifterApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeNotifierProvider);
 
+    // Watch for custom theme changes and get dynamic themes
+    final lightTheme = ref.watch(dynamicLightThemeProvider);
+    final darkTheme = ref.watch(dynamicDarkThemeProvider);
+
     return MaterialApp.router(
       title: 'FlutterLifter',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: lightTheme,
+      darkTheme: darkTheme,
       themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_lifter/core/theme/color_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -7,7 +8,8 @@ import '../core/router/app_router.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../widgets/animations/animate_on_load.dart';
 
 const emailRegex =
@@ -126,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen>
                     context.surfaceVariant,
                   ]
                 : [
-                    AppColors.primary.withValues(alpha: 0.05),
+                    context.primaryColor.withValues(alpha: 0.05),
                     context.surfaceColor,
                   ],
           ),
@@ -270,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen>
                             text: 'Sign In',
                             onPressed: _signInWithEmail,
                             isLoading: _isLoading,
-                            gradientColors: AppColors.primaryGradient,
+                            gradientColors: context.primaryGradient,
                           ),
                         ),
                       ),
@@ -421,7 +423,7 @@ class _AnimatedLogoState extends State<_AnimatedLogo>
           height: AppDimensions.avatarXLarge,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: AppColors.primaryGradient,
+              colors: context.primaryGradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -440,7 +442,7 @@ class _AnimatedLogoState extends State<_AnimatedLogo>
           child: Center(
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedDumbbell01,
-              color: Colors.white,
+              color: ColorUtils.getContrastingTextColor(context.primaryColor),
               size: AppDimensions.iconXLarge,
             ),
           ),

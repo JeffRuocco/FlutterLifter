@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/core/theme/preset_themes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../core/providers/accessibility_provider.dart';
+import '../core/providers/custom_theme_provider.dart';
 import '../core/providers/settings_provider.dart';
 import '../core/router/app_router.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_provider.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../services/logging_service.dart';
+import '../widgets/common/theme_preview_card.dart';
+import '../widgets/common/theme_selection_sheet.dart';
 
 /// Main settings screen accessible from home page
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -101,7 +106,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: _isLoading
           ? Center(child: AppLoadingIndicator())
           : SingleChildScrollView(
-              padding: EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -109,14 +114,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _buildSectionTitle(context, 'Appearance'),
                   AppCard(
                     child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.md),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
                               Container(
-                                padding: EdgeInsets.all(AppSpacing.sm),
+                                padding: const EdgeInsets.all(AppSpacing.sm),
                                 decoration: BoxDecoration(
                                   color: context.primaryColor
                                       .withValues(alpha: 0.1),
@@ -170,38 +175,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   VSpace.md(),
 
-                  // Accessibility Section
-                  _buildSettingsCard(context, [
-                    Consumer(
-                      builder: (context, ref, child) {
-                        final accessibilityState =
-                            ref.watch(accessibilityNotifierProvider);
-                        final accessibilityNotifier =
-                            ref.read(accessibilityNotifierProvider.notifier);
-
-                        return SwitchListTile(
-                          secondary: HugeIcon(
-                            icon: HugeIcons.strokeRoundedSlowWinds,
-                            color: context.primaryColor,
-                            size: AppDimensions.iconMedium,
-                          ),
-                          title: const Text('Reduce Motion'),
-                          subtitle: const Text(
-                            'Minimize animations for accessibility',
-                          ),
-                          value: accessibilityState.reduceMotion,
-                          onChanged: (value) {
-                            accessibilityNotifier.setReduceMotion(value);
-                            if (value) {
-                              showInfoMessage(context, 'Animations reduced');
-                            } else {
-                              showInfoMessage(context, 'Animations enabled');
-                            }
-                          },
-                        );
-                      },
-                    ),
-                  ]),
+                  // Custom Theme Section
+                  _buildCustomThemeSection(context, ref),
 
                   VSpace.lg(),
 
@@ -262,7 +237,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _buildSectionTitle(context, 'Developer Options'),
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(AppSpacing.md),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: context.warningColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(
@@ -314,6 +289,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           'Show debug buttons and enable developer features'),
                       value: _debugModeEnabled,
                       onChanged: _toggleDebugMode,
+                      activeThumbColor: context.primaryColor,
                     ),
                     if (_debugModeEnabled) ...[
                       Divider(height: 1, color: context.outlineColor),
@@ -380,7 +356,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Text(
         title,
         style: AppTextStyles.titleMedium.copyWith(
@@ -421,5 +397,120 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           : null,
       onTap: onTap,
     );
+  }
+
+  Widget _buildCustomThemeSection(BuildContext context, WidgetRef ref) {
+    final themeState = ref.watch(customThemeNotifierProvider);
+    final activeTheme = themeState.activeTheme;
+
+    return AppCard(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: context.secondaryColor.withValues(alpha: 0.1),
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                  ),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedColors,
+                    color: context.secondaryColor,
+                    size: AppDimensions.iconMedium,
+                  ),
+                ),
+                HSpace.md(),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Color Theme', style: AppTextStyles.titleMedium),
+                      Text(
+                        activeTheme?.name ?? 'Default',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: context.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (activeTheme != null)
+                  ThemeColorSwatch(
+                    primaryColor: activeTheme.primaryColor,
+                    secondaryColor: activeTheme.secondaryColor,
+                    size: 24,
+                  ),
+              ],
+            ),
+            VSpace.md(),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showThemeSelection(context, ref),
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedPaintBrush01,
+                      color: context.primaryColor,
+                      size: 18,
+                    ),
+                    label: const Text('Browse Themes'),
+                  ),
+                ),
+                HSpace.sm(),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.goToThemeEditor(),
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedAdd01,
+                      color: ColorUtils.getContrastingTextColor(
+                          context.primaryColor),
+                      size: 18,
+                    ),
+                    label: const Text('Create New'),
+                  ),
+                ),
+              ],
+            ),
+            if (activeTheme != PresetThemes.defaultTheme) ...[
+              VSpace.sm(),
+              Center(
+                child: TextButton(
+                  onPressed: () => _resetToDefaultTheme(ref),
+                  child: Text(
+                    'Reset to Default',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: context.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showThemeSelection(BuildContext context, WidgetRef ref) {
+    showThemeSelectionSheet(
+      context: context,
+      ref: ref,
+      onCreateNew: () => context.goToThemeEditor(),
+      onEditTheme: () {
+        final activeTheme = ref.read(customThemeNotifierProvider).activeTheme;
+        if (activeTheme != null && !activeTheme.isPreset) {
+          context.goToThemeEditor(editThemeId: activeTheme.id);
+        }
+      },
+    );
+  }
+
+  Future<void> _resetToDefaultTheme(WidgetRef ref) async {
+    await ref.read(customThemeNotifierProvider.notifier).resetToDefault();
   }
 }

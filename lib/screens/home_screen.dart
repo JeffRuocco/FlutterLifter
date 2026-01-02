@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/core/theme/color_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../core/providers/providers.dart';
 import '../core/router/app_router.dart';
-import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../widgets/animations/animate_on_load.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/skeleton_loader.dart';
@@ -238,7 +239,7 @@ class _HeroWorkoutCard extends StatelessWidget {
 
     return AppCard.gradient(
       gradientColors: hasWorkout
-          ? AppColors.primaryGradient
+          ? context.primaryGradient
           : [
               context.surfaceVariant,
               context.surfaceVariant,
@@ -255,15 +256,20 @@ class _HeroWorkoutCard extends StatelessWidget {
                 progress: hasWorkout ? 0.0 : 0.0,
                 size: 80,
                 strokeWidth: 8,
-                progressColor: hasWorkout ? Colors.white : context.primaryColor,
+                progressColor: hasWorkout
+                    ? ColorUtils.getContrastingTextColor(context.primaryColor)
+                    : context.primaryColor,
                 backgroundColor: hasWorkout
-                    ? Colors.white.withValues(alpha: 0.3)
+                    ? ColorUtils.getContrastingTextColor(context.primaryColor)
+                        .withValues(alpha: 0.3)
                     : context.outlineVariant,
                 child: HugeIcon(
                   icon: hasWorkout
                       ? HugeIcons.strokeRoundedPlay
                       : HugeIcons.strokeRoundedAdd01,
-                  color: hasWorkout ? Colors.white : context.textSecondary,
+                  color: hasWorkout
+                      ? ColorUtils.getContrastingTextColor(context.primaryColor)
+                      : context.textSecondary,
                   size: 32,
                 ),
               ),
@@ -276,7 +282,10 @@ class _HeroWorkoutCard extends StatelessWidget {
                     Text(
                       hasWorkout ? 'Ready to Train' : 'No Workout Scheduled',
                       style: AppTextStyles.titleLarge.copyWith(
-                        color: hasWorkout ? Colors.white : context.textPrimary,
+                        color: hasWorkout
+                            ? ColorUtils.getContrastingTextColor(
+                                context.primaryColor)
+                            : context.textPrimary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -287,7 +296,9 @@ class _HeroWorkoutCard extends StatelessWidget {
                           : 'Start a program to get your next workout',
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: hasWorkout
-                            ? Colors.white.withValues(alpha: 0.9)
+                            ? ColorUtils.getContrastingTextColor(
+                                    context.primaryColor)
+                                .withValues(alpha: 0.9)
                             : context.textSecondary,
                       ),
                     ),
@@ -344,21 +355,23 @@ class _WorkoutStat extends StatelessWidget {
       children: [
         HugeIcon(
           icon: icon,
-          color: Colors.white.withValues(alpha: 0.8),
+          color: ColorUtils.getContrastingTextColor(context.primaryColor)
+              .withValues(alpha: 0.8),
           size: 20,
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           value,
           style: AppTextStyles.titleSmall.copyWith(
-            color: Colors.white,
+            color: ColorUtils.getContrastingTextColor(context.primaryColor),
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
           label,
           style: AppTextStyles.bodySmall.copyWith(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: ColorUtils.getContrastingTextColor(context.primaryColor)
+                .withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -415,7 +428,7 @@ class _ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
+    return AppCard.glass(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.sm),

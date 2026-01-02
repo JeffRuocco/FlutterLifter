@@ -7,7 +7,8 @@ import 'package:talker_flutter/talker_flutter.dart';
 import '../core/providers/settings_provider.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../services/logging_service.dart';
 
 /// Debug settings screen for development and troubleshooting
@@ -183,14 +184,14 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
       body: _isLoading
           ? Center(child: AppLoadingIndicator())
           : SingleChildScrollView(
-              padding: EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(AppSpacing.md),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: context.warningColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(
@@ -236,7 +237,7 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
                   _buildSectionTitle(context, 'App Information'),
                   AppCard(
                     child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.md),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       child: Column(
                         children: [
                           _buildInfoRow(context, 'Debug Mode',

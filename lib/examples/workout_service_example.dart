@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_lifter/models/models.dart';
 import 'package:flutter_lifter/core/providers/providers.dart';
 import '../core/theme/app_text_styles.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
 
 /// Example showing how to integrate WorkoutService with your workout screen
 ///

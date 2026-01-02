@@ -5,7 +5,8 @@ import 'package:hugeicons/hugeicons.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../core/theme/theme_provider.dart';
 import '../widgets/animations/animate_on_load.dart';
 import '../widgets/skeleton_loader.dart';
@@ -108,7 +109,7 @@ class _ColorsGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _SectionHeader('Primary Colors'),
         _ColorRow('Primary', context.primaryColor),
@@ -132,11 +133,10 @@ class _ColorsGallery extends StatelessWidget {
         _ColorRow('Info', context.infoColor),
         VSpace.lg(),
         _SectionHeader('Brand Colors (Static)'),
-        _ColorRow('Primary Brand', AppColors.primary),
-        _ColorRow('Secondary Brand', AppColors.secondary),
         _ColorRow('Cardio', AppColors.cardio),
         _ColorRow('Strength', AppColors.strength),
         _ColorRow('Flexibility', AppColors.flexibility),
+        _ColorRow('Rest', AppColors.rest),
       ],
     );
   }
@@ -196,7 +196,7 @@ class _TypographyGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _SectionHeader('Display Styles'),
         _TypographyItem('Display Large', AppTextStyles.displayLarge),
@@ -271,7 +271,7 @@ class _ButtonsGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _SectionHeader('Elevated Buttons'),
         Wrap(
@@ -440,7 +440,7 @@ class _InputsGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _SectionHeader('Text Fields'),
         AppTextFormField(
@@ -541,12 +541,12 @@ class _CardsGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _SectionHeader('AppCard Variants'),
         AppCard(
           child: Padding(
-            padding: EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: const Text('Default Card'),
           ),
         ),
@@ -554,7 +554,7 @@ class _CardsGallery extends StatelessWidget {
         AppCard(
           onTap: () {},
           child: Padding(
-            padding: EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: const Text('Tappable Card'),
           ),
         ),
@@ -562,7 +562,7 @@ class _CardsGallery extends StatelessWidget {
         AppCard(
           elevation: 4,
           child: Padding(
-            padding: EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: const Text('Elevated Card'),
           ),
         ),
@@ -571,7 +571,7 @@ class _CardsGallery extends StatelessWidget {
         AppCard(
           child: ListTile(
             leading: Container(
-              padding: EdgeInsets.all(AppSpacing.sm),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: context.primaryColor.withValues(alpha: 0.1),
                 borderRadius:
@@ -607,7 +607,7 @@ class _CardsGallery extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Text(
                   '60% Complete',
                   style: AppTextStyles.bodySmall.copyWith(
@@ -633,7 +633,7 @@ class _IconsGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _SectionHeader('Icon Sizes'),
         Row(
@@ -734,7 +734,7 @@ class _IconGrid extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                padding: EdgeInsets.all(AppSpacing.sm),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: context.surfaceVariant,
                   borderRadius:
@@ -770,7 +770,7 @@ class _SpacingGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _SectionHeader('Spacing Scale (8dp Grid)'),
         _SpacingItem('xs', AppSpacing.xs, '4'),
@@ -789,7 +789,7 @@ class _SpacingGallery extends StatelessWidget {
         VSpace.lg(),
         _SectionHeader('VSpace / HSpace Widgets'),
         Container(
-          padding: EdgeInsets.all(AppSpacing.sm),
+          padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
             border: Border.all(color: context.outlineColor),
             borderRadius:
@@ -955,7 +955,7 @@ class _AnimationsGalleryState extends ConsumerState<_AnimationsGallery> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _SectionHeader('Progress Rings'),
         Row(
@@ -1080,7 +1080,7 @@ class _AnimationsGalleryState extends ConsumerState<_AnimationsGallery> {
         ] else ...[
           AppCard(
             child: Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: const Text('Loaded content appears here'),
             ),
           ),
@@ -1154,7 +1154,7 @@ class _AnimationDemoCard extends StatelessWidget {
       child: AppCard(
         child: ListTile(
           leading: Container(
-            padding: EdgeInsets.all(AppSpacing.sm),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: context.primaryColor.withValues(alpha: 0.1),
               borderRadius:

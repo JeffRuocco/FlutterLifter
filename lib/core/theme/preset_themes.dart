@@ -1,0 +1,78 @@
+import 'package:flutter/material.dart';
+import '../../models/custom_theme.dart';
+
+/// Built-in preset themes that users can choose from
+/// These are read-only and cannot be modified or deleted
+class PresetThemes {
+  PresetThemes._();
+
+  /// Default app theme (Coral/Teal)
+  static final defaultTheme = CustomTheme.preset(
+    id: 'preset_default',
+    name: 'Default',
+    primaryColor: const Color(0xFFFF6B4A), // Warm Coral
+    secondaryColor: const Color(0xFF26A69A), // Teal
+  );
+
+  /// Ocean theme (Deep Blue/Cyan)
+  static final oceanTheme = CustomTheme.preset(
+    id: 'preset_ocean',
+    name: 'Ocean',
+    primaryColor: const Color(0xFF0077B6), // Deep Blue
+    secondaryColor: const Color(0xFF00B4D8), // Cyan
+  );
+
+  /// Sunset theme (Orange/Pink)
+  static final sunsetTheme = CustomTheme.preset(
+    id: 'preset_sunset',
+    name: 'Sunset',
+    primaryColor: const Color(0xFFFF7B54), // Warm Orange
+    secondaryColor: const Color(0xFFFF4081), // Pink
+  );
+
+  /// Forest theme (Green/Brown)
+  static final forestTheme = CustomTheme.preset(
+    id: 'preset_forest',
+    name: 'Forest',
+    primaryColor: const Color(0xFF2E7D32), // Forest Green
+    secondaryColor: const Color(0xFF8D6E63), // Brown
+  );
+
+  /// Midnight theme (Deep Purple/Indigo)
+  static final midnightTheme = CustomTheme.preset(
+    id: 'preset_midnight',
+    name: 'Midnight',
+    primaryColor: const Color(0xFF5E35B1), // Deep Purple
+    secondaryColor: const Color(0xFF3F51B5), // Indigo
+  );
+
+  /// Lavender theme (Purple/Rose)
+  static final lavenderTheme = CustomTheme.preset(
+    id: 'preset_lavender',
+    name: 'Lavender',
+    primaryColor: const Color(0xFF9C27B0), // Purple
+    secondaryColor: const Color(0xFFE91E63), // Rose
+  );
+
+  /// All preset themes
+  static List<CustomTheme> get all => [
+        defaultTheme,
+        oceanTheme,
+        sunsetTheme,
+        forestTheme,
+        midnightTheme,
+        lavenderTheme,
+      ];
+
+  /// Get a preset theme by ID
+  static CustomTheme? getById(String id) {
+    try {
+      return all.firstWhere((theme) => theme.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Check if an ID belongs to a preset theme
+  static bool isPresetId(String id) => id.startsWith('preset_');
+}

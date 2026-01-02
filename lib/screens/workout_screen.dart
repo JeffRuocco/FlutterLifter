@@ -7,14 +7,14 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../core/providers/providers.dart';
 import '../core/router/app_router.dart';
-import '../core/theme/app_colors.dart';
 import '../models/models.dart';
 import '../models/operation_result.dart';
 import '../services/logging_service.dart';
 import '../utils/operation_ui_handler.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
-import '../core/theme/theme_utils.dart';
+import '../core/theme/theme_extensions.dart';
+import '../widgets/common/app_widgets.dart';
 import '../widgets/exercise_card.dart';
 import '../widgets/add_exercise_bottom_sheet.dart';
 import '../widgets/debug_action_button.dart';
@@ -788,7 +788,7 @@ class _WorkoutProgressBar extends StatelessWidget {
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: AppColors.primaryGradient,
+              colors: context.primaryGradient,
             ),
           ),
         ),
