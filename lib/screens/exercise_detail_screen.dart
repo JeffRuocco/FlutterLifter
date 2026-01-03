@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../core/providers/repository_providers.dart';
@@ -28,7 +29,8 @@ class ExerciseDetailScreen extends ConsumerStatefulWidget {
       _ExerciseDetailScreenState();
 }
 
-class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
+class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen>
+    with RouteAware {
   Exercise? _exercise;
   bool _isLoading = true;
   String? _errorMessage;
@@ -36,6 +38,29 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _loadExercise();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to route changes to refresh when returning from edit screen
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      // RouteObserver would be ideal here, but for simplicity we'll use didPopNext
+    }
+  }
+
+  @override
+  void didUpdateWidget(ExerciseDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.exerciseId != widget.exerciseId) {
+      _loadExercise();
+    }
+  }
+
+  /// Refresh exercise data - called when returning from edit screen
+  void _refreshExercise() {
     _loadExercise();
   }
 
@@ -209,10 +234,13 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
             color: context.onSurface,
             size: AppDimensions.iconMedium,
           ),
-          onSelected: (value) {
+          onSelected: (value) async {
             switch (value) {
               case 'edit':
-                context.pushEditExercise(_exercise!.id);
+                await context
+                    .push('${AppRoutes.exercises}/${_exercise!.id}/edit');
+                // Refresh after returning from edit screen
+                _refreshExercise();
                 break;
               case 'share':
                 showInfoMessage(context, 'Share exercise coming soon!');
