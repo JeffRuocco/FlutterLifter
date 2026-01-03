@@ -166,8 +166,8 @@ The Exercise Library will be accessible via:
   - Edit/Share menu (for custom exercises)
   - **Pending:** User notes editing, PR stats with Epley score, history chart
 
-- [ ] **12. Create CreateExerciseScreen**
-  (`lib/screens/exercises/create_exercise_screen.dart`)
+- [x] **12. Create CreateExerciseScreen**
+  (`lib/screens/create_exercise_screen.dart`)
   - Reusable for both create and edit modes
   - Form fields:
     - Name (required)
@@ -417,3 +417,4 @@ lib/
 |2026-01-01|6-8|Phase 2 complete: routes, nav, home|
 |2026-01-01|9-11|Phase 3-4 partial: screens, filter|
 |2026-01-01|Bug fixes|Fixed enum usage in widgets|
+|2026-01-03|12|Phase 4 complete: CreateExerciseScreen with full CRUD|

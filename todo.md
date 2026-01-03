@@ -25,7 +25,7 @@
 - [x] **Workout complete validation (warn about incomplete)**
   - [x] Warn about finishing workout before completing all sets (✅ WorkoutService ready)
   - [x] Warn about leaving workout page with sets recorded, but not marked complete (✅ WorkoutService ready)
-- [ ] **Add exercises page**
+- [ ] **Add exercise library pages**
 - [ ] **Start program functionality**
   - [ ] Start new program and end any previous ones
 - [ ] **Add progress page**

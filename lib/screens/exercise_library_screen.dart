@@ -185,6 +185,15 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
           _buildDiscoverTab(),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.pushCreateExercise(),
+        backgroundColor: context.primaryColor,
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedAdd01,
+          color: context.onPrimary,
+          size: AppDimensions.iconMedium,
+        ),
+      ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../core/providers/repository_providers.dart';
+import '../core/router/app_router.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
@@ -211,7 +212,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
           onSelected: (value) {
             switch (value) {
               case 'edit':
-                showInfoMessage(context, 'Edit exercise coming soon!');
+                context.pushEditExercise(_exercise!.id);
                 break;
               case 'share':
                 showInfoMessage(context, 'Share exercise coming soon!');
