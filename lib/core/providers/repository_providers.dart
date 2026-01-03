@@ -2,10 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/program_repository.dart';
 import '../../data/repositories/exercise_repository.dart';
+import '../../data/repositories/exercise_history_repository.dart';
 import '../../data/datasources/local/program_local_datasource.dart';
 import '../../data/datasources/local/exercise_local_datasource.dart';
 import '../../data/datasources/mock/mock_program_datasource.dart';
 import '../../models/models.dart';
+import '../../models/exercise/exercise_session_record.dart';
 
 // ============================================
 // Data Source Providers
@@ -99,6 +101,25 @@ final exerciseRepositoryProvider = Provider<ExerciseRepository>((ref) {
   return ExerciseRepositoryImpl.development(
     localDataSource: localDataSource,
   );
+});
+
+/// Provider for [ExerciseHistoryRepository] - direct repository access.
+///
+/// **When to use:**
+/// - Fetching exercise history and PR data
+/// - Recording completed workout sessions
+/// - Getting PR progression for charts
+///
+/// **Example:**
+/// ```dart
+/// final repo = ref.read(exerciseHistoryRepositoryProvider);
+/// final history = await repo.getExerciseHistory(exercise);
+/// ```
+///
+/// Currently configured for development with mock data.
+final exerciseHistoryRepositoryProvider =
+    Provider<ExerciseHistoryRepository>((ref) {
+  return DevExerciseHistoryRepository();
 });
 
 // ============================================
@@ -228,4 +249,45 @@ final searchExercisesProvider =
     FutureProvider.family<List<Exercise>, String>((ref, query) async {
   final repository = ref.watch(exerciseRepositoryProvider);
   return repository.searchExercises(query);
+});
+
+// ============================================
+// Exercise History Providers
+// ============================================
+
+/// FutureProvider for the all-time PR (Epley score) for an exercise.
+///
+/// Returns the highest Epley score achieved for the given exercise ID.
+/// Returns null if no history exists for this exercise.
+///
+/// **Example:**
+/// ```dart
+/// final prAsync = ref.watch(exercisePRProvider('bench-press'));
+/// prAsync.when(
+///   data: (pr) => pr != null ? Text('PR: ${pr.toStringAsFixed(0)}') : null,
+///   loading: () => null,
+///   error: (e, _) => null,
+/// );
+/// ```
+final exercisePRProvider =
+    FutureProvider.family<double?, String>((ref, exerciseId) async {
+  final repository = ref.watch(exerciseHistoryRepositoryProvider);
+  return repository.getAllTimePR(exerciseId);
+});
+
+/// FutureProvider for the most recent session for an exercise.
+///
+/// Returns the last ExerciseSessionRecord for the given exercise ID.
+/// Useful for showing "Last time" performance in workout screens.
+///
+/// **Example:**
+/// ```dart
+/// final lastSessionAsync = ref.watch(lastExerciseSessionProvider('bench-press'));
+/// ```
+final lastExerciseSessionProvider =
+    FutureProvider.family<ExerciseSessionRecord?, String>(
+        (ref, exerciseId) async {
+  final repository = ref.watch(exerciseHistoryRepositoryProvider);
+  final sessions = await repository.getRecentSessions(exerciseId, limit: 1);
+  return sessions.isNotEmpty ? sessions.first : null;
 });

@@ -271,6 +271,193 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
     _prByExercise[deadliftId] = deadliftSessions
         .map((s) => s.sessionPR ?? 0)
         .reduce((a, b) => a > b ? a : b);
+
+    // Create mock history for overhead press
+    _addMockExerciseHistory(
+      exerciseId: 'ohp',
+      baseWeight: 95.0,
+      weeklyProgress: 2.5,
+      weeksOfHistory: 6,
+      sessionsPerWeek: 2,
+      repsPerSet: 6,
+      setsPerSession: 4,
+    );
+
+    // Create mock history for barbell row
+    _addMockExerciseHistory(
+      exerciseId: 'row',
+      baseWeight: 135.0,
+      weeklyProgress: 5.0,
+      weeksOfHistory: 5,
+      sessionsPerWeek: 2,
+      repsPerSet: 8,
+      setsPerSession: 4,
+    );
+
+    // Create mock history for pull-ups
+    _addMockExerciseHistory(
+      exerciseId: 'pullup',
+      baseWeight: 0.0, // Bodyweight
+      weeklyProgress: 0.0,
+      weeksOfHistory: 4,
+      sessionsPerWeek: 2,
+      repsPerSet: 8,
+      setsPerSession: 3,
+      useBodyweight: true,
+    );
+
+    // Create mock history for dips
+    _addMockExerciseHistory(
+      exerciseId: 'dips',
+      baseWeight: 0.0, // Bodyweight
+      weeklyProgress: 0.0,
+      weeksOfHistory: 4,
+      sessionsPerWeek: 2,
+      repsPerSet: 10,
+      setsPerSession: 3,
+      useBodyweight: true,
+    );
+
+    // Create mock history for barbell curl
+    _addMockExerciseHistory(
+      exerciseId: 'barbell_curl',
+      baseWeight: 65.0,
+      weeklyProgress: 2.5,
+      weeksOfHistory: 6,
+      sessionsPerWeek: 2,
+      repsPerSet: 10,
+      setsPerSession: 3,
+    );
+
+    // Create mock history for lateral raise
+    _addMockExerciseHistory(
+      exerciseId: 'lateral_raise',
+      baseWeight: 15.0,
+      weeklyProgress: 1.0,
+      weeksOfHistory: 5,
+      sessionsPerWeek: 2,
+      repsPerSet: 15,
+      setsPerSession: 3,
+    );
+
+    // Create mock history for leg press
+    _addMockExerciseHistory(
+      exerciseId: 'leg_press',
+      baseWeight: 270.0,
+      weeklyProgress: 10.0,
+      weeksOfHistory: 6,
+      sessionsPerWeek: 1,
+      repsPerSet: 10,
+      setsPerSession: 4,
+    );
+
+    // Create mock history for Romanian deadlift
+    _addMockExerciseHistory(
+      exerciseId: 'romanian_deadlift',
+      baseWeight: 155.0,
+      weeklyProgress: 5.0,
+      weeksOfHistory: 5,
+      sessionsPerWeek: 1,
+      repsPerSet: 8,
+      setsPerSession: 3,
+    );
+
+    // Create mock history for lat pulldown
+    _addMockExerciseHistory(
+      exerciseId: 'lat_pulldown',
+      baseWeight: 120.0,
+      weeklyProgress: 5.0,
+      weeksOfHistory: 6,
+      sessionsPerWeek: 2,
+      repsPerSet: 10,
+      setsPerSession: 3,
+    );
+
+    // Create mock history for incline bench press
+    _addMockExerciseHistory(
+      exerciseId: 'incline_bench',
+      baseWeight: 115.0,
+      weeklyProgress: 5.0,
+      weeksOfHistory: 6,
+      sessionsPerWeek: 1,
+      repsPerSet: 8,
+      setsPerSession: 3,
+    );
+  }
+
+  /// Helper method to add mock exercise history
+  void _addMockExerciseHistory({
+    required String exerciseId,
+    required double baseWeight,
+    required double weeklyProgress,
+    required int weeksOfHistory,
+    required int sessionsPerWeek,
+    required int repsPerSet,
+    required int setsPerSession,
+    bool useBodyweight = false,
+  }) {
+    final now = DateTime.now();
+    final sessions = <ExerciseSessionRecord>[];
+
+    for (var week = weeksOfHistory - 1; week >= 0; week--) {
+      for (var session = 0; session < sessionsPerWeek; session++) {
+        final date = now.subtract(Duration(days: week * 7 + session * 3));
+        final weight = useBodyweight
+            ? 180.0 // Assume 180lb bodyweight for Epley calculation
+            : baseWeight + (weeksOfHistory - 1 - week) * weeklyProgress;
+
+        final sets = <ExerciseSetRecord>[];
+
+        // Add warmup set if not bodyweight
+        if (!useBodyweight && weight > 0) {
+          sets.add(ExerciseSetRecord(
+            id: Utils.generateId(),
+            setNumber: 1,
+            weight: weight * 0.5,
+            reps: 10,
+            isWarmup: true,
+          ));
+        }
+
+        // Add working sets with slight rep variation
+        for (var setNum = 0; setNum < setsPerSession; setNum++) {
+          final repVariation = setNum == 0 ? 0 : -setNum; // Fatigue simulation
+          final actualReps = (repsPerSet + repVariation).clamp(1, 20);
+
+          sets.add(ExerciseSetRecord(
+            id: Utils.generateId(),
+            setNumber: sets.length + 1,
+            weight: useBodyweight ? 0 : weight,
+            reps: actualReps,
+            isWarmup: false,
+          ));
+        }
+
+        // Calculate session PR (best Epley score from working sets)
+        final workingSets = sets.where((s) => !s.isWarmup);
+        final sessionPR = workingSets.isEmpty
+            ? 0.0
+            : workingSets
+                .map((s) => calculateEpleyScore(
+                    useBodyweight ? 180.0 : s.weight, s.reps))
+                .reduce((a, b) => a > b ? a : b);
+
+        sessions.add(ExerciseSessionRecord(
+          id: Utils.generateId(),
+          exerciseId: exerciseId,
+          workoutSessionId: '$exerciseId-workout-$week-$session',
+          performedAt: date,
+          sets: sets,
+          sessionPR: sessionPR,
+        ));
+      }
+    }
+
+    _sessionsByExercise[exerciseId] = sessions;
+    if (sessions.isNotEmpty) {
+      _prByExercise[exerciseId] =
+          sessions.map((s) => s.sessionPR ?? 0).reduce((a, b) => a > b ? a : b);
+    }
   }
 
   @override
@@ -365,8 +552,19 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
     // Exercise name lookup (in production this would come from Exercise repository)
     final exerciseNames = {
       'bench-press': 'Barbell Bench Press',
+      'bench': 'Bench Press',
       'squat': 'Barbell Back Squat',
       'deadlift': 'Conventional Deadlift',
+      'ohp': 'Overhead Press',
+      'row': 'Bent-Over Barbell Row',
+      'pullup': 'Pull-ups',
+      'dips': 'Dips',
+      'barbell_curl': 'Barbell Curl',
+      'lateral_raise': 'Lateral Raise',
+      'leg_press': 'Leg Press',
+      'romanian_deadlift': 'Romanian Deadlift',
+      'lat_pulldown': 'Lat Pulldown',
+      'incline_bench': 'Incline Bench Press',
     };
 
     for (final exerciseId in _sessionsByExercise.keys) {
