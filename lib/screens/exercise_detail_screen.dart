@@ -218,7 +218,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen>
         ? _exercise!.targetMuscleGroups.first
         : null;
     final muscleColor = primaryMuscle != null
-        ? AppColors.getMuscleGroupColor(primaryMuscle.name)
+        ? AppColors.getMuscleGroupColor(primaryMuscle)
         : context.primaryColor;
 
     return SliverAppBar(
@@ -374,7 +374,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen>
           spacing: AppSpacing.xs,
           runSpacing: AppSpacing.xs,
           children: _exercise!.targetMuscleGroups.map((mg) {
-            final color = AppColors.getMuscleGroupColor(mg.name);
+            final color = AppColors.getMuscleGroupColor(mg);
             return Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.sm,

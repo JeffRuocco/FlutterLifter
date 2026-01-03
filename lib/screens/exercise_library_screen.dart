@@ -620,7 +620,7 @@ class _ExerciseListTile extends StatelessWidget {
         ? exercise.targetMuscleGroups.first
         : null;
     final muscleColor = primaryMuscle != null
-        ? AppColors.getMuscleGroupColor(primaryMuscle.name)
+        ? AppColors.getMuscleGroupColor(primaryMuscle)
         : context.outlineVariant;
 
     return AppCard(

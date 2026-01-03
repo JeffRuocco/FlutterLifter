@@ -81,8 +81,8 @@ class _ExerciseCardState extends State<ExerciseCard>
   /// Get the primary muscle group color for this exercise
   Color _getMuscleGroupColor() {
     final primaryMuscle = widget.exercise.targetMuscleGroups.isNotEmpty
-        ? widget.exercise.targetMuscleGroups.first.name
-        : '';
+        ? widget.exercise.targetMuscleGroups.first
+        : MuscleGroup.fullBody;
     return AppColors.getMuscleGroupColor(primaryMuscle);
   }
 
@@ -192,8 +192,7 @@ class _ExerciseCardState extends State<ExerciseCard>
                       ...widget.exercise.targetMuscleGroups
                           .take(2)
                           .map((muscle) {
-                        final chipColor =
-                            AppColors.getMuscleGroupColor(muscle.name);
+                        final chipColor = AppColors.getMuscleGroupColor(muscle);
                         return Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: Container(

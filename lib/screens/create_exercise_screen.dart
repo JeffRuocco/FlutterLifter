@@ -460,7 +460,7 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
               spacing: AppSpacing.xs,
               runSpacing: AppSpacing.xs,
               children: _selectedMuscleGroups.map((mg) {
-                final color = AppColors.getMuscleGroupColor(mg.name);
+                final color = AppColors.getMuscleGroupColor(mg);
                 return Chip(
                   label: Text(
                     mg.displayName,
