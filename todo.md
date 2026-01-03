@@ -38,11 +38,11 @@
   - [ ] Test storage persistence in PWA
 - [ ] **Add program creation pages**
   - [ ] Shareable programs (link/code, eventually a public program library)
-- [ ] **Implement user authentication**
-  - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
 
 ## Incremental updates
 
+- [ ] **Implement user authentication**
+  - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
 - [ ] **UI overhaul**
   - [x] Migrate ServiceLocator to Riverpod state management
   - [x] Implement GoRouter for declarative navigation

@@ -287,6 +287,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     );
   }
 
+  /// Shows a modal bottom sheet to swap the current exercise with a new one.
   void _swapExercise(int index, WorkoutSession workoutSession) {
     final workoutService = ref.read(workoutServiceProvider);
 
