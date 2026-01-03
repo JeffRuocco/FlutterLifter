@@ -190,11 +190,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: _ActionCard(
                       title: 'Exercises',
                       subtitle: 'Exercise library',
-                      icon: HugeIcons.strokeRoundedMenu01,
+                      icon: HugeIcons.strokeRoundedBookOpen01,
                       color: context.warningColor,
                       onTap: () {
-                        showInfoMessage(
-                            context, 'Exercise library coming soon!');
+                        context.go(AppRoutes.exercises);
                       },
                     ),
                   ),

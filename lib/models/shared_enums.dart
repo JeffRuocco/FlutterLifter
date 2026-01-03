@@ -170,3 +170,188 @@ extension PeriodicityTypeExtension on PeriodicityType {
     }
   }
 }
+
+/// Enum for muscle group regions (used for grouping in UI)
+enum MuscleGroupRegion {
+  upperPush,
+  upperPull,
+  legs,
+  core,
+  cardio,
+  other,
+}
+
+extension MuscleGroupRegionExtension on MuscleGroupRegion {
+  String get displayName {
+    switch (this) {
+      case MuscleGroupRegion.upperPush:
+        return 'Upper Body (Push)';
+      case MuscleGroupRegion.upperPull:
+        return 'Upper Body (Pull)';
+      case MuscleGroupRegion.legs:
+        return 'Legs';
+      case MuscleGroupRegion.core:
+        return 'Core';
+      case MuscleGroupRegion.cardio:
+        return 'Cardio & Full Body';
+      case MuscleGroupRegion.other:
+        return 'Other';
+    }
+  }
+}
+
+/// Enum for muscle groups targeted by exercises
+enum MuscleGroup {
+  // Upper Push
+  chest,
+  upperChest,
+  triceps,
+  shoulders,
+  sideDelts,
+
+  // Upper Pull
+  lats,
+  rhomboids,
+  back,
+  lowerBack,
+  rearDelts,
+  rotatorCuff,
+  traps,
+  biceps,
+  brachialis,
+  forearms,
+
+  // Legs
+  quadriceps,
+  glutes,
+  hamstrings,
+  calves,
+  hipFlexors,
+
+  // Core
+  core,
+  abs,
+  lowerAbs,
+
+  // Cardio / Other
+  legs,
+  arms,
+  fullBody,
+  cardiovascular,
+}
+
+extension MuscleGroupExtension on MuscleGroup {
+  String get displayName {
+    switch (this) {
+      case MuscleGroup.chest:
+        return 'Chest';
+      case MuscleGroup.upperChest:
+        return 'Upper Chest';
+      case MuscleGroup.triceps:
+        return 'Triceps';
+      case MuscleGroup.shoulders:
+        return 'Shoulders';
+      case MuscleGroup.sideDelts:
+        return 'Side Delts';
+      case MuscleGroup.lats:
+        return 'Lats';
+      case MuscleGroup.rhomboids:
+        return 'Rhomboids';
+      case MuscleGroup.back:
+        return 'Back';
+      case MuscleGroup.lowerBack:
+        return 'Lower Back';
+      case MuscleGroup.rearDelts:
+        return 'Rear Delts';
+      case MuscleGroup.rotatorCuff:
+        return 'Rotator Cuff';
+      case MuscleGroup.traps:
+        return 'Traps';
+      case MuscleGroup.biceps:
+        return 'Biceps';
+      case MuscleGroup.brachialis:
+        return 'Brachialis';
+      case MuscleGroup.forearms:
+        return 'Forearms';
+      case MuscleGroup.quadriceps:
+        return 'Quadriceps';
+      case MuscleGroup.glutes:
+        return 'Glutes';
+      case MuscleGroup.hamstrings:
+        return 'Hamstrings';
+      case MuscleGroup.calves:
+        return 'Calves';
+      case MuscleGroup.hipFlexors:
+        return 'Hip Flexors';
+      case MuscleGroup.core:
+        return 'Core';
+      case MuscleGroup.abs:
+        return 'Abs';
+      case MuscleGroup.lowerAbs:
+        return 'Lower Abs';
+      case MuscleGroup.legs:
+        return 'Legs';
+      case MuscleGroup.arms:
+        return 'Arms';
+      case MuscleGroup.fullBody:
+        return 'Full Body';
+      case MuscleGroup.cardiovascular:
+        return 'Cardiovascular';
+    }
+  }
+
+  /// Returns the region this muscle group belongs to for UI grouping
+  MuscleGroupRegion get region {
+    switch (this) {
+      // Upper Push
+      case MuscleGroup.chest:
+      case MuscleGroup.upperChest:
+      case MuscleGroup.triceps:
+      case MuscleGroup.shoulders:
+      case MuscleGroup.sideDelts:
+        return MuscleGroupRegion.upperPush;
+
+      // Upper Pull
+      case MuscleGroup.lats:
+      case MuscleGroup.rhomboids:
+      case MuscleGroup.back:
+      case MuscleGroup.lowerBack:
+      case MuscleGroup.rearDelts:
+      case MuscleGroup.rotatorCuff:
+      case MuscleGroup.traps:
+      case MuscleGroup.biceps:
+      case MuscleGroup.brachialis:
+      case MuscleGroup.forearms:
+        return MuscleGroupRegion.upperPull;
+
+      // Legs
+      case MuscleGroup.quadriceps:
+      case MuscleGroup.glutes:
+      case MuscleGroup.hamstrings:
+      case MuscleGroup.calves:
+      case MuscleGroup.hipFlexors:
+      case MuscleGroup.legs:
+        return MuscleGroupRegion.legs;
+
+      // Core
+      case MuscleGroup.core:
+      case MuscleGroup.abs:
+      case MuscleGroup.lowerAbs:
+        return MuscleGroupRegion.core;
+
+      // Cardio / Full Body
+      case MuscleGroup.cardiovascular:
+      case MuscleGroup.fullBody:
+        return MuscleGroupRegion.cardio;
+
+      // Other
+      case MuscleGroup.arms:
+        return MuscleGroupRegion.other;
+    }
+  }
+
+  /// Returns all muscle groups for a given region
+  static List<MuscleGroup> byRegion(MuscleGroupRegion region) {
+    return MuscleGroup.values.where((m) => m.region == region).toList();
+  }
+}

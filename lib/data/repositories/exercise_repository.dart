@@ -92,7 +92,7 @@ abstract class ExerciseRepository {
 
   /// Returns exercises that target a specific muscle group.
   Future<List<Exercise>> getExercisesByMuscleGroup(
-    String muscleGroup, {
+    MuscleGroup muscleGroup, {
     ExerciseSource source = ExerciseSource.all,
   });
 
@@ -339,7 +339,7 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
 
       // Search by target muscle groups
       for (final muscle in exercise.targetMuscleGroups) {
-        if (muscle.toLowerCase().contains(queryLower)) return true;
+        if (muscle.displayName.toLowerCase().contains(queryLower)) return true;
       }
 
       return false;
@@ -357,15 +357,13 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
 
   @override
   Future<List<Exercise>> getExercisesByMuscleGroup(
-    String muscleGroup, {
+    MuscleGroup muscleGroup, {
     ExerciseSource source = ExerciseSource.all,
   }) async {
     final exercises = await getExercises(source: source);
-    final muscleGroupLower = muscleGroup.toLowerCase();
 
     return exercises.where((exercise) {
-      return exercise.targetMuscleGroups
-          .any((m) => m.toLowerCase().contains(muscleGroupLower));
+      return exercise.targetMuscleGroups.contains(muscleGroup);
     }).toList();
   }
 

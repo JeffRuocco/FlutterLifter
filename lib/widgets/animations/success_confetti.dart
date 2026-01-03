@@ -46,22 +46,15 @@ class SuccessConfetti extends StatefulWidget {
 class _SuccessConfettiState extends State<SuccessConfetti>
     with TickerProviderStateMixin {
   late AnimationController _controller;
-  late List<ConfettiParticle> _particles;
+  List<ConfettiParticle> _particles = [];
   final Random _random = Random();
 
-  late List<Color> _colors;
+  List<Color> _colors = [];
+  bool _colorsInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    // Initialize colors so they're available before any animation starts.
-    // These can still be overridden later in didChangeDependencies if needed.
-    _colors = widget.colors ??
-        [
-          Theme.of(context).colorScheme.primary,
-          Theme.of(context).colorScheme.secondary,
-          Theme.of(context).colorScheme.tertiary,
-        ];
 
     _controller = AnimationController(
       vsync: this,
@@ -74,16 +67,15 @@ class _SuccessConfettiState extends State<SuccessConfetti>
       }
     });
 
-    if (widget.isPlaying) {
-      _play();
-    }
+    // Note: Don't start playing here - wait for didChangeDependencies
+    // to initialize colors first
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Initialize colors with theme context
-    if (_colors.isEmpty) {
+    // Initialize colors with theme context (safe to access here)
+    if (!_colorsInitialized) {
       _colors = widget.colors ??
           [
             context.primaryColor,
@@ -96,6 +88,12 @@ class _SuccessConfettiState extends State<SuccessConfetti>
             const Color(0xFF9370DB), // Purple
           ];
       _particles = _generateParticles();
+      _colorsInitialized = true;
+
+      // Now that colors are initialized, start playing if needed
+      if (widget.isPlaying) {
+        _play();
+      }
     }
   }
 

@@ -25,10 +25,11 @@
 - [x] **Workout complete validation (warn about incomplete)**
   - [x] Warn about finishing workout before completing all sets (✅ WorkoutService ready)
   - [x] Warn about leaving workout page with sets recorded, but not marked complete (✅ WorkoutService ready)
-- [ ] **Add exercises page**
+- [ ] **Add exercise library pages** (see `exercise-library-feature.md`)
+  - [ ] Normalize exercise name capitilization
+- [ ] **Remove sets from workout**
 - [ ] **Start program functionality**
   - [ ] Start new program and end any previous ones
-- [ ] **Add progress page**
 - [ ] **Determine best option for location storage (Hive?)**
 - [ ] **Add Hive for local storage (all platforms)**
   - [ ] Add hive dependencies to pubspec.yaml
@@ -36,6 +37,7 @@
   - [ ] Update ServiceLocator to use Hive
   - [ ] Test storage persistence in PWA
 - [ ] **Add program creation pages**
+  - [ ] Shareable programs (link/code, eventually a public program library)
 - [ ] **Implement user authentication**
   - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
 
@@ -54,6 +56,7 @@
   - [x] Better styling/theme
   - [ ] Additional optional themes (blue and red, white and gold, etc.). Custom themes?
 - [ ] **Rest timer**
+- [ ] **Add progress page**
 - [ ] **Workout summary**
 - [ ] **Determine best option cloud storage (Firebase?, API?)**
 - [ ] **Implement backend service**
@@ -61,10 +64,11 @@
   - [ ] Add WorkoutService unit tests
   - [x] Add ExerciseRepository unit tests
 - [ ] **Add automated UI testing**
-- [ ] **Implement exercise library feature**
-  - [ ] Allow users to publish custom exercises to library
-  - [ ] Allow users to import exercises from library
-  - [ ] Add exercise discovery/search in library
+- [ ] **Public exercise library**
+  - [ ] Allow users to publish custom exercises to public library
+  - [ ] Allow users to import exercises from public library
+  - [ ] Add exercise discovery/search in public library
+- [ ] **Public program library**
 
 ## Next Steps Priority
 

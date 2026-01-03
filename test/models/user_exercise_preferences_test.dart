@@ -12,7 +12,7 @@ void main() {
         id: 'bench',
         name: 'Bench Press',
         category: ExerciseCategory.strength,
-        targetMuscleGroups: ['Chest', 'Triceps'],
+        targetMuscleGroups: [MuscleGroup.chest, MuscleGroup.triceps],
         defaultSets: 3,
         defaultReps: 8,
         defaultWeight: 135.0,

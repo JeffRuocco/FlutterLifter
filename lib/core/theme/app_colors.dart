@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/models/shared_enums.dart';
 
 /// App Colors - Centralized color palette for FlutterLifter
 ///
@@ -114,28 +115,24 @@ class AppColors {
   static const Color muscleFullBody = Color(0xFFEC4899);
 
   /// Get muscle group color by name
-  static Color getMuscleGroupColor(String muscleGroup) {
-    final normalized = muscleGroup.toLowerCase();
-    if (normalized.contains('chest') || normalized.contains('pec')) {
-      return muscleChest;
-    } else if (normalized.contains('back') || normalized.contains('lat')) {
-      return muscleBack;
-    } else if (normalized.contains('leg') ||
-        normalized.contains('quad') ||
-        normalized.contains('hamstring') ||
-        normalized.contains('glute') ||
-        normalized.contains('calf')) {
-      return muscleLegs;
-    } else if (normalized.contains('shoulder') || normalized.contains('delt')) {
-      return muscleShoulders;
-    } else if (normalized.contains('arm') ||
-        normalized.contains('bicep') ||
-        normalized.contains('tricep')) {
-      return muscleArms;
-    } else if (normalized.contains('core') || normalized.contains('ab')) {
-      return muscleCore;
-    } else {
-      return muscleFullBody;
+  static Color getMuscleGroupColor(MuscleGroup muscleGroup) {
+    switch (muscleGroup) {
+      case MuscleGroup.chest:
+        return muscleChest;
+      case MuscleGroup.back:
+        return muscleBack;
+      case MuscleGroup.legs:
+        return muscleLegs;
+      case MuscleGroup.shoulders:
+        return muscleShoulders;
+      case MuscleGroup.arms:
+        return muscleArms;
+      case MuscleGroup.core:
+        return muscleCore;
+      case MuscleGroup.fullBody:
+        return muscleFullBody;
+      default:
+        return muscleFullBody;
     }
   }
 
