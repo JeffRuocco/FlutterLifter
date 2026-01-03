@@ -28,6 +28,7 @@
 - [ ] **Add exercise library pages**
 - [ ] **Start program functionality**
   - [ ] Start new program and end any previous ones
+- [ ] **Remove sets from workout**
 - [ ] **Add progress page**
 - [ ] **Determine best option for location storage (Hive?)**
 - [ ] **Add Hive for local storage (all platforms)**
