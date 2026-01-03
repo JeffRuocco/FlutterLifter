@@ -62,9 +62,11 @@
   - [x] Add ExerciseRepository unit tests
 - [ ] **Add automated UI testing**
 - [ ] **Implement exercise library feature**
-  - [ ] Allow users to publish custom exercises to library
-  - [ ] Allow users to import exercises from library
-  - [ ] Add exercise discovery/search in library
+  - [x] Local exercise library with default and custom user exercises
+  - [ ] Normalize exercise name capitilization
+  - [ ] Allow users to publish custom exercises to public library
+  - [ ] Allow users to import exercises from public library
+  - [ ] Add exercise discovery/search in public library
 
 ## Next Steps Priority
 
