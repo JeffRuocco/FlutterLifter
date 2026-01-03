@@ -188,9 +188,9 @@ The Exercise Library will be accessible via:
 
 ---
 
-### Phase 5: State Management & Data
+### Phase 5: State Management & Data ✅
 
-- [ ] **13. Add Exercise History Models** (`lib/models/exercise/`)
+- [x] **13. Add Exercise History Models** (`lib/models/exercise/`)
   
   **13a. ExerciseSetRecord** - Individual set within a session:
 
@@ -248,7 +248,7 @@ The Exercise Library will be accessible via:
     }
     ```
 
-- [ ] **14. Add ExerciseHistoryRepository**
+- [x] **14. Add ExerciseHistoryRepository**
   (`lib/data/repositories/exercise_history_repository.dart`)
   - Methods:
 
@@ -262,30 +262,35 @@ The Exercise Library will be accessible via:
     Stream<ExerciseHistory> watchHistory(String exerciseId);
     ```
 
-  - Mock implementation with in-memory storage
+  - Mock implementation with in-memory storage (`DevExerciseHistoryRepository`)
+  - Includes mock data for bench press, squat, and deadlift
   - Future: Firebase/local database implementation
 
-- [ ] **15. Create exercise filter provider**
+- [x] **15. Create exercise filter provider**
   (`lib/core/providers/exercise_filter_provider.dart`)
   - State class:
 
     ```dart
     class ExerciseFilterState {
       final String searchQuery;
-      final ExerciseCategory? selectedCategory;
+      final Set<ExerciseCategory> selectedCategories;
       final Set<MuscleGroup> selectedMuscleGroups;
-      final ExerciseSource source;
+      final ExerciseSource? sourceFilter;
+      final ExerciseSortOption sortOption;
+      final bool favoritesFirst;
     }
     ```
 
   - StateNotifier with methods:
-    - `setSearchQuery(String query)`
-    - `setCategory(ExerciseCategory? category)`
-    - `toggleMuscleGroup(MuscleGroup group)`
-    - `clearMuscleGroups()`
-    - `setSource(ExerciseSource source)`
-    - `clearAll()`
-  - Derived provider for filtered exercises list
+    - `setSearchQuery(String query)` / `clearSearchQuery()`
+    - `toggleCategory(ExerciseCategory)` / `setCategories()` / `clearCategories()`
+    - `toggleMuscleGroup(MuscleGroup)` / `setMuscleGroups()` / `clearMuscleGroups()`
+    - `setSourceFilter(ExerciseSource?)` / `clearSourceFilter()`
+    - `setSortOption(ExerciseSortOption)`
+    - `toggleFavoritesFirst()` / `setFavoritesFirst(bool)`
+    - `clearAllFilters()` / `clearFiltersKeepSort()`
+  - Extension `ExerciseFilterExtension` on `List<Exercise>` for applying filters
+  - Sort options: alphabetical, reverseAlphabetical, recentlyUsed, mostUsed, muscleGroup
 
 ---
 
