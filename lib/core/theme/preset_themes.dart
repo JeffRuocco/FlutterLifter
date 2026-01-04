@@ -54,6 +54,14 @@ class PresetThemes {
     secondaryColor: const Color(0xFFE91E63), // Rose
   );
 
+  /// White and Gold theme (White/Gold)
+  static final whiteAndGoldTheme = CustomTheme.preset(
+    id: 'preset_white_and_gold',
+    name: 'White and Gold',
+    primaryColor: const Color.fromARGB(255, 255, 204, 0), // Gold
+    secondaryColor: const Color(0xFFFFFFFF), // White
+  );
+
   /// All preset themes
   static List<CustomTheme> get all => [
         defaultTheme,
@@ -62,6 +70,7 @@ class PresetThemes {
         forestTheme,
         midnightTheme,
         lavenderTheme,
+        whiteAndGoldTheme,
       ];
 
   /// Get a preset theme by ID
