@@ -317,7 +317,8 @@ class _LoginScreenState extends State<LoginScreen>
                         icon: HugeIcons.strokeRoundedGoogle,
                         label: 'Google',
                         backgroundColor: AppColors.google,
-                        textColor: context.onPrimary,
+                        textColor: ColorUtils.getContrastingTextColor(
+                            AppColors.google),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -330,7 +331,8 @@ class _LoginScreenState extends State<LoginScreen>
                         icon: HugeIcons.strokeRoundedFacebook01,
                         label: 'Facebook',
                         backgroundColor: AppColors.facebook,
-                        textColor: context.onPrimary,
+                        textColor: ColorUtils.getContrastingTextColor(
+                            AppColors.facebook),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -342,7 +344,8 @@ class _LoginScreenState extends State<LoginScreen>
                         icon: HugeIcons.strokeRoundedApple,
                         label: 'Apple',
                         backgroundColor: AppColors.apple,
-                        textColor: context.onPrimary,
+                        textColor:
+                            ColorUtils.getContrastingTextColor(AppColors.apple),
                       ),
                     ),
                   ],
