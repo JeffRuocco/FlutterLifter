@@ -8,6 +8,18 @@ class Utils {
     final random = (UniqueKey().hashCode & 0xFFFFFF).toRadixString(16);
     return '${timestamp}_$random';
   }
+
+  /// Converts a string to title case (each word capitalized)
+  static String toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    return text
+        .trim()
+        .split(' ')
+        .map((word) => word.isEmpty
+            ? word
+            : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}')
+        .join(' ');
+  }
 }
 
 /// Extension to convert Color to hex string

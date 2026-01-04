@@ -123,8 +123,8 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                 ExerciseDetailContent(
                   exercise: _exercise!,
                   showMediaSection: true,
-                  onViewAllHistory: () =>
-                      context.pushExerciseHistory(_exercise!.id),
+                  onViewAllHistory: () async =>
+                      await context.pushExerciseHistory(_exercise!.id),
                 ),
                 const VSpace.xxl(),
               ],

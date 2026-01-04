@@ -464,20 +464,21 @@ extension AppRouterExtension on BuildContext {
       push('${AppRoutes.exercises}/$exerciseId');
 
   /// Push create exercise screen (for back navigation)
-  void pushCreateExercise() => push(AppRoutes.createExercise);
+  Future<void> pushCreateExercise() async =>
+      await push(AppRoutes.createExercise);
 
   /// Push edit exercise screen (for back navigation)
-  void pushEditExercise(String exerciseId) =>
-      push('${AppRoutes.exercises}/$exerciseId/edit');
+  Future<void> pushEditExercise(String exerciseId) async =>
+      await push('${AppRoutes.exercises}/$exerciseId/edit');
 
   /// Push exercise history screen (for back navigation)
-  void pushExerciseHistory(String exerciseId) =>
-      push('${AppRoutes.exercises}/$exerciseId/history');
+  Future<void> pushExerciseHistory(String exerciseId) async =>
+      await push('${AppRoutes.exercises}/$exerciseId/history');
 
   /// Navigate to theme editor screen
-  void goToThemeEditor({String? editThemeId}) {
+  Future<void> goToThemeEditor({String? editThemeId}) async {
     if (editThemeId != null) {
-      push('${AppRoutes.themeEditor}?editThemeId=$editThemeId');
+      await push('${AppRoutes.themeEditor}?editThemeId=$editThemeId');
     } else {
       push(AppRoutes.themeEditor);
     }
