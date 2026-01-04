@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/core/theme/color_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -264,13 +265,13 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: context.onSuccessColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(32),
             ),
-            child: const Center(
+            child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedMedal01,
-                color: Colors.white,
+                color: context.onSuccessColor,
                 size: 32,
               ),
             ),
@@ -283,14 +284,14 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
                 Text(
                   'All-Time PR',
                   style: AppTextStyles.labelMedium.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: context.onSuccessColor.withValues(alpha: 0.9),
                   ),
                 ),
                 const VSpace.xs(),
                 Text(
                   pr != null ? '${pr.toStringAsFixed(1)} lbs' : 'N/A',
                   style: AppTextStyles.headlineMedium.copyWith(
-                    color: Colors.white,
+                    color: context.onSuccessColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -299,7 +300,7 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
                   Text(
                     'Set on ${DateFormat('MMM d, yyyy').format(prDate)}',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: context.onSuccessColor.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
@@ -312,13 +313,13 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
               Text(
                 'Est. 1RM',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: context.onSuccessColor.withValues(alpha: 0.7),
                 ),
               ),
               Text(
                 'Epley',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: context.onSuccessColor.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -857,7 +858,7 @@ class _PRChartPainter extends CustomPainter {
 
       // White center for PR dots
       if (entry.isPR) {
-        dotPaint.color = Colors.white;
+        dotPaint.color = ColorUtils.getContrastingTextColor(dotPaint.color);
         canvas.drawCircle(points[i], 3, dotPaint);
       }
     }

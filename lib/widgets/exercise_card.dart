@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_lifter/models/exercise/exercise_set_record.dart';
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/exercise/exercise_session_record.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
@@ -425,14 +426,14 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
               children: [
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedMedal01,
-                  color: Colors.white,
+                  color: context.onWarningColor,
                   size: 10,
                 ),
                 const SizedBox(width: 2),
                 Text(
                   'NEW PR!',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: Colors.white,
+                    color: context.onWarningColor,
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
                   ),
@@ -460,8 +461,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
 
     double bestEpley = 0;
     for (final set in completedSets) {
-      // Epley formula: weight × (1 + reps/30)
-      final epley = set.actualWeight! * (1 + set.actualReps! / 30.0);
+      final epley = calculateEpleyScore(set.actualWeight!, set.actualReps!);
       if (epley > bestEpley) bestEpley = epley;
     }
 
