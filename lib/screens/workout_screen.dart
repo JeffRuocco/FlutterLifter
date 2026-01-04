@@ -754,11 +754,22 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                   await _saveWorkout();
                                 },
                                 onRemoveSet: (setIndex) async {
+                                  var removed = false;
                                   setState(() {
-                                    workoutSession.exercises[index]
+                                    removed = workoutSession.exercises[index]
                                         .removeSet(setIndex);
                                   });
 
+                                  if (!removed) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Unable to remove set. Please try again.',
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
                                   // Auto-save the change
                                   await _saveWorkout();
                                 },
