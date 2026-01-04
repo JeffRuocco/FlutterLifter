@@ -3,6 +3,7 @@ import 'package:flutter_lifter/data/datasources/mock/default_exercises.dart';
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:flutter_lifter/models/user_exercise_preferences.dart';
+import 'package:flutter_lifter/utils/utils.dart';
 
 /// Repository for managing exercises (default and custom) and user preferences.
 ///
@@ -198,7 +199,12 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
           'Cannot create a custom exercise with isDefault=true');
     }
 
-    await localDataSource.cacheCustomExercise(exercise);
+    // Normalize the exercise name to title case
+    var exerciseToCreate = exercise.copyWith(
+      name: Utils.toTitleCase(exercise.name),
+    );
+
+    await localDataSource.cacheCustomExercise(exerciseToCreate);
   }
 
   @override

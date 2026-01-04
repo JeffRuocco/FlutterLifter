@@ -186,7 +186,11 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.pushCreateExercise(),
+        onPressed: () async {
+          await context.pushCreateExercise();
+          // Refresh the exercise list when returning from create screen
+          _loadExercises();
+        },
         backgroundColor: context.primaryColor,
         child: HugeIcon(
           icon: HugeIcons.strokeRoundedAdd01,
@@ -570,8 +574,10 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
     }
   }
 
-  void _navigateToExerciseDetail(Exercise exercise) {
-    context.push('${AppRoutes.exercises}/${exercise.id}');
+  Future<void> _navigateToExerciseDetail(Exercise exercise) async {
+    await context.push('${AppRoutes.exercises}/${exercise.id}');
+    // Refresh the exercise list when returning from detail/edit screen
+    _loadExercises();
   }
 
   void _showFilterBottomSheet() {

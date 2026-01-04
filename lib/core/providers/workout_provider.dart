@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/workout_service.dart';
 import '../../models/workout_session_models.dart';
+import '../../models/exercise/exercise_set_record.dart';
+import '../../models/exercise/exercise_session_record.dart';
 import 'repository_providers.dart';
 
 // =============================================================================
@@ -251,6 +253,12 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
   Future<void> finishWorkout() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
+      // Record exercise history before finishing
+      final workout = _workoutService.currentWorkout;
+      if (workout != null) {
+        await _recordExerciseHistory(workout);
+      }
+
       await _workoutService.finishWorkout();
       state = state.copyWith(
         currentWorkout: null,
@@ -261,6 +269,53 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
         isLoading: false,
         error: e.toString(),
       );
+    }
+  }
+
+  /// Records exercise history for all exercises with completed sets
+  ///
+  /// This creates [ExerciseSessionRecord] entries for each exercise
+  /// that has at least one completed set with recorded weight/reps.
+  /// Called automatically when a workout is finished.
+  Future<void> _recordExerciseHistory(WorkoutSession workout) async {
+    final historyRepo = _ref.read(exerciseHistoryRepositoryProvider);
+
+    for (final workoutExercise in workout.exercises) {
+      // Get only completed sets with actual recorded values
+      final completedSets = workoutExercise.sets
+          .where((set) =>
+              set.isCompleted &&
+              set.actualWeight != null &&
+              set.actualReps != null)
+          .toList();
+
+      // Skip if no completed sets with data
+      if (completedSets.isEmpty) continue;
+
+      // Convert ExerciseSet to ExerciseSetRecord
+      final setRecords = <ExerciseSetRecord>[];
+      for (var i = 0; i < completedSets.length; i++) {
+        final set = completedSets[i];
+        setRecords.add(ExerciseSetRecord.create(
+          setNumber: i + 1,
+          weight: set.actualWeight!,
+          reps: set.actualReps!,
+          isWarmup: false, // Could be determined by set position/weight
+          notes: set.notes,
+        ));
+      }
+
+      // Create the session record
+      final sessionRecord = ExerciseSessionRecord.create(
+        exerciseId: workoutExercise.exercise.id,
+        workoutSessionId: workout.id,
+        sets: setRecords,
+        performedAt: DateTime.now(),
+        notes: workoutExercise.notes,
+      );
+
+      // Save to repository
+      await historyRepo.recordSession(sessionRecord);
     }
   }
 

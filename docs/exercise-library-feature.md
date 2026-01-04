@@ -188,9 +188,9 @@ The Exercise Library will be accessible via:
 
 ---
 
-### Phase 5: State Management & Data
+### Phase 5: State Management & Data ✅
 
-- [ ] **13. Add Exercise History Models** (`lib/models/exercise/`)
+- [x] **13. Add Exercise History Models** (`lib/models/exercise/`)
   
   **13a. ExerciseSetRecord** - Individual set within a session:
 
@@ -248,7 +248,7 @@ The Exercise Library will be accessible via:
     }
     ```
 
-- [ ] **14. Add ExerciseHistoryRepository**
+- [x] **14. Add ExerciseHistoryRepository**
   (`lib/data/repositories/exercise_history_repository.dart`)
   - Methods:
 
@@ -262,36 +262,41 @@ The Exercise Library will be accessible via:
     Stream<ExerciseHistory> watchHistory(String exerciseId);
     ```
 
-  - Mock implementation with in-memory storage
+  - Mock implementation with in-memory storage (`DevExerciseHistoryRepository`)
+  - Includes mock data for bench press, squat, and deadlift
   - Future: Firebase/local database implementation
 
-- [ ] **15. Create exercise filter provider**
+- [x] **15. Create exercise filter provider**
   (`lib/core/providers/exercise_filter_provider.dart`)
   - State class:
 
     ```dart
     class ExerciseFilterState {
       final String searchQuery;
-      final ExerciseCategory? selectedCategory;
+      final Set<ExerciseCategory> selectedCategories;
       final Set<MuscleGroup> selectedMuscleGroups;
-      final ExerciseSource source;
+      final ExerciseSource? sourceFilter;
+      final ExerciseSortOption sortOption;
+      final bool favoritesFirst;
     }
     ```
 
   - StateNotifier with methods:
-    - `setSearchQuery(String query)`
-    - `setCategory(ExerciseCategory? category)`
-    - `toggleMuscleGroup(MuscleGroup group)`
-    - `clearMuscleGroups()`
-    - `setSource(ExerciseSource source)`
-    - `clearAll()`
-  - Derived provider for filtered exercises list
+    - `setSearchQuery(String query)` / `clearSearchQuery()`
+    - `toggleCategory(ExerciseCategory)` / `setCategories()` / `clearCategories()`
+    - `toggleMuscleGroup(MuscleGroup)` / `setMuscleGroups()` / `clearMuscleGroups()`
+    - `setSourceFilter(ExerciseSource?)` / `clearSourceFilter()`
+    - `setSortOption(ExerciseSortOption)`
+    - `toggleFavoritesFirst()` / `setFavoritesFirst(bool)`
+    - `clearAllFilters()` / `clearFiltersKeepSort()`
+  - Extension `ExerciseFilterExtension` on `List<Exercise>` for applying filters
+  - Sort options: alphabetical, reverseAlphabetical, recentlyUsed, mostUsed, muscleGroup
 
 ---
 
-### Phase 6: Exercise History UI
+### Phase 6: Exercise History UI ✅
 
-- [ ] **16. Add ExerciseHistoryScreen**
+- [x] **16. Add ExerciseHistoryScreen**
   (`lib/screens/exercise_history_screen.dart`)
   - Full history view for a single exercise
   - Header with exercise name, all-time PR badge
@@ -306,7 +311,7 @@ The Exercise Library will be accessible via:
   - Tap session to expand/collapse set details
   - Option to edit/delete past sessions
 
-- [ ] **17. Update ExerciseDetailScreen**
+- [x] **17. Update ExerciseDetailScreen**
   (`lib/screens/exercise_detail_screen.dart`)
   - Add "History" section with:
     - All-time PR card with Epley score
@@ -316,22 +321,22 @@ The Exercise Library will be accessible via:
     - Mini preview of last 3 sessions
   - Add PR badge animation when viewing a PR exercise
 
-- [ ] **18. Add exercise history route** (`lib/core/router/app_router.dart`)
+- [x] **18. Add exercise history route** (`lib/core/router/app_router.dart`)
   - Add route: `/exercises/:id/history`
   - Add router extension: `pushExerciseHistory(String id)`
 
 ---
 
-### Phase 7: Integration with Workouts
+### Phase 7: Integration with Workouts ✅
 
-- [ ] **19. Auto-record exercise sessions**
+- [x] **19. Auto-record exercise sessions**
   - When a workout is completed, automatically create
     `ExerciseSessionRecord` entries
   - Link session records to workout via `workoutSessionId`
   - Calculate and store Epley scores for each set
   - Update all-time PR if beaten
 
-- [ ] **20. Show PR indicators in workout logging**
+- [x] **20. Show PR indicators in workout logging**
   - During active workout, show if current set beats PR
   - Celebrate new PRs with animation/confetti
   - Show "last time" reference (e.g., "Last: 135 lbs × 8")
@@ -418,3 +423,5 @@ lib/
 |2026-01-01|9-11|Phase 3-4 partial: screens, filter|
 |2026-01-01|Bug fixes|Fixed enum usage in widgets|
 |2026-01-03|12|Phase 4 complete: CreateExerciseScreen with full CRUD|
+|2026-01-03|16-18|Phase 6 complete: ExerciseHistoryScreen, route, history section in detail|
+|2026-01-03|19-20|Phase 7 complete: Auto-record sessions on workout finish, PR indicators in ExerciseCard|

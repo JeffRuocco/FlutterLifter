@@ -10,6 +10,7 @@ import '../../screens/workout_screen.dart';
 import '../../screens/progress_screen.dart';
 import '../../screens/exercise_library_screen.dart';
 import '../../screens/exercise_detail_screen.dart';
+import '../../screens/exercise_history_screen.dart';
 import '../../screens/create_exercise_screen.dart';
 import '../../screens/settings_screen.dart';
 import '../../screens/debug_settings_screen.dart';
@@ -33,6 +34,7 @@ class AppRoutes {
   // Nested routes (outside bottom nav)
   static const String createProgram = '/programs/create';
   static const String exerciseDetail = '/exercises/:id';
+  static const String exerciseHistory = '/exercises/:id/history';
   static const String createExercise = '/exercises/create';
   static const String editExercise = '/exercises/:id/edit';
   static const String settings = '/settings';
@@ -207,6 +209,33 @@ final routerProvider = Provider<GoRouter>((ref) {
                       return CustomTransitionPage(
                         key: state.pageKey,
                         child: CreateExerciseScreen(exerciseId: exerciseId),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(1, 0),
+                              end: Offset.zero,
+                            ).animate(CurvedAnimation(
+                              parent: animation,
+                              curve: AppCurves.standard,
+                            )),
+                            child: child,
+                          );
+                        },
+                        transitionDuration: AppDurations.medium,
+                      );
+                    },
+                  ),
+                  // Exercise history (nested, but uses root navigator)
+                  GoRoute(
+                    path: 'history',
+                    name: 'exerciseHistory',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    pageBuilder: (context, state) {
+                      final exerciseId = state.pathParameters['id']!;
+                      return CustomTransitionPage(
+                        key: state.pageKey,
+                        child: ExerciseHistoryScreen(exerciseId: exerciseId),
                         transitionsBuilder:
                             (context, animation, secondaryAnimation, child) {
                           return SlideTransition(
@@ -435,16 +464,21 @@ extension AppRouterExtension on BuildContext {
       push('${AppRoutes.exercises}/$exerciseId');
 
   /// Push create exercise screen (for back navigation)
-  void pushCreateExercise() => push(AppRoutes.createExercise);
+  Future<void> pushCreateExercise() async =>
+      await push(AppRoutes.createExercise);
 
   /// Push edit exercise screen (for back navigation)
-  void pushEditExercise(String exerciseId) =>
-      push('${AppRoutes.exercises}/$exerciseId/edit');
+  Future<void> pushEditExercise(String exerciseId) async =>
+      await push('${AppRoutes.exercises}/$exerciseId/edit');
+
+  /// Push exercise history screen (for back navigation)
+  Future<void> pushExerciseHistory(String exerciseId) async =>
+      await push('${AppRoutes.exercises}/$exerciseId/history');
 
   /// Navigate to theme editor screen
-  void goToThemeEditor({String? editThemeId}) {
+  Future<void> goToThemeEditor({String? editThemeId}) async {
     if (editThemeId != null) {
-      push('${AppRoutes.themeEditor}?editThemeId=$editThemeId');
+      await push('${AppRoutes.themeEditor}?editThemeId=$editThemeId');
     } else {
       push(AppRoutes.themeEditor);
     }

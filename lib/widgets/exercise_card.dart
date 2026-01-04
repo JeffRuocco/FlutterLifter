@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_lifter/models/exercise/exercise_set_record.dart';
 import 'package:flutter_lifter/models/exercise_models.dart';
+import 'package:flutter_lifter/models/exercise/exercise_session_record.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../core/providers/repository_providers.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_extensions.dart';
 import 'common/app_widgets.dart';
+import 'exercise_detail_bottom_sheet.dart';
 
 import 'set_input_widget.dart';
 
-class ExerciseCard extends StatefulWidget {
+/// A card widget that displays a workout exercise and its sets.
+class ExerciseCard extends ConsumerStatefulWidget {
   final WorkoutExercise exercise;
   final int exerciseIndex;
   final bool isWorkoutStarted;
@@ -35,14 +41,16 @@ class ExerciseCard extends StatefulWidget {
   });
 
   @override
-  State<ExerciseCard> createState() => _ExerciseCardState();
+  ConsumerState<ExerciseCard> createState() => _ExerciseCardState();
 }
 
-class _ExerciseCardState extends State<ExerciseCard>
+class _ExerciseCardState extends ConsumerState<ExerciseCard>
     with SingleTickerProviderStateMixin {
   bool _isExpanded = true;
   late AnimationController _expandController;
   late Animation<double> _expandAnimation;
+  ExerciseSessionRecord? _lastSession;
+  double? _allTimePR;
 
   @override
   void initState() {
@@ -58,6 +66,26 @@ class _ExerciseCardState extends State<ExerciseCard>
     if (_isExpanded) {
       _expandController.value = 1.0;
     }
+    _loadExerciseHistory();
+  }
+
+  /// Load exercise history data (last session and PR)
+  void _loadExerciseHistory() {
+    final exerciseId = widget.exercise.exercise.id;
+
+    // Load last session
+    ref.read(lastExerciseSessionProvider(exerciseId).future).then((session) {
+      if (mounted) {
+        setState(() => _lastSession = session);
+      }
+    });
+
+    // Load all-time PR
+    ref.read(exercisePRProvider(exerciseId).future).then((pr) {
+      if (mounted) {
+        setState(() => _allTimePR = pr);
+      }
+    });
   }
 
   @override
@@ -231,6 +259,11 @@ class _ExerciseCardState extends State<ExerciseCard>
                       ),
                     ],
                   ),
+                  // Last Performance Indicator
+                  if (_lastSession != null) ...[
+                    const VSpace.xs(),
+                    _buildLastPerformanceIndicator(context),
+                  ],
                 ],
               ),
             ),
@@ -341,6 +374,98 @@ class _ExerciseCardState extends State<ExerciseCard>
         ),
       ),
     );
+  }
+
+  /// Build the last performance indicator showing the best set from the last session
+  Widget _buildLastPerformanceIndicator(BuildContext context) {
+    if (_lastSession == null) return const SizedBox.shrink();
+
+    final prSet = _lastSession!.prSet;
+    if (prSet == null) return const SizedBox.shrink();
+
+    // Check if current session has beaten the PR
+    final currentBestEpley = _calculateCurrentBestEpley();
+    final isPRBeaten = currentBestEpley != null &&
+        _allTimePR != null &&
+        currentBestEpley > _allTimePR!;
+
+    return Row(
+      children: [
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedTime04,
+          color: context.textSecondary,
+          size: 12,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          'Last: ${prSet.weight.toStringAsFixed(prSet.weight % 1 == 0 ? 0 : 1)} lbs × ${prSet.reps}',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: context.textSecondary,
+            fontSize: 10,
+          ),
+        ),
+        // Show PR indicator if current session beats the all-time PR
+        if (isPRBeaten) ...[
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 4,
+              vertical: 1,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  context.warningColor,
+                  context.warningColor.withValues(alpha: 0.8),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedMedal01,
+                  color: context.onWarningColor,
+                  size: 10,
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  'NEW PR!',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: context.onWarningColor,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Calculate the best Epley score from current workout's completed sets
+  double? _calculateCurrentBestEpley() {
+    final completedSets = widget.exercise.sets
+        .where((set) =>
+            set.isCompleted &&
+            set.actualWeight != null &&
+            set.actualReps != null &&
+            set.actualWeight! > 0 &&
+            set.actualReps! > 0)
+        .toList();
+
+    if (completedSets.isEmpty) return null;
+
+    double bestEpley = 0;
+    for (final set in completedSets) {
+      final epley = calculateEpleyScore(set.actualWeight!, set.actualReps!);
+      if (epley > bestEpley) bestEpley = epley;
+    }
+
+    return bestEpley;
   }
 
   /// Build a mini progress ring for the exercise
@@ -521,106 +646,8 @@ class _ExerciseCardState extends State<ExerciseCard>
     showSuccessMessage(context, 'Set added!');
   }
 
+  /// Shows a modal bottom sheet with detailed information about the exercise.
   void _showExerciseDetails(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        expand: false,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const VSpace.lg(),
-
-              // Exercise Name
-              Text(
-                widget.exercise.name,
-                style: AppTextStyles.headlineMedium.copyWith(
-                  color: context.textPrimary,
-                ),
-              ),
-              const VSpace.xs(),
-
-              // Category and Muscle Groups
-              Wrap(
-                spacing: AppSpacing.xs,
-                runSpacing: AppSpacing.xs,
-                children: [
-                  _buildInfoChip(context, widget.exercise.category.displayName),
-                  ...widget.exercise.targetMuscleGroups.map(
-                    (muscle) => _buildInfoChip(context, muscle.displayName),
-                  ),
-                ],
-              ),
-              const VSpace.lg(),
-
-              // Instructions (placeholder)
-              Text(
-                'Instructions',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: context.textPrimary,
-                ),
-              ),
-              const VSpace.sm(),
-              Text(
-                widget.exercise.instructions ??
-                    'Exercise instructions will be available soon. For now, please refer to proper form guides or consult with a fitness professional.',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: context.textSecondary,
-                ),
-              ),
-
-              const VSpace.xl(),
-
-              // Close Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoChip(BuildContext context, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: context.primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
-      ),
-      child: Text(
-        text,
-        style: AppTextStyles.labelSmall.copyWith(
-          color: context.primaryColor,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
+    ExerciseDetailBottomSheet.show(context, widget.exercise.exercise);
   }
 }
