@@ -54,6 +54,22 @@ class PresetThemes {
     secondaryColor: const Color(0xFFE91E63), // Rose
   );
 
+  /// Material 3 theme (Purple/Rose)
+  static final material3Theme = CustomTheme.preset(
+    id: 'preset_material3',
+    name: 'Material 3',
+    primaryColor: const Color(0xFF6750A4),
+    secondaryColor: const Color(0xFF625B71),
+  );
+
+  /// Material 3 dark theme (Purple/Rose)
+  static final material3DarkTheme = CustomTheme.preset(
+    id: 'preset_material3_dark',
+    name: 'Material 3 Dark',
+    primaryColor: const Color(0xFFD0BCFF),
+    secondaryColor: const Color(0xFFCCC2DC),
+  );
+
   /// White and Gold theme (White/Gold)
   static final whiteAndGoldTheme = CustomTheme.preset(
     id: 'preset_white_and_gold',
@@ -70,6 +86,8 @@ class PresetThemes {
         forestTheme,
         midnightTheme,
         lavenderTheme,
+        material3Theme,
+        material3DarkTheme,
         whiteAndGoldTheme,
       ];
 

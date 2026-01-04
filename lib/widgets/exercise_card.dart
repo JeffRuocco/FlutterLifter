@@ -659,7 +659,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
     }
 
     return Dismissible(
-      key: ValueKey('set_${widget.exercise.id}_$index'),
+      key: ValueKey('set_${set.id}'),
       direction: DismissDirection.endToStart,
       confirmDismiss: (direction) async {
         // Always show confirmation before removing a set

@@ -999,12 +999,6 @@ class AppSwitchTile extends StatelessWidget {
   /// Called when the switch is toggled.
   final ValueChanged<bool>? onChanged;
 
-  /// The color of the active thumb. Defaults to primary color.
-  final Color? activeThumbColor;
-
-  /// The color of the active track. Defaults to primary color with opacity.
-  final Color? activeTrackColor;
-
   /// Whether the tile is enabled. When false, the tile is grayed out.
   final bool enabled;
 
@@ -1016,8 +1010,6 @@ class AppSwitchTile extends StatelessWidget {
     required this.subtitle,
     required this.value,
     required this.onChanged,
-    this.activeThumbColor,
-    this.activeTrackColor,
     this.enabled = true,
   });
 
