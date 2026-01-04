@@ -25,8 +25,8 @@
 - [x] **Workout complete validation (warn about incomplete)**
   - [x] Warn about finishing workout before completing all sets (✅ WorkoutService ready)
   - [x] Warn about leaving workout page with sets recorded, but not marked complete (✅ WorkoutService ready)
-- [ ] **Add exercise library pages** (see `exercise-library-feature.md`)
-  - [ ] Normalize exercise name capitilization
+- [x] **Add exercise library pages** (see `exercise-library-feature.md`)
+  - [x] Normalize exercise name capitilization
 - [ ] **Remove sets from workout**
 - [ ] **Start program functionality**
   - [ ] Start new program and end any previous ones
