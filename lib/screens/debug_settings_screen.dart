@@ -175,10 +175,13 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Debug Tools'),
+        title: Text(
+          'Debug Tools',
+          style: TextStyle(color: context.onWarningColor),
+        ),
         centerTitle: true,
         backgroundColor: context.warningColor,
-        foregroundColor: context.onPrimary,
+        foregroundColor: context.onWarningColor,
         elevation: 0,
       ),
       body: _isLoading
@@ -258,28 +261,19 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
                   AppCard(
                     child: Column(
                       children: [
-                        SwitchListTile(
-                          secondary: HugeIcon(
-                            icon: HugeIcons.strokeRoundedBug01,
-                            color: context.primaryColor,
-                            size: AppDimensions.iconMedium,
-                          ),
-                          title: const Text('Debug Logging'),
-                          subtitle: const Text(
-                              'Enable debug level logging to console'),
+                        AppSwitchTile(
+                          icon: HugeIcons.strokeRoundedBug01,
+                          title: 'Debug Logging',
+                          subtitle: 'Enable debug level logging to console',
                           value: _debugLoggingEnabled,
                           onChanged: _toggleDebugLogging,
                         ),
                         Divider(height: 1, color: context.outlineColor),
-                        SwitchListTile(
-                          secondary: HugeIcon(
-                            icon: HugeIcons.strokeRoundedView,
-                            color: context.primaryColor,
-                            size: AppDimensions.iconMedium,
-                          ),
-                          title: const Text('Verbose Logging'),
-                          subtitle: const Text(
-                              'Enable verbose level logging (most detailed)'),
+                        AppSwitchTile(
+                          icon: HugeIcons.strokeRoundedView,
+                          title: 'Verbose Logging',
+                          subtitle:
+                              'Enable verbose level logging (most detailed)',
                           value: _verboseLoggingEnabled,
                           onChanged: _toggleVerboseLogging,
                         ),

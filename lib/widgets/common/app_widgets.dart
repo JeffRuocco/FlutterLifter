@@ -973,6 +973,79 @@ class HSpace extends AppSpacingWidget {
 }
 
 // ============================================
+// APP SWITCH TILE
+// ============================================
+
+/// A reusable switch list tile widget with consistent styling.
+///
+/// Use this widget for toggle settings throughout the application.
+/// It provides a consistent look with an icon, title, subtitle, and switch.
+class AppSwitchTile extends StatelessWidget {
+  /// The icon to display on the left side of the tile.
+  final IconData icon;
+
+  /// The color of the icon. Defaults to primary color.
+  final Color? iconColor;
+
+  /// The main title text.
+  final String title;
+
+  /// The subtitle/description text.
+  final String subtitle;
+
+  /// The current value of the switch.
+  final bool value;
+
+  /// Called when the switch is toggled.
+  final ValueChanged<bool>? onChanged;
+
+  /// Whether the tile is enabled. When false, the tile is grayed out.
+  final bool enabled;
+
+  const AppSwitchTile({
+    super.key,
+    required this.icon,
+    this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveIconColor = enabled
+        ? (iconColor ?? context.primaryColor)
+        : context.textSecondary.withValues(alpha: 0.5);
+
+    return SwitchListTile(
+      secondary: HugeIcon(
+        icon: icon,
+        color: effectiveIconColor,
+        size: AppDimensions.iconMedium,
+      ),
+      title: Text(
+        title,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: enabled ? context.textPrimary : context.textSecondary,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: AppTextStyles.bodySmall.copyWith(
+          color: enabled
+              ? context.textSecondary
+              : context.textSecondary.withValues(alpha: 0.5),
+        ),
+      ),
+      value: value,
+      onChanged: enabled ? onChanged : null,
+    );
+  }
+}
+
+// ============================================
 // SNACKBAR HELPERS
 // ============================================
 

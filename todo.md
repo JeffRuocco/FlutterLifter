@@ -27,7 +27,7 @@
   - [x] Warn about leaving workout page with sets recorded, but not marked complete (✅ WorkoutService ready)
 - [x] **Add exercise library pages** (see `exercise-library-feature.md`)
   - [x] Normalize exercise name capitilization
-- [ ] **Remove sets from workout**
+- [x] **Remove sets from workout**
 - [ ] **Start program functionality**
   - [ ] Start new program and end any previous ones
 - [ ] **Determine best option for location storage (Hive?)**

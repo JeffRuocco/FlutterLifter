@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_dimensions.dart';
@@ -62,7 +63,6 @@ class AppTheme {
       floatingActionButtonTheme: _buildFabTheme(colorScheme),
       chipTheme: _buildChipTheme(isDark, colorScheme),
       switchTheme: _buildSwitchTheme(colorScheme),
-      checkboxTheme: _buildCheckboxTheme(colorScheme),
       radioTheme: _buildRadioTheme(colorScheme),
       sliderTheme: _buildSliderTheme(colorScheme),
       progressIndicatorTheme: ProgressIndicatorThemeData(
@@ -331,22 +331,31 @@ class AppTheme {
     );
   }
 
+  /// Builds the theme for Switch (button) widgets
   static SwitchThemeData _buildSwitchTheme(ColorScheme colorScheme) {
     return SwitchThemeData(
-      thumbColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.selected)) {
-          return colorScheme.primary;
+      // thumbColor: WidgetStateProperty.resolveWith((states) {
+      //   if (states.contains(WidgetState.selected)) {
+      //     return colorScheme.onPrimary;
+      //   }
+      //   return null;
+      // }),
+      // trackColor: WidgetStateProperty.resolveWith((states) {
+      //   if (states.contains(WidgetState.selected)) {
+      //     return colorScheme.primary;
+      //   }
+      //   return null;
+      // }),
+      thumbIcon:
+          WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
+          return Icon(HugeIcons.strokeRoundedCancel01);
         }
-        return null;
-      }),
-    );
-  }
-
-  static CheckboxThemeData _buildCheckboxTheme(ColorScheme colorScheme) {
-    return CheckboxThemeData(
-      fillColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return colorScheme.primary;
+          return Icon(
+            HugeIcons.strokeRoundedTick02,
+            color: colorScheme.primary,
+          );
         }
         return null;
       }),
