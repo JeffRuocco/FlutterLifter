@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_dimensions.dart';
@@ -331,11 +332,28 @@ class AppTheme {
     );
   }
 
+  /// Builds the theme for Switch (button) widgets
   static SwitchThemeData _buildSwitchTheme(ColorScheme colorScheme) {
     return SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return colorScheme.primary;
+        }
+        return null;
+      }),
+      trackColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return colorScheme.primary.withValues(alpha: 0.5);
+        }
+        return null;
+      }),
+      thumbIcon:
+          WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
+          return const Icon(Icons.close);
+        }
+        if (states.contains(WidgetState.selected)) {
+          return const Icon(HugeIcons.strokeRoundedTick02);
         }
         return null;
       }),

@@ -489,9 +489,10 @@ class _InputsGallery extends StatelessWidget {
         ),
         VSpace.lg(),
         _SectionHeader('Switches & Checkboxes'),
-        SwitchListTile(
-          title: const Text('Switch Option'),
-          subtitle: const Text('Toggle this setting'),
+        AppSwitchTile(
+          icon: HugeIcons.strokeRoundedSettings01,
+          title: 'Switch Option',
+          subtitle: 'Toggle this setting',
           value: true,
           onChanged: (_) {},
         ),
@@ -1049,9 +1050,10 @@ class _AnimationsGalleryState extends ConsumerState<_AnimationsGallery> {
         ),
         VSpace.lg(),
         _SectionHeader('Skeleton Loaders'),
-        SwitchListTile(
-          title: const Text('Show Skeletons'),
-          subtitle: const Text('Toggle to see skeleton vs content'),
+        AppSwitchTile(
+          icon: HugeIcons.strokeRoundedLoading01,
+          title: 'Show Skeletons',
+          subtitle: 'Toggle to see skeleton vs content',
           value: _showSkeletons,
           onChanged: (value) => setState(() => _showSkeletons = value),
         ),

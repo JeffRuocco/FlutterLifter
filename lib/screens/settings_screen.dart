@@ -278,18 +278,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   VSpace.sm(),
                   _buildSettingsCard(context, [
-                    SwitchListTile(
-                      secondary: HugeIcon(
-                        icon: HugeIcons.strokeRoundedCodeSquare,
-                        color: context.primaryColor,
-                        size: AppDimensions.iconMedium,
-                      ),
-                      title: const Text('Enable Debug Mode'),
-                      subtitle: const Text(
-                          'Show debug buttons and enable developer features'),
+                    AppSwitchTile(
+                      icon: HugeIcons.strokeRoundedCodeSquare,
+                      title: 'Enable Debug Mode',
+                      subtitle:
+                          'Show debug buttons and enable developer features',
                       value: _debugModeEnabled,
                       onChanged: _toggleDebugMode,
-                      activeThumbColor: context.primaryColor,
                     ),
                     if (_debugModeEnabled) ...[
                       Divider(height: 1, color: context.outlineColor),
