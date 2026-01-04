@@ -27,6 +27,7 @@ class ExerciseCard extends ConsumerStatefulWidget {
   final Function(int setIndex, double? weight, int? reps, String? notes,
       bool? markAsCompleted) onSetUpdated;
   final VoidCallback onAddSet;
+  final Function(int setIndex)? onRemoveSet;
 
   const ExerciseCard({
     super.key,
@@ -38,6 +39,7 @@ class ExerciseCard extends ConsumerStatefulWidget {
     required this.onToggleSetCompleted,
     required this.onSetUpdated,
     required this.onAddSet,
+    this.onRemoveSet,
   });
 
   @override
@@ -596,16 +598,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
             final set = entry.value;
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-              child: SetInputWidget(
-                setNumber: index + 1,
-                exerciseSet: set,
-                isWorkoutStarted: widget.isWorkoutStarted,
-                onCompletedToggle: () =>
-                    widget.onToggleSetCompleted.call(index),
-                onUpdated: (weight, reps, notes, markAsCompleted) => widget
-                    .onSetUpdated
-                    .call(index, weight, reps, notes, markAsCompleted),
-              ),
+              child: _buildDismissibleSet(context, index, set),
             );
           }),
 
@@ -644,6 +637,105 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
     // For now, we'll just show a message
     widget.onAddSet.call();
     showSuccessMessage(context, 'Set added!');
+  }
+
+  /// Build a dismissible set row that can be swiped to delete
+  Widget _buildDismissibleSet(
+      BuildContext context, int index, ExerciseSet set) {
+    // Only allow dismissing if workout is started and there's more than one set
+    final canDismiss = widget.isWorkoutStarted &&
+        widget.exercise.sets.length > 1 &&
+        widget.onRemoveSet != null;
+
+    if (!canDismiss) {
+      return SetInputWidget(
+        setNumber: index + 1,
+        exerciseSet: set,
+        isWorkoutStarted: widget.isWorkoutStarted,
+        onCompletedToggle: () => widget.onToggleSetCompleted.call(index),
+        onUpdated: (weight, reps, notes, markAsCompleted) => widget.onSetUpdated
+            .call(index, weight, reps, notes, markAsCompleted),
+      );
+    }
+
+    return Dismissible(
+      key: ValueKey('set_${widget.exercise.id}_$index'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) async {
+        // Always show confirmation before removing a set
+        return await _showRemoveSetConfirmation(context, index + 1);
+      },
+      onDismissed: (direction) {
+        widget.onRemoveSet?.call(index);
+        HapticFeedback.mediumImpact();
+      },
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: context.errorColor,
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
+        ),
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedDelete02,
+          color: context.onError,
+          size: AppDimensions.iconMedium,
+        ),
+      ),
+      child: SetInputWidget(
+        setNumber: index + 1,
+        exerciseSet: set,
+        isWorkoutStarted: widget.isWorkoutStarted,
+        onCompletedToggle: () => widget.onToggleSetCompleted.call(index),
+        onUpdated: (weight, reps, notes, markAsCompleted) => widget.onSetUpdated
+            .call(index, weight, reps, notes, markAsCompleted),
+      ),
+    );
+  }
+
+  /// Show confirmation dialog before removing a set
+  Future<bool> _showRemoveSetConfirmation(
+      BuildContext context, int setNumber) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'Remove Set $setNumber?',
+          style: AppTextStyles.headlineSmall.copyWith(
+            color: dialogContext.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to remove this set?',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: dialogContext.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(
+              'Cancel',
+              style: AppTextStyles.labelMedium.copyWith(
+                color: dialogContext.textSecondary,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: dialogContext.errorColor,
+              foregroundColor: dialogContext.onError,
+            ),
+            child: const Text(
+              'Remove',
+              style: AppTextStyles.labelMedium,
+            ),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   /// Shows a modal bottom sheet with detailed information about the exercise.

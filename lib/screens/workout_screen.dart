@@ -753,6 +753,15 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
 
                                   await _saveWorkout();
                                 },
+                                onRemoveSet: (setIndex) async {
+                                  setState(() {
+                                    workoutSession.exercises[index]
+                                        .removeSet(setIndex);
+                                  });
+
+                                  // Auto-save the change
+                                  await _saveWorkout();
+                                },
                               ),
                             ),
                           );

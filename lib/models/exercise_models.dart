@@ -447,6 +447,14 @@ class WorkoutExercise {
     sets.add(newSet);
   }
 
+  /// Remove a set from the exercise by index.
+  /// Returns true if the set was removed successfully.
+  bool removeSet(int index) {
+    if (index < 0 || index >= sets.length) return false;
+    sets.removeAt(index);
+    return true;
+  }
+
   /// Creates a copy of this exercise with updated values
   WorkoutExercise copyWith({
     String? id,
