@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -276,7 +277,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
   }
 
   Widget _buildStatItem({
-    required IconData icon,
+    required HugeIconData icon,
     required String label,
     required String value,
     required Color color,
@@ -545,7 +546,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
   }
 
   Widget _buildHistoryStatItem({
-    required IconData icon,
+    required HugeIconData icon,
     required String label,
     required String value,
   }) {

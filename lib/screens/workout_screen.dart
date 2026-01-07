@@ -538,8 +538,8 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
               const DebugIconButton(),
               if (workoutSession.isInProgress) ...[
                 IconButton(
-                  icon: Icon(
-                    HugeIcons.strokeRoundedFloppyDisk,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedFloppyDisk,
                     color: context.onSurface,
                   ),
                   onPressed: () async {

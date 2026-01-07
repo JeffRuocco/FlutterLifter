@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -461,7 +462,7 @@ class _AnimatedLogoState extends State<_AnimatedLogo>
 
 class _SocialLoginButton extends StatelessWidget {
   final VoidCallback? onPressed;
-  final IconData icon;
+  final HugeIconData icon;
   final String label;
   final Color backgroundColor;
   final Color textColor;

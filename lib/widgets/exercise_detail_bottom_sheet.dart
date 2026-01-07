@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../core/theme/app_colors.dart';
@@ -39,7 +40,7 @@ class ExerciseDetailBottomSheet extends StatelessWidget {
     return AppColors.getMuscleGroupColor(primaryMuscle);
   }
 
-  IconData _getCategoryIcon(ExerciseCategory category) {
+  HugeIconData _getCategoryIcon(ExerciseCategory category) {
     switch (category) {
       case ExerciseCategory.strength:
         return HugeIcons.strokeRoundedDumbbell01;

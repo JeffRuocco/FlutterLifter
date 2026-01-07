@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -264,7 +265,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     );
   }
 
-  IconData _getCategoryIcon(ExerciseCategory category) {
+  HugeIconData _getCategoryIcon(ExerciseCategory category) {
     switch (category) {
       case ExerciseCategory.strength:
         return HugeIcons.strokeRoundedDumbbell01;

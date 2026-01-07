@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -367,7 +368,7 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
 
   Widget _buildActionTile(
     BuildContext context, {
-    required IconData icon,
+    required HugeIconData icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -127,7 +128,7 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
           child: EmptyState(
-            icon: HugeIcons.strokeRoundedChart,
+            icon: HugeIcons.strokeRoundedChartLineData01,
             title: 'No History Yet',
             description:
                 'Complete a workout with this exercise to start tracking your progress.',
@@ -355,7 +356,7 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
   }
 
   Widget _buildQuickStatCard({
-    required IconData icon,
+    required HugeIconData icon,
     required String label,
     required String value,
     required Color color,

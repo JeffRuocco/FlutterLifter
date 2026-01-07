@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 
 /// Extension methods for easier access to program details from cycles
 extension ProgramCycleExtensions on ProgramCycle {
@@ -42,5 +43,5 @@ extension ProgramCycleExtensions on ProgramCycle {
   Color? programColor(BuildContext context) => program?.getColor(context);
 
   /// Gets the program icon
-  IconData? get programIcon => program?.icon;
+  HugeIconData? get programIcon => program?.icon;
 }

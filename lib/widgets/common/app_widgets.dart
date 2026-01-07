@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -987,7 +988,7 @@ class HSpace extends AppSpacingWidget {
 /// It provides a consistent look with an icon, title, subtitle, and switch.
 class AppSwitchTile extends StatelessWidget {
   /// The icon to display on the left side of the tile.
-  final IconData icon;
+  final HugeIconData icon;
 
   /// The color of the icon. Defaults to primary color.
   final Color? iconColor;

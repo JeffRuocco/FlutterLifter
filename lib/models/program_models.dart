@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lifter/core/theme/theme_extensions.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:flutter_lifter/models/workout_session_models.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_lifter/utils/utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -1035,16 +1036,16 @@ class Program {
   }
 
   /// Returns the program icon, falling back to a default icon
-  IconData get icon {
+  HugeIconData get icon {
     if (metadata != null && metadata!.containsKey('icon')) {
-      return metadata!['icon'] as IconData;
+      return metadata!['icon'] as HugeIconData;
     }
     // Return a default icon
     return HugeIcons.strokeRoundedDumbbell01;
   }
 
   /// Stores the program icon in metadata
-  Program storeIcon(IconData icon) {
+  Program storeIcon(HugeIconData icon) {
     var updatedMetadata = {...?metadata, 'icon': icon};
     return copyWith(metadata: updatedMetadata);
   }

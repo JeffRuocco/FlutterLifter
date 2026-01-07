@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -94,7 +95,7 @@ class _WidgetGalleryScreenState extends ConsumerState<WidgetGalleryScreen>
 
 class _GalleryTab {
   final String label;
-  final IconData icon;
+  final HugeIconData icon;
 
   const _GalleryTab(this.label, this.icon);
 }
@@ -419,7 +420,7 @@ class _ButtonsGallery extends StatelessWidget {
     );
   }
 
-  IconData _getThemeIcon(ThemeSelection selection) {
+  HugeIconData _getThemeIcon(ThemeSelection selection) {
     switch (selection) {
       case ThemeSelection.light:
         return HugeIcons.strokeRoundedSun01;
@@ -707,7 +708,7 @@ class _IconSizeDemo extends StatelessWidget {
 }
 
 class _IconItem {
-  final IconData icon;
+  final HugeIconData icon;
   final String label;
 
   const _IconItem(this.icon, this.label);

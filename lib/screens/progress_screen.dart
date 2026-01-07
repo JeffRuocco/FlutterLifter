@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -303,7 +304,7 @@ class ProgressScreen extends ConsumerWidget {
 
   Widget _buildFeatureItem(
     BuildContext context, {
-    required IconData icon,
+    required HugeIconData icon,
     required String title,
     required String subtitle,
     required Duration delay,

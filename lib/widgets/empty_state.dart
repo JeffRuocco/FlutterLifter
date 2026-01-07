@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:lottie/lottie.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -9,7 +10,7 @@ import '../core/theme/app_text_styles.dart';
 /// A beautiful empty state widget with optional Lottie animation
 class EmptyState extends StatelessWidget {
   final String? lottieAsset;
-  final IconData? icon;
+  final HugeIconData? icon;
   final String title;
   final String? description;
   final String? actionLabel;
@@ -151,7 +152,7 @@ class EmptyState extends StatelessWidget {
               SizedBox(height: AppSpacing.xl),
               FilledButton.icon(
                 onPressed: onAction,
-                icon: Icon(HugeIcons.strokeRoundedAdd01, size: 18),
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18),
                 label: Text(actionLabel!),
               ),
             ],
@@ -188,7 +189,9 @@ class EmptyState extends StatelessWidget {
         color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, size: iconSize, color: color),
+      child: icon != null
+          ? HugeIcon(icon: icon!, size: iconSize, color: color)
+          : SizedBox.shrink(),
     );
   }
 }

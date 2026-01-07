@@ -271,8 +271,8 @@ class _ProgramCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                HugeIcons.strokeRoundedArrowRight01,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
                 size: AppDimensions.iconSmall,
                 color: context.textSecondary,
               ),

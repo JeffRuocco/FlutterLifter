@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_dimensions.dart';
@@ -343,31 +342,18 @@ class AppTheme {
   }
 
   /// Builds the theme for Switch (button) widgets
+  /// Note: Uses Material Icons for thumbIcon since Flutter's SwitchThemeData.thumbIcon
+  /// requires Icon widget, which is incompatible with HugeIcons 1.x (uses HugeIcon widget)
   static SwitchThemeData _buildSwitchTheme(ColorScheme colorScheme) {
     return SwitchThemeData(
-      // thumbColor: WidgetStateProperty.resolveWith((states) {
-      //   if (states.contains(WidgetState.selected)) {
-      //     return colorScheme.onPrimary;
-      //   }
-      //   return null;
-      // }),
-      // trackColor: WidgetStateProperty.resolveWith((states) {
-      //   if (states.contains(WidgetState.selected)) {
-      //     return colorScheme.primary;
-      //   }
-      //   return null;
-      // }),
       thumbIcon: WidgetStateProperty.resolveWith<Icon?>((
         Set<WidgetState> states,
       ) {
         if (states.contains(WidgetState.disabled)) {
-          return Icon(HugeIcons.strokeRoundedCancel01);
+          return const Icon(Icons.close_rounded);
         }
         if (states.contains(WidgetState.selected)) {
-          return Icon(
-            HugeIcons.strokeRoundedTick02,
-            color: colorScheme.primary,
-          );
+          return Icon(Icons.check_rounded, color: colorScheme.primary);
         }
         return null;
       }),
