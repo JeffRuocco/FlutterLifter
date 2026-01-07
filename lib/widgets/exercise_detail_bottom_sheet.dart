@@ -19,10 +19,7 @@ class ExerciseDetailBottomSheet extends StatelessWidget {
   /// The exercise to display details for
   final Exercise exercise;
 
-  const ExerciseDetailBottomSheet({
-    super.key,
-    required this.exercise,
-  });
+  const ExerciseDetailBottomSheet({super.key, required this.exercise});
 
   /// Shows the exercise detail bottom sheet as a modal.
   static Future<void> show(BuildContext context, Exercise exercise) {

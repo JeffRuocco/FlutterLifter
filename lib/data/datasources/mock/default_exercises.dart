@@ -42,7 +42,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.chest,
         MuscleGroup.triceps,
-        MuscleGroup.shoulders
+        MuscleGroup.shoulders,
       ],
       defaultSets: 3,
       defaultReps: 8,
@@ -59,7 +59,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.upperChest,
         MuscleGroup.shoulders,
-        MuscleGroup.triceps
+        MuscleGroup.triceps,
       ],
       defaultSets: 3,
       defaultReps: 8,
@@ -94,7 +94,7 @@ class DefaultExercises {
         MuscleGroup.hamstrings,
         MuscleGroup.glutes,
         MuscleGroup.back,
-        MuscleGroup.core
+        MuscleGroup.core,
       ],
       defaultSets: 3,
       defaultReps: 5,
@@ -112,7 +112,7 @@ class DefaultExercises {
         MuscleGroup.lats,
         MuscleGroup.rhomboids,
         MuscleGroup.rearDelts,
-        MuscleGroup.biceps
+        MuscleGroup.biceps,
       ],
       defaultSets: 3,
       defaultReps: 8,
@@ -129,7 +129,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.lats,
         MuscleGroup.biceps,
-        MuscleGroup.rhomboids
+        MuscleGroup.rhomboids,
       ],
       defaultSets: 3,
       defaultReps: 10,
@@ -146,7 +146,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.lats,
         MuscleGroup.biceps,
-        MuscleGroup.rhomboids
+        MuscleGroup.rhomboids,
       ],
       defaultSets: 3,
       defaultReps: 10,
@@ -163,7 +163,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.lats,
         MuscleGroup.rhomboids,
-        MuscleGroup.rearDelts
+        MuscleGroup.rearDelts,
       ],
       defaultSets: 3,
       defaultReps: 10,
@@ -184,7 +184,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.shoulders,
         MuscleGroup.triceps,
-        MuscleGroup.core
+        MuscleGroup.core,
       ],
       defaultSets: 3,
       defaultReps: 8,
@@ -214,7 +214,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.rearDelts,
         MuscleGroup.rotatorCuff,
-        MuscleGroup.traps
+        MuscleGroup.traps,
       ],
       defaultSets: 3,
       defaultReps: 15,
@@ -235,7 +235,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.triceps,
         MuscleGroup.chest,
-        MuscleGroup.shoulders
+        MuscleGroup.shoulders,
       ],
       defaultSets: 3,
       defaultReps: 12,
@@ -278,7 +278,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.biceps,
         MuscleGroup.brachialis,
-        MuscleGroup.forearms
+        MuscleGroup.forearms,
       ],
       defaultSets: 3,
       defaultReps: 10,
@@ -300,7 +300,7 @@ class DefaultExercises {
         MuscleGroup.quadriceps,
         MuscleGroup.glutes,
         MuscleGroup.hamstrings,
-        MuscleGroup.core
+        MuscleGroup.core,
       ],
       defaultSets: 4,
       defaultReps: 8,
@@ -317,7 +317,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.quadriceps,
         MuscleGroup.glutes,
-        MuscleGroup.core
+        MuscleGroup.core,
       ],
       defaultSets: 3,
       defaultReps: 8,
@@ -334,7 +334,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.quadriceps,
         MuscleGroup.glutes,
-        MuscleGroup.hamstrings
+        MuscleGroup.hamstrings,
       ],
       defaultSets: 3,
       defaultReps: 12,
@@ -351,7 +351,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.quadriceps,
         MuscleGroup.glutes,
-        MuscleGroup.hamstrings
+        MuscleGroup.hamstrings,
       ],
       defaultSets: 3,
       defaultReps: 10,
@@ -368,7 +368,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.hamstrings,
         MuscleGroup.glutes,
-        MuscleGroup.lowerBack
+        MuscleGroup.lowerBack,
       ],
       defaultSets: 3,
       defaultReps: 10,
@@ -496,7 +496,7 @@ class DefaultExercises {
         MuscleGroup.back,
         MuscleGroup.legs,
         MuscleGroup.arms,
-        MuscleGroup.cardiovascular
+        MuscleGroup.cardiovascular,
       ],
       defaultSets: 1,
       defaultReps: 20, // minutes
@@ -512,7 +512,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.calves,
         MuscleGroup.shoulders,
-        MuscleGroup.cardiovascular
+        MuscleGroup.cardiovascular,
       ],
       defaultSets: 3,
       defaultReps: 100, // skips
@@ -586,7 +586,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.quadriceps,
         MuscleGroup.glutes,
-        MuscleGroup.core
+        MuscleGroup.core,
       ],
       defaultSets: 3,
       defaultReps: 12,
@@ -620,7 +620,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.core,
         MuscleGroup.shoulders,
-        MuscleGroup.cardiovascular
+        MuscleGroup.cardiovascular,
       ],
       defaultSets: 3,
       defaultReps: 30, // per side
@@ -637,7 +637,7 @@ class DefaultExercises {
         MuscleGroup.glutes,
         MuscleGroup.hamstrings,
         MuscleGroup.core,
-        MuscleGroup.shoulders
+        MuscleGroup.shoulders,
       ],
       defaultSets: 3,
       defaultReps: 20,
@@ -658,7 +658,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.quadriceps,
         MuscleGroup.glutes,
-        MuscleGroup.calves
+        MuscleGroup.calves,
       ],
       defaultSets: 3,
       defaultReps: 10,
@@ -675,7 +675,7 @@ class DefaultExercises {
       targetMuscleGroups: [
         MuscleGroup.core,
         MuscleGroup.shoulders,
-        MuscleGroup.lats
+        MuscleGroup.lats,
       ],
       defaultSets: 3,
       defaultReps: 12,
@@ -693,7 +693,7 @@ class DefaultExercises {
         MuscleGroup.arms,
         MuscleGroup.shoulders,
         MuscleGroup.core,
-        MuscleGroup.cardiovascular
+        MuscleGroup.cardiovascular,
       ],
       defaultSets: 3,
       defaultReps: 30, // seconds

@@ -21,10 +21,7 @@ class ThemeEditorScreen extends ConsumerStatefulWidget {
   /// If provided, edit this theme; otherwise create a new one
   final String? editThemeId;
 
-  const ThemeEditorScreen({
-    super.key,
-    this.editThemeId,
-  });
+  const ThemeEditorScreen({super.key, this.editThemeId});
 
   @override
   ConsumerState<ThemeEditorScreen> createState() => _ThemeEditorScreenState();
@@ -326,9 +323,7 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: AppTextStyles.titleSmall.copyWith(
-        fontWeight: FontWeight.bold,
-      ),
+      style: AppTextStyles.titleSmall.copyWith(fontWeight: FontWeight.bold),
     );
   }
 
@@ -340,9 +335,7 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
       children: [
         Text(
           'Test in:',
-          style: AppTextStyles.bodySmall.copyWith(
-            color: context.textSecondary,
-          ),
+          style: AppTextStyles.bodySmall.copyWith(color: context.textSecondary),
         ),
         const SizedBox(width: AppSpacing.md),
         SegmentedButton<ThemeMode>(
@@ -359,7 +352,7 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
             ),
           ],
           selected: {
-            themeMode == ThemeMode.system ? ThemeMode.light : themeMode
+            themeMode == ThemeMode.system ? ThemeMode.light : themeMode,
           },
           onSelectionChanged: (selection) {
             themeNotifier.setThemeMode(selection.first);
@@ -370,10 +363,14 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
   }
 
   Widget _buildContrastInfo(BuildContext context, Color surfaceColor) {
-    final primaryContrast =
-        ContrastUtils.getContrastLevel(_primaryColor, surfaceColor);
-    final secondaryContrast =
-        ContrastUtils.getContrastLevel(_secondaryColor, surfaceColor);
+    final primaryContrast = ContrastUtils.getContrastLevel(
+      _primaryColor,
+      surfaceColor,
+    );
+    final secondaryContrast = ContrastUtils.getContrastLevel(
+      _secondaryColor,
+      surfaceColor,
+    );
 
     return AppCard.outlined(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -427,12 +424,7 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(
-            label,
-            style: AppTextStyles.bodySmall,
-          ),
-        ),
+        Expanded(child: Text(label, style: AppTextStyles.bodySmall)),
         Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,
@@ -440,8 +432,9 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
           ),
           decoration: BoxDecoration(
             color: level.indicatorColor.withValues(alpha: 0.1),
-            borderRadius:
-                BorderRadius.circular(AppDimensions.borderRadiusSmall),
+            borderRadius: BorderRadius.circular(
+              AppDimensions.borderRadiusSmall,
+            ),
           ),
           child: Text(
             level.label,
@@ -460,8 +453,9 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Theme'),
-        content:
-            Text('Are you sure you want to delete "${_existingTheme?.name}"?'),
+        content: Text(
+          'Are you sure you want to delete "${_existingTheme?.name}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -469,9 +463,7 @@ class _ThemeEditorScreenState extends ConsumerState<ThemeEditorScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: context.errorColor,
-            ),
+            style: TextButton.styleFrom(foregroundColor: context.errorColor),
             child: const Text('Delete'),
           ),
         ],

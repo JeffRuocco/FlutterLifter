@@ -56,10 +56,7 @@ class _SuccessConfettiState extends State<SuccessConfetti>
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
+    _controller = AnimationController(vsync: this, duration: widget.duration);
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -76,7 +73,8 @@ class _SuccessConfettiState extends State<SuccessConfetti>
     super.didChangeDependencies();
     // Initialize colors with theme context (safe to access here)
     if (!_colorsInitialized) {
-      _colors = widget.colors ??
+      _colors =
+          widget.colors ??
           [
             context.primaryColor,
             context.secondaryColor,
@@ -167,12 +165,7 @@ class _SuccessConfettiState extends State<SuccessConfetti>
 }
 
 /// Confetti particle shape types
-enum ConfettiShape {
-  circle,
-  square,
-  rectangle,
-  star,
-}
+enum ConfettiShape { circle, square, rectangle, star }
 
 /// Individual confetti particle data
 class ConfettiParticle {
@@ -206,10 +199,7 @@ class ConfettiPainter extends CustomPainter {
   final List<ConfettiParticle> particles;
   final double progress;
 
-  ConfettiPainter({
-    required this.particles,
-    required this.progress,
-  });
+  ConfettiPainter({required this.particles, required this.progress});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -227,11 +217,13 @@ class ConfettiPainter extends CustomPainter {
       // Horizontal wobble using sine wave
       final wobble = sin(adjustedProgress * 10) * particle.horizontalWobble;
 
-      final x = size.width *
+      final x =
+          size.width *
           (particle.startX +
               (particle.endX - particle.startX) * easedProgress +
               wobble);
-      final y = size.height *
+      final y =
+          size.height *
           (particle.startY +
               (particle.endY - particle.startY) * gravityProgress);
 
@@ -239,8 +231,9 @@ class ConfettiPainter extends CustomPainter {
       final rotation = adjustedProgress * particle.rotationSpeed * pi;
 
       // Calculate opacity (fade out at the end)
-      final opacity =
-          adjustedProgress > 0.7 ? 1.0 - ((adjustedProgress - 0.7) / 0.3) : 1.0;
+      final opacity = adjustedProgress > 0.7
+          ? 1.0 - ((adjustedProgress - 0.7) / 0.3)
+          : 1.0;
 
       final paint = Paint()
         ..color = particle.color.withValues(alpha: opacity)
@@ -257,7 +250,11 @@ class ConfettiPainter extends CustomPainter {
   }
 
   void _drawShape(
-      Canvas canvas, ConfettiShape shape, double size, Paint paint) {
+    Canvas canvas,
+    ConfettiShape shape,
+    double size,
+    Paint paint,
+  ) {
     switch (shape) {
       case ConfettiShape.circle:
         canvas.drawCircle(Offset.zero, size / 2, paint);

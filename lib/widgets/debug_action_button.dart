@@ -15,9 +15,7 @@ class DebugActionButton extends ConsumerWidget {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const DebugSettingsScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const DebugSettingsScreen()),
     );
   }
 
@@ -35,18 +33,16 @@ class DebugActionButton extends ConsumerWidget {
         return FloatingActionButton.small(
           onPressed: () => _openDebugSettings(context),
           backgroundColor: Colors.orange[700],
-          foregroundColor:
-              ColorUtils.getContrastingTextColor(Colors.orange[700]!),
+          foregroundColor: ColorUtils.getContrastingTextColor(
+            Colors.orange[700]!,
+          ),
           tooltip: 'Debug Settings',
           heroTag: 'debug_settings_fab', // Unique hero tag to avoid conflicts
-          child: const Icon(
-            Icons.bug_report,
-            size: 20,
-          ),
+          child: const Icon(Icons.bug_report, size: 20),
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
@@ -60,9 +56,7 @@ class DebugIconButton extends ConsumerWidget {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const DebugSettingsScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const DebugSettingsScreen()),
     );
   }
 
@@ -79,15 +73,12 @@ class DebugIconButton extends ConsumerWidget {
 
         return IconButton(
           onPressed: () => _openDebugSettings(context),
-          icon: Icon(
-            Icons.bug_report,
-            color: Colors.orange[700],
-          ),
+          icon: Icon(Icons.bug_report, color: Colors.orange[700]),
           tooltip: 'Debug Settings',
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

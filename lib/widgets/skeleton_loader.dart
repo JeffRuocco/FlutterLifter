@@ -34,7 +34,8 @@ class SkeletonBase extends ConsumerWidget {
       margin: margin,
       decoration: BoxDecoration(
         color: baseColor,
-        borderRadius: borderRadius ??
+        borderRadius:
+            borderRadius ??
             BorderRadius.circular(AppDimensions.borderRadiusSmall),
       ),
     );
@@ -99,10 +100,7 @@ class SkeletonText extends StatelessWidget {
 class SkeletonAvatar extends StatelessWidget {
   final double size;
 
-  const SkeletonAvatar({
-    super.key,
-    this.size = 48,
-  });
+  const SkeletonAvatar({super.key, this.size = 48});
 
   @override
   Widget build(BuildContext context) {
@@ -120,12 +118,7 @@ class SkeletonCard extends StatelessWidget {
   final double height;
   final EdgeInsetsGeometry? margin;
 
-  const SkeletonCard({
-    super.key,
-    this.width,
-    this.height = 120,
-    this.margin,
-  });
+  const SkeletonCard({super.key, this.width, this.height = 120, this.margin});
 
   @override
   Widget build(BuildContext context) {
@@ -147,10 +140,9 @@ class SkeletonExerciseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
       ),
       child: Row(
@@ -198,10 +190,9 @@ class SkeletonWorkoutCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
       ),
       child: Column(
@@ -226,15 +217,17 @@ class SkeletonWorkoutCard extends StatelessWidget {
               SkeletonBase(
                 width: 100,
                 height: 32,
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                borderRadius: BorderRadius.circular(
+                  AppDimensions.borderRadiusSmall,
+                ),
               ),
               SizedBox(width: AppSpacing.sm),
               SkeletonBase(
                 width: 100,
                 height: 32,
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                borderRadius: BorderRadius.circular(
+                  AppDimensions.borderRadiusSmall,
+                ),
               ),
             ],
           ),
@@ -266,7 +259,7 @@ class SkeletonList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: itemCount,
-      separatorBuilder: (_, __) => SizedBox(height: spacing),
+      separatorBuilder: (_, _) => SizedBox(height: spacing),
       itemBuilder: itemBuilder,
     );
   }

@@ -15,10 +15,7 @@ import '../core/theme/theme_extensions.dart';
 class WorkoutServiceExample extends ConsumerStatefulWidget {
   final WorkoutSession workoutSession;
 
-  const WorkoutServiceExample({
-    super.key,
-    required this.workoutSession,
-  });
+  const WorkoutServiceExample({super.key, required this.workoutSession});
 
   @override
   ConsumerState<WorkoutServiceExample> createState() =>
@@ -194,9 +191,7 @@ class _WorkoutServiceExampleState extends ConsumerState<WorkoutServiceExample> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
             child: const Text('Finish Anyway'),
           ),
         ],
@@ -230,9 +225,7 @@ class _WorkoutServiceExampleState extends ConsumerState<WorkoutServiceExample> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Cancel Workout'),
           ),
         ],
@@ -258,9 +251,7 @@ class _WorkoutServiceExampleState extends ConsumerState<WorkoutServiceExample> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_errorMessage != null) {
@@ -306,8 +297,9 @@ class _WorkoutServiceExampleState extends ConsumerState<WorkoutServiceExample> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color:
-                isWorkoutActive ? Colors.green.shade100 : Colors.grey.shade100,
+            color: isWorkoutActive
+                ? Colors.green.shade100
+                : Colors.grey.shade100,
             child: Row(
               children: [
                 Icon(
@@ -348,7 +340,8 @@ class _WorkoutServiceExampleState extends ConsumerState<WorkoutServiceExample> {
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: (widget.workoutSession.exercises.isNotEmpty &&
+                    onPressed:
+                        (widget.workoutSession.exercises.isNotEmpty &&
                             widget.workoutSession.exercises[0].sets.isNotEmpty)
                         ? () => _onSetCompleted(0, 0)
                         : null,

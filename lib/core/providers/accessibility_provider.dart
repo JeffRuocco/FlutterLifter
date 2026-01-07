@@ -5,25 +5,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AccessibilityState {
   final bool reduceMotion;
 
-  const AccessibilityState({
-    this.reduceMotion = false,
-  });
+  const AccessibilityState({this.reduceMotion = false});
 
-  AccessibilityState copyWith({
-    bool? reduceMotion,
-  }) {
-    return AccessibilityState(
-      reduceMotion: reduceMotion ?? this.reduceMotion,
-    );
+  AccessibilityState copyWith({bool? reduceMotion}) {
+    return AccessibilityState(reduceMotion: reduceMotion ?? this.reduceMotion);
   }
 }
 
 /// Notifier for managing accessibility settings
-class AccessibilityNotifier extends StateNotifier<AccessibilityState> {
+class AccessibilityNotifier extends Notifier<AccessibilityState> {
   static const String _reduceMotionKey = 'accessibility_reduce_motion';
 
-  AccessibilityNotifier() : super(const AccessibilityState()) {
+  @override
+  AccessibilityState build() {
     _loadSettings();
+    return const AccessibilityState();
   }
 
   Future<void> _loadSettings() async {
@@ -45,9 +41,9 @@ class AccessibilityNotifier extends StateNotifier<AccessibilityState> {
 
 /// Provider for accessibility settings
 final accessibilityNotifierProvider =
-    StateNotifierProvider<AccessibilityNotifier, AccessibilityState>((ref) {
-  return AccessibilityNotifier();
-});
+    NotifierProvider<AccessibilityNotifier, AccessibilityState>(
+      AccessibilityNotifier.new,
+    );
 
 /// Convenience provider for reduce motion setting
 final reduceMotionProvider = Provider<bool>((ref) {

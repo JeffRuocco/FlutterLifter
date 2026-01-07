@@ -12,8 +12,11 @@ class ProgramCycleManagementExample {
       name: "Push/Pull/Legs",
       type: ProgramType.strength,
       difficulty: ProgramDifficulty.intermediate,
-      defaultPeriodicity:
-          const WorkoutPeriodicity.weekly([1, 3, 5]), // Mon, Wed, Fri
+      defaultPeriodicity: const WorkoutPeriodicity.weekly([
+        1,
+        3,
+        5,
+      ]), // Mon, Wed, Fri
     );
 
     print('Created program: ${program.name}');
@@ -54,7 +57,8 @@ class ProgramCycleManagementExample {
       print('\nCycles that can be activated now: ${activatableCycles.length}');
       for (final cycle in activatableCycles) {
         print(
-            '- Cycle ${cycle.cycleNumber}: ${cycle.startDate} to ${cycle.effectiveEndDate}');
+          '- Cycle ${cycle.cycleNumber}: ${cycle.startDate} to ${cycle.effectiveEndDate}',
+        );
       }
 
       // Try to add an overlapping cycle (should fail)
@@ -131,7 +135,8 @@ class ProgramCycleManagementExample {
       notes: "Cycle 1",
     );
     print(
-        'Added Cycle 1: $baseDate to ${baseDate.add(const Duration(days: 30))}');
+      'Added Cycle 1: $baseDate to ${baseDate.add(const Duration(days: 30))}',
+    );
 
     // Try overlapping cycles (should fail)
     final testCases = [
@@ -195,7 +200,8 @@ extension ProgramDebugExtensions on Program {
       print('  Number: ${cycle.cycleNumber}');
       print('  Start: ${cycle.startDate}');
       print(
-          '  End: ${cycle.endDate ?? 'None (defaults to ${cycle.effectiveEndDate})'}');
+        '  End: ${cycle.endDate ?? 'None (defaults to ${cycle.effectiveEndDate})'}',
+      );
       print('  Active: ${cycle.isActive}');
       print('  Completed: ${cycle.isCompleted}');
       print('  Currently Active: ${cycle.isCurrentlyActive}');

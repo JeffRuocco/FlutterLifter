@@ -20,9 +20,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Pass all uncaught errors from the framework to Crashlytics in release mode
   if (!kDebugMode) {
@@ -48,15 +46,14 @@ void main() async {
 
   // Set initial PWA theme color
   WebThemeHelper.setMetaThemeColor(
-      AppTheme.lightTheme.appBarTheme.backgroundColor?.toHex() ?? '#FFFFFF');
+    AppTheme.lightTheme.appBarTheme.backgroundColor?.toHex() ?? '#FFFFFF',
+  );
 
   runApp(
     ProviderScope(
       overrides: [
         // Override theme mode notifier with initialized SharedPreferences
-        themeModeNotifierProvider.overrideWith(
-          (ref) => ThemeModeNotifier(sharedPreferences),
-        ),
+        createThemeModeProviderOverride(sharedPreferences),
         // Override custom theme providers
         ...createThemeProviderOverrides(sharedPreferences),
       ],

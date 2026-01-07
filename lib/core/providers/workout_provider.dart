@@ -82,11 +82,9 @@ final workoutServiceProvider = Provider<WorkoutService>((ref) {
 /// final notifier = ref.read(workoutNotifierProvider.notifier);
 /// await notifier.startWorkout(session);
 /// ```
-final workoutNotifierProvider =
-    StateNotifierProvider<WorkoutNotifier, WorkoutState>((ref) {
-  final workoutService = ref.watch(workoutServiceProvider);
-  return WorkoutNotifier(workoutService, ref);
-});
+final workoutNotifierProvider = NotifierProvider<WorkoutNotifier, WorkoutState>(
+  WorkoutNotifier.new,
+);
 
 /// Convenience provider for accessing just the current workout session.
 ///
@@ -131,13 +129,14 @@ final hasActiveWorkoutProvider = Provider<bool>((ref) {
 ///   error: (e, _) => Text('Error: $e'),
 /// );
 /// ```
-final workoutHistoryProvider =
-    FutureProvider<List<WorkoutSession>>((ref) async {
+final workoutHistoryProvider = FutureProvider<List<WorkoutSession>>((
+  ref,
+) async {
   final workoutService = ref.watch(workoutServiceProvider);
   return workoutService.getWorkoutHistory();
 });
 
-/// StateNotifier that wraps [WorkoutService] for reactive UI state management.
+/// Notifier that wraps [WorkoutService] for reactive UI state management.
 ///
 /// ## Purpose
 /// This is the **state management layer** that bridges [WorkoutService] (business
@@ -170,12 +169,14 @@ final workoutHistoryProvider =
 /// See also:
 /// - [WorkoutService] - The underlying business logic layer
 /// - [WorkoutState] - The immutable state class this notifier manages
-class WorkoutNotifier extends StateNotifier<WorkoutState> {
-  final WorkoutService _workoutService;
-  final Ref _ref;
+class WorkoutNotifier extends Notifier<WorkoutState> {
+  late WorkoutService _workoutService;
 
-  WorkoutNotifier(this._workoutService, this._ref)
-      : super(const WorkoutState());
+  @override
+  WorkoutState build() {
+    _workoutService = ref.watch(workoutServiceProvider);
+    return const WorkoutState();
+  }
 
   /// Load the next available workout session from the active program cycle
   ///
@@ -184,33 +185,22 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
   Future<void> loadNextWorkout() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final repository = _ref.read(programRepositoryProvider);
+      final repository = ref.read(programRepositoryProvider);
       final programs = await repository.getPrograms();
 
       // Find the active program with an active cycle
       final activeProgram = programs
-          .where(
-            (program) => program.activeCycle != null,
-          )
+          .where((program) => program.activeCycle != null)
           .firstOrNull;
 
       if (activeProgram != null) {
         final nextSession = activeProgram.activeCycle?.currentWorkoutSession;
-        state = state.copyWith(
-          currentWorkout: nextSession,
-          isLoading: false,
-        );
+        state = state.copyWith(currentWorkout: nextSession, isLoading: false);
       } else {
-        state = state.copyWith(
-          currentWorkout: null,
-          isLoading: false,
-        );
+        state = state.copyWith(currentWorkout: null, isLoading: false);
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -229,10 +219,7 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -260,15 +247,9 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
       }
 
       await _workoutService.finishWorkout();
-      state = state.copyWith(
-        currentWorkout: null,
-        isLoading: false,
-      );
+      state = state.copyWith(currentWorkout: null, isLoading: false);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -278,15 +259,17 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
   /// that has at least one completed set with recorded weight/reps.
   /// Called automatically when a workout is finished.
   Future<void> _recordExerciseHistory(WorkoutSession workout) async {
-    final historyRepo = _ref.read(exerciseHistoryRepositoryProvider);
+    final historyRepo = ref.read(exerciseHistoryRepositoryProvider);
 
     for (final workoutExercise in workout.exercises) {
       // Get only completed sets with actual recorded values
       final completedSets = workoutExercise.sets
-          .where((set) =>
-              set.isCompleted &&
-              set.actualWeight != null &&
-              set.actualReps != null)
+          .where(
+            (set) =>
+                set.isCompleted &&
+                set.actualWeight != null &&
+                set.actualReps != null,
+          )
           .toList();
 
       // Skip if no completed sets with data
@@ -296,13 +279,15 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
       final setRecords = <ExerciseSetRecord>[];
       for (var i = 0; i < completedSets.length; i++) {
         final set = completedSets[i];
-        setRecords.add(ExerciseSetRecord.create(
-          setNumber: i + 1,
-          weight: set.actualWeight!,
-          reps: set.actualReps!,
-          isWarmup: false, // Could be determined by set position/weight
-          notes: set.notes,
-        ));
+        setRecords.add(
+          ExerciseSetRecord.create(
+            setNumber: i + 1,
+            weight: set.actualWeight!,
+            reps: set.actualReps!,
+            isWarmup: false, // Could be determined by set position/weight
+            notes: set.notes,
+          ),
+        );
       }
 
       // Create the session record
@@ -324,15 +309,9 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       await _workoutService.cancelWorkout();
-      state = state.copyWith(
-        currentWorkout: null,
-        isLoading: false,
-      );
+      state = state.copyWith(currentWorkout: null, isLoading: false);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -346,10 +325,7 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -383,11 +359,7 @@ class WorkoutState {
   final bool isLoading;
   final String? error;
 
-  const WorkoutState({
-    this.currentWorkout,
-    this.isLoading = false,
-    this.error,
-  });
+  const WorkoutState({this.currentWorkout, this.isLoading = false, this.error});
 
   bool get hasActiveWorkout => currentWorkout?.isInProgress == true;
 

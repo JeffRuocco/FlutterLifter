@@ -206,7 +206,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       color: context.secondaryColor,
                       onTap: () {
                         showInfoMessage(
-                            context, 'Workout history coming soon!');
+                          context,
+                          'Workout history coming soon!',
+                        );
                       },
                     ),
                   ),
@@ -227,10 +229,7 @@ class _HeroWorkoutCard extends StatelessWidget {
   final dynamic workoutSession;
   final VoidCallback? onStartWorkout;
 
-  const _HeroWorkoutCard({
-    required this.workoutSession,
-    this.onStartWorkout,
-  });
+  const _HeroWorkoutCard({required this.workoutSession, this.onStartWorkout});
 
   @override
   Widget build(BuildContext context) {
@@ -239,10 +238,7 @@ class _HeroWorkoutCard extends StatelessWidget {
     return AppCard.gradient(
       gradientColors: hasWorkout
           ? context.primaryGradient
-          : [
-              context.surfaceVariant,
-              context.surfaceVariant,
-            ],
+          : [context.surfaceVariant, context.surfaceVariant],
       padding: const EdgeInsets.all(AppSpacing.lg),
       onTap: onStartWorkout,
       child: Column(
@@ -259,8 +255,9 @@ class _HeroWorkoutCard extends StatelessWidget {
                     ? ColorUtils.getContrastingTextColor(context.primaryColor)
                     : context.primaryColor,
                 backgroundColor: hasWorkout
-                    ? ColorUtils.getContrastingTextColor(context.primaryColor)
-                        .withValues(alpha: 0.3)
+                    ? ColorUtils.getContrastingTextColor(
+                        context.primaryColor,
+                      ).withValues(alpha: 0.3)
                     : context.outlineVariant,
                 child: HugeIcon(
                   icon: hasWorkout
@@ -283,7 +280,8 @@ class _HeroWorkoutCard extends StatelessWidget {
                       style: AppTextStyles.titleLarge.copyWith(
                         color: hasWorkout
                             ? ColorUtils.getContrastingTextColor(
-                                context.primaryColor)
+                                context.primaryColor,
+                              )
                             : context.textPrimary,
                         fontWeight: FontWeight.bold,
                       ),
@@ -296,8 +294,8 @@ class _HeroWorkoutCard extends StatelessWidget {
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: hasWorkout
                             ? ColorUtils.getContrastingTextColor(
-                                    context.primaryColor)
-                                .withValues(alpha: 0.9)
+                                context.primaryColor,
+                              ).withValues(alpha: 0.9)
                             : context.textSecondary,
                       ),
                     ),
@@ -354,8 +352,9 @@ class _WorkoutStat extends StatelessWidget {
       children: [
         HugeIcon(
           icon: icon,
-          color: ColorUtils.getContrastingTextColor(context.primaryColor)
-              .withValues(alpha: 0.8),
+          color: ColorUtils.getContrastingTextColor(
+            context.primaryColor,
+          ).withValues(alpha: 0.8),
           size: 20,
         ),
         const SizedBox(height: AppSpacing.xs),
@@ -369,8 +368,9 @@ class _WorkoutStat extends StatelessWidget {
         Text(
           label,
           style: AppTextStyles.bodySmall.copyWith(
-            color: ColorUtils.getContrastingTextColor(context.primaryColor)
-                .withValues(alpha: 0.7),
+            color: ColorUtils.getContrastingTextColor(
+              context.primaryColor,
+            ).withValues(alpha: 0.7),
           ),
         ),
       ],

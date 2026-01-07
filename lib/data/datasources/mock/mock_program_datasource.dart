@@ -22,19 +22,18 @@ class MockProgramDataSource implements ProgramDataSource {
   Future<List<Program>> getPrograms() async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
-    return List.from(_programs)
-      ..sort((a, b) {
-        final aDate = a.lastCompletedWorkoutSession?.date;
-        final bDate = b.lastCompletedWorkoutSession?.date;
+    return List.from(_programs)..sort((a, b) {
+      final aDate = a.lastCompletedWorkoutSession?.date;
+      final bDate = b.lastCompletedWorkoutSession?.date;
 
-        // Handle null dates - programs without completed sessions go to end
-        if (bDate == null && aDate == null) return 0;
-        if (bDate == null) return -1; // a comes first (has completed session)
-        if (aDate == null) return 1; // b comes first (has completed session)
+      // Handle null dates - programs without completed sessions go to end
+      if (bDate == null && aDate == null) return 0;
+      if (bDate == null) return -1; // a comes first (has completed session)
+      if (aDate == null) return 1; // b comes first (has completed session)
 
-        // Most recent first (descending order)
-        return bDate.compareTo(aDate);
-      });
+      // Most recent first (descending order)
+      return bDate.compareTo(aDate);
+    });
   }
 
   @override
@@ -82,7 +81,8 @@ class MockProgramDataSource implements ProgramDataSource {
 
   /// Get programs by difficulty level
   Future<List<Program>> getProgramsByDifficulty(
-      ProgramDifficulty difficulty) async {
+    ProgramDifficulty difficulty,
+  ) async {
     await Future.delayed(const Duration(milliseconds: 200));
     return _programs
         .where((program) => program.difficulty == difficulty)

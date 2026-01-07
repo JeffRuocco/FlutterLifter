@@ -158,11 +158,10 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
               ),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.15),
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.borderRadiusSmall),
-                border: Border.all(
-                  color: color.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(
+                  AppDimensions.borderRadiusSmall,
                 ),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
               ),
               child: Text(
                 mg.displayName,
@@ -221,11 +220,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
                   color: context.primaryColor,
                 ),
               ),
-              Container(
-                width: 1,
-                height: 60,
-                color: context.outlineVariant,
-              ),
+              Container(width: 1, height: 60, color: context.outlineVariant),
               Expanded(
                 child: _buildStatItem(
                   icon: HugeIcons.strokeRoundedTarget01,
@@ -234,17 +229,14 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
                   color: context.infoColor,
                 ),
               ),
-              Container(
-                width: 1,
-                height: 60,
-                color: context.outlineVariant,
-              ),
+              Container(width: 1, height: 60, color: context.outlineVariant),
               Expanded(
                 child: _buildStatItem(
                   icon: HugeIcons.strokeRoundedClock01,
                   label: 'Rest',
-                  value:
-                      _formatRestTime(widget.exercise.defaultRestTimeSeconds),
+                  value: _formatRestTime(
+                    widget.exercise.defaultRestTimeSeconds,
+                  ),
                   color: context.warningColor,
                 ),
               ),
@@ -293,11 +285,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       child: Column(
         children: [
-          HugeIcon(
-            icon: icon,
-            color: color,
-            size: AppDimensions.iconLarge,
-          ),
+          HugeIcon(icon: icon, color: color, size: AppDimensions.iconLarge),
           const VSpace.xs(),
           Text(
             value,
@@ -328,9 +316,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
 
   Widget _buildHistorySection() {
     if (_isLoadingHistory) {
-      return const AppCard(
-        child: SkeletonCard(height: 100),
-      );
+      return const AppCard(child: SkeletonCard(height: 100));
     }
 
     final hasHistory = _history != null && _history!.hasHistory;
@@ -457,9 +443,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
-        border: Border.all(
-          color: context.successColor.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: context.successColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -549,10 +533,10 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
             label: 'Last Done',
             value: daysSince != null
                 ? (daysSince == 0
-                    ? 'Today'
-                    : daysSince == 1
-                        ? 'Yesterday'
-                        : '$daysSince days')
+                      ? 'Today'
+                      : daysSince == 1
+                      ? 'Yesterday'
+                      : '$daysSince days')
                 : 'Never',
           ),
         ),
@@ -573,11 +557,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
       ),
       child: Column(
         children: [
-          HugeIcon(
-            icon: icon,
-            color: context.textSecondary,
-            size: 16,
-          ),
+          HugeIcon(icon: icon, color: context.textSecondary, size: 16),
           const VSpace.xs(),
           Text(
             value,
@@ -657,10 +637,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
           ),
           if (isPR)
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 6,
-                vertical: 2,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: context.successColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(4),
@@ -780,8 +757,9 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
             height: 160,
             decoration: BoxDecoration(
               color: context.surfaceVariant,
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.borderRadiusMedium),
+              borderRadius: BorderRadius.circular(
+                AppDimensions.borderRadiusMedium,
+              ),
             ),
             child: Center(
               child: Column(

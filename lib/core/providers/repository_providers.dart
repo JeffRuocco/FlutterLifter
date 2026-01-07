@@ -24,8 +24,9 @@ final programLocalDataSourceProvider = Provider<ProgramLocalDataSource>((ref) {
 });
 
 /// Provider for ExerciseLocalDataSource
-final exerciseLocalDataSourceProvider =
-    Provider<ExerciseLocalDataSource>((ref) {
+final exerciseLocalDataSourceProvider = Provider<ExerciseLocalDataSource>((
+  ref,
+) {
   return ExerciseLocalDataSourceImpl();
 });
 
@@ -98,9 +99,7 @@ final programRepositoryProvider = Provider<ProgramRepository>((ref) {
 /// Currently configured for development with mock data.
 final exerciseRepositoryProvider = Provider<ExerciseRepository>((ref) {
   final localDataSource = ref.watch(exerciseLocalDataSourceProvider);
-  return ExerciseRepositoryImpl.development(
-    localDataSource: localDataSource,
-  );
+  return ExerciseRepositoryImpl.development(localDataSource: localDataSource);
 });
 
 /// Provider for [ExerciseHistoryRepository] - direct repository access.
@@ -117,8 +116,9 @@ final exerciseRepositoryProvider = Provider<ExerciseRepository>((ref) {
 /// ```
 ///
 /// Currently configured for development with mock data.
-final exerciseHistoryRepositoryProvider =
-    Provider<ExerciseHistoryRepository>((ref) {
+final exerciseHistoryRepositoryProvider = Provider<ExerciseHistoryRepository>((
+  ref,
+) {
   return DevExerciseHistoryRepository();
 });
 
@@ -163,8 +163,10 @@ final programsProvider = FutureProvider<List<Program>>((ref) async {
 /// ```dart
 /// final programAsync = ref.watch(programByIdProvider('program-123'));
 /// ```
-final programByIdProvider =
-    FutureProvider.family<Program?, String>((ref, id) async {
+final programByIdProvider = FutureProvider.family<Program?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(programRepositoryProvider);
   return repository.getProgramById(id);
 });
@@ -178,11 +180,13 @@ final programByIdProvider =
 /// );
 /// ```
 final programsByDifficultyProvider =
-    FutureProvider.family<List<Program>, ProgramDifficulty>(
-        (ref, difficulty) async {
-  final repository = ref.watch(programRepositoryProvider);
-  return repository.getProgramsByDifficulty(difficulty);
-});
+    FutureProvider.family<List<Program>, ProgramDifficulty>((
+      ref,
+      difficulty,
+    ) async {
+      final repository = ref.watch(programRepositoryProvider);
+      return repository.getProgramsByDifficulty(difficulty);
+    });
 
 /// FutureProvider for all exercises - async with loading/error states.
 ///
@@ -218,8 +222,10 @@ final exercisesProvider = FutureProvider<List<Exercise>>((ref) async {
 /// ```dart
 /// final exerciseAsync = ref.watch(exerciseByIdProvider('exercise-456'));
 /// ```
-final exerciseByIdProvider =
-    FutureProvider.family<Exercise?, String>((ref, id) async {
+final exerciseByIdProvider = FutureProvider.family<Exercise?, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(exerciseRepositoryProvider);
   return repository.getExerciseById(id);
 });
@@ -233,11 +239,13 @@ final exerciseByIdProvider =
 /// );
 /// ```
 final exercisesByCategoryProvider =
-    FutureProvider.family<List<Exercise>, ExerciseCategory>(
-        (ref, category) async {
-  final repository = ref.watch(exerciseRepositoryProvider);
-  return repository.getExercisesByCategory(category);
-});
+    FutureProvider.family<List<Exercise>, ExerciseCategory>((
+      ref,
+      category,
+    ) async {
+      final repository = ref.watch(exerciseRepositoryProvider);
+      return repository.getExercisesByCategory(category);
+    });
 
 /// FutureProvider for searching exercises by name or muscle group.
 ///
@@ -245,8 +253,10 @@ final exercisesByCategoryProvider =
 /// ```dart
 /// final results = ref.watch(searchExercisesProvider('bench press'));
 /// ```
-final searchExercisesProvider =
-    FutureProvider.family<List<Exercise>, String>((ref, query) async {
+final searchExercisesProvider = FutureProvider.family<List<Exercise>, String>((
+  ref,
+  query,
+) async {
   final repository = ref.watch(exerciseRepositoryProvider);
   return repository.searchExercises(query);
 });
@@ -269,8 +279,10 @@ final searchExercisesProvider =
 ///   error: (e, _) => null,
 /// );
 /// ```
-final exercisePRProvider =
-    FutureProvider.family<double?, String>((ref, exerciseId) async {
+final exercisePRProvider = FutureProvider.family<double?, String>((
+  ref,
+  exerciseId,
+) async {
   final repository = ref.watch(exerciseHistoryRepositoryProvider);
   return repository.getAllTimePR(exerciseId);
 });
@@ -285,9 +297,11 @@ final exercisePRProvider =
 /// final lastSessionAsync = ref.watch(lastExerciseSessionProvider('bench-press'));
 /// ```
 final lastExerciseSessionProvider =
-    FutureProvider.family<ExerciseSessionRecord?, String>(
-        (ref, exerciseId) async {
-  final repository = ref.watch(exerciseHistoryRepositoryProvider);
-  final sessions = await repository.getRecentSessions(exerciseId, limit: 1);
-  return sessions.isNotEmpty ? sessions.first : null;
-});
+    FutureProvider.family<ExerciseSessionRecord?, String>((
+      ref,
+      exerciseId,
+    ) async {
+      final repository = ref.watch(exerciseHistoryRepositoryProvider);
+      final sessions = await repository.getRecentSessions(exerciseId, limit: 1);
+      return sessions.isNotEmpty ? sessions.first : null;
+    });

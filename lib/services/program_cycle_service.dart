@@ -66,7 +66,8 @@ class ProgramCycleService {
 
   /// Gets cycles that can be activated today for a program
   Future<List<ProgramCycle>> getActivatableCyclesForProgram(
-      String programId) async {
+    String programId,
+  ) async {
     final program = await _programRepository.getProgramById(programId);
     if (program == null) return [];
 

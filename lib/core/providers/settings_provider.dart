@@ -5,8 +5,9 @@ import '../../services/app_settings_service.dart';
 /// Provider for AppSettingsService
 ///
 /// This is an async provider because the service needs to be initialized.
-final appSettingsServiceProvider =
-    FutureProvider<AppSettingsService>((ref) async {
+final appSettingsServiceProvider = FutureProvider<AppSettingsService>((
+  ref,
+) async {
   final service = AppSettingsService();
   await service.init();
   return service;
@@ -21,10 +22,20 @@ final debugModeProvider = FutureProvider<bool>((ref) async {
 });
 
 /// Notifier for managing debug mode state
-class DebugModeNotifier extends StateNotifier<AsyncValue<bool>> {
-  final AppSettingsService _settingsService;
+class DebugModeNotifier extends Notifier<AsyncValue<bool>> {
+  late AppSettingsService _settingsService;
 
-  DebugModeNotifier(this._settingsService) : super(const AsyncValue.loading()) {
+  @override
+  AsyncValue<bool> build() {
+    // Will be overridden with proper service
+    throw UnimplementedError(
+      'Use debugModeNotifierProviderFamily with initialized AppSettingsService',
+    );
+  }
+
+  /// Initialize the notifier with AppSettingsService
+  void init(AppSettingsService service) {
+    _settingsService = service;
     _loadState();
   }
 
@@ -49,20 +60,16 @@ class DebugModeNotifier extends StateNotifier<AsyncValue<bool>> {
   }
 
   Future<void> toggle() async {
-    final current = state.valueOrNull ?? false;
+    final current = state.value ?? false;
     await setDebugMode(!current);
   }
 }
 
-/// StateNotifierProvider for debug mode with toggle functionality
+/// NotifierProvider for debug mode with toggle functionality
 final debugModeNotifierProvider =
-    StateNotifierProvider<DebugModeNotifier, AsyncValue<bool>>((ref) {
-  // We need to handle the async nature of appSettingsServiceProvider
-  // For now, we'll create a placeholder that gets updated
-  throw UnimplementedError(
-    'Use debugModeNotifierProviderFamily with initialized AppSettingsService',
-  );
-});
+    NotifierProvider<DebugModeNotifier, AsyncValue<bool>>(
+      DebugModeNotifier.new,
+    );
 
 /// Provider for debug logging state
 final debugLoggingProvider = FutureProvider<bool>((ref) async {

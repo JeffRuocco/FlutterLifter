@@ -55,7 +55,8 @@ class LoggingService {
   static Talker get talker {
     if (_talker == null) {
       throw Exception(
-          'LoggingService not initialized. Call LoggingService.init() first.');
+        'LoggingService not initialized. Call LoggingService.init() first.',
+      );
     }
     return _talker!;
   }
@@ -66,8 +67,8 @@ class LoggingService {
 
     final debugModeEnabled = await _settingsService.isDebugModeEnabled();
     final debugLoggingEnabled = await _settingsService.isDebugLoggingEnabled();
-    final verboseLoggingEnabled =
-        await _settingsService.isVerboseLoggingEnabled();
+    final verboseLoggingEnabled = await _settingsService
+        .isVerboseLoggingEnabled();
 
     _talker = TalkerFlutter.init(
       settings: TalkerSettings(
@@ -87,9 +88,7 @@ class LoggingService {
 
     // Add Firebase Crashlytics observer for remote logging
     if (!kDebugMode) {
-      _talker!.configure(
-        observer: CrashlyticsTalkerObserver(),
-      );
+      _talker!.configure(observer: CrashlyticsTalkerObserver());
     }
 
     // Log initialization
@@ -113,8 +112,8 @@ class LoggingService {
   /// Update logging settings when debug mode changes
   static Future<void> updateDebugLogging(bool enabled) async {
     if (_talker != null) {
-      final verboseLoggingEnabled =
-          await _settingsService.isVerboseLoggingEnabled();
+      final verboseLoggingEnabled = await _settingsService
+          .isVerboseLoggingEnabled();
 
       _talker!.configure(
         settings: _talker!.settings.copyWith(
@@ -135,8 +134,8 @@ class LoggingService {
   /// Update logging settings when verbose mode changes
   static Future<void> updateVerboseLogging(bool enabled) async {
     if (_talker != null) {
-      final debugLoggingEnabled =
-          await _settingsService.isDebugLoggingEnabled();
+      final debugLoggingEnabled = await _settingsService
+          .isDebugLoggingEnabled();
 
       _talker!.configure(
         settings: _talker!.settings.copyWith(
@@ -171,8 +170,9 @@ class LoggingService {
   static void logWorkoutCanceled(String programName, Duration duration) {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
-    talker
-        .info('❌ Workout canceled: $programName after ${minutes}m ${seconds}s');
+    talker.info(
+      '❌ Workout canceled: $programName after ${minutes}m ${seconds}s',
+    );
   }
 
   static void logWorkoutPaused(String programName) {
@@ -184,8 +184,10 @@ class LoggingService {
   }
 
   /// Will log entire contents of [updatedWorkout].
-  static void logWorkoutUpdated(String programName,
-      {WorkoutSession? updatedWorkout}) {
+  static void logWorkoutUpdated(
+    String programName, {
+    WorkoutSession? updatedWorkout,
+  }) {
     if (updatedWorkout != null) {
       const encoder = JsonEncoder.withIndent('  ');
       final prettyJson = encoder.convert(updatedWorkout.toJson());
@@ -207,9 +209,14 @@ class LoggingService {
 
   /// Log individual set completion (DEBUG level) - Detailed tracking
   static void logSetComplete(
-      String exerciseName, int setNumber, double? weight, int? reps) {
+    String exerciseName,
+    int setNumber,
+    double? weight,
+    int? reps,
+  ) {
     talker.debug(
-        'Set completed: $exerciseName Set $setNumber - ${weight ?? "BW"} x ${reps ?? "N/A"} reps');
+      'Set completed: $exerciseName Set $setNumber - ${weight ?? "BW"} x ${reps ?? "N/A"} reps',
+    );
   }
 
   // Authentication logging (INFO for events, ERROR for failures)
@@ -220,12 +227,18 @@ class LoggingService {
   }
 
   /// Log authentication errors (ERROR level) - Critical failures
-  static void logAuthError(String event, Object error,
-      {StackTrace? stackTrace}) {
+  static void logAuthError(
+    String event,
+    Object error, {
+    StackTrace? stackTrace,
+  }) {
     talker.error('🔐❌ Auth Error: $event - $error');
     if (!kDebugMode) {
-      FirebaseCrashlytics.instance
-          .recordError(error, stackTrace, reason: '🔐❌ Auth Error: $event');
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stackTrace,
+        reason: '🔐❌ Auth Error: $event',
+      );
     }
   }
 
@@ -245,12 +258,19 @@ class LoggingService {
     }
   }
 
-  static void logApiError(String method, String endpoint, Object error,
-      {StackTrace? stackTrace}) {
+  static void logApiError(
+    String method,
+    String endpoint,
+    Object error, {
+    StackTrace? stackTrace,
+  }) {
     talker.error('🌐❌ API Error: $method $endpoint - $error');
     if (!kDebugMode) {
-      FirebaseCrashlytics.instance.recordError(error, stackTrace,
-          reason: '🌐❌ API Error: $method $endpoint');
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stackTrace,
+        reason: '🌐❌ API Error: $method $endpoint',
+      );
     }
   }
 
@@ -263,12 +283,19 @@ class LoggingService {
     talker.debug('📂 Data loaded: $dataType');
   }
 
-  static void logDataError(String operation, String dataType, Object error,
-      {StackTrace? stackTrace}) {
+  static void logDataError(
+    String operation,
+    String dataType,
+    Object error, {
+    StackTrace? stackTrace,
+  }) {
     talker.error('💾❌ Data Error: $operation $dataType - $error');
     if (!kDebugMode) {
-      FirebaseCrashlytics.instance.recordError(error, stackTrace,
-          reason: '💾❌ Data Error: $operation $dataType');
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stackTrace,
+        reason: '💾❌ Data Error: $operation $dataType',
+      );
     }
   }
 
@@ -362,8 +389,11 @@ class LoggingService {
   static void error(String message, [Object? error, StackTrace? stackTrace]) {
     talker.error(message);
     if (!kDebugMode && error != null) {
-      FirebaseCrashlytics.instance
-          .recordError(error, stackTrace, reason: message);
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stackTrace,
+        reason: message,
+      );
     }
   }
 
@@ -379,12 +409,18 @@ class LoggingService {
   ///
   /// Note: Automatically reported to Firebase Crashlytics in production with high priority
   /// Example: "Unable to initialize core services", "Critical user data corruption detected"
-  static void critical(String message,
-      [Object? error, StackTrace? stackTrace]) {
+  static void critical(
+    String message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {
     talker.critical(message);
     if (!kDebugMode && error != null) {
-      FirebaseCrashlytics.instance
-          .recordError(error, stackTrace, reason: message);
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stackTrace,
+        reason: message,
+      );
     }
   }
 
@@ -427,9 +463,11 @@ class LoggingService {
   static String exportLogs() {
     if (_talker == null) return 'LoggingService not initialized';
 
-    final logs = _talker!.history.map((log) {
-      return log.generateTextMessage();
-    }).join('\n');
+    final logs = _talker!.history
+        .map((log) {
+          return log.generateTextMessage();
+        })
+        .join('\n');
 
     return logs;
   }
@@ -447,10 +485,7 @@ class CrashlyticsTalkerObserver extends TalkerObserver {
         err.exception,
         err.stackTrace,
         reason: err.message,
-        information: [
-          'Log Level: ${err.logLevel}',
-          'Title: ${err.title}',
-        ],
+        information: ['Log Level: ${err.logLevel}', 'Title: ${err.title}'],
       );
     } else {
       // For non-exception errors, log as a custom message
@@ -467,10 +502,7 @@ class CrashlyticsTalkerObserver extends TalkerObserver {
       err.exception,
       err.stackTrace,
       reason: err.message,
-      information: [
-        'Log Level: ${err.logLevel}',
-        'Title: ${err.title}',
-      ],
+      information: ['Log Level: ${err.logLevel}', 'Title: ${err.title}'],
     );
   }
 

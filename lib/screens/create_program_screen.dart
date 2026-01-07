@@ -97,9 +97,7 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
 
           return Expanded(
             child: Container(
-              margin: EdgeInsets.only(
-                right: index < 4 ? AppSpacing.xs : 0,
-              ),
+              margin: EdgeInsets.only(right: index < 4 ? AppSpacing.xs : 0),
               height: 4,
               decoration: BoxDecoration(
                 color: isActive
@@ -359,13 +357,19 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSummaryRow('Program Name',
-                    _programName.isEmpty ? 'Not set' : _programName),
                 _buildSummaryRow(
-                    'Goal', _programGoal.isEmpty ? 'Not set' : _programGoal),
+                  'Program Name',
+                  _programName.isEmpty ? 'Not set' : _programName,
+                ),
+                _buildSummaryRow(
+                  'Goal',
+                  _programGoal.isEmpty ? 'Not set' : _programGoal,
+                ),
                 _buildSummaryRow('Frequency', '$_daysPerWeek days per week'),
                 _buildSummaryRow(
-                    'Duration', '$_sessionDuration minutes per session'),
+                  'Duration',
+                  '$_sessionDuration minutes per session',
+                ),
                 _buildSummaryRow('Experience', _experienceLevel),
               ],
             ),
@@ -473,7 +477,9 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
 
   void _createProgram() {
     showSuccessMessage(
-        context, 'Program "$_programName" created successfully!');
+      context,
+      'Program "$_programName" created successfully!',
+    );
     context.pop();
   }
 }

@@ -56,9 +56,9 @@ class CustomTheme {
     required this.name,
     required this.primaryColor,
     required this.secondaryColor,
-  })  : isPreset = true,
-        createdAt = DateTime.fromMillisecondsSinceEpoch(0),
-        modifiedAt = null;
+  }) : isPreset = true,
+       createdAt = DateTime.fromMillisecondsSinceEpoch(0),
+       modifiedAt = null;
 
   /// Generates a unique ID using timestamp and random hash
   static String _generateId() {

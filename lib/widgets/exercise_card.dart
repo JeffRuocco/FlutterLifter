@@ -24,8 +24,14 @@ class ExerciseCard extends ConsumerStatefulWidget {
   final VoidCallback onRemove;
   final VoidCallback onSwap;
   final Function(int setIndex) onToggleSetCompleted;
-  final Function(int setIndex, double? weight, int? reps, String? notes,
-      bool? markAsCompleted) onSetUpdated;
+  final Function(
+    int setIndex,
+    double? weight,
+    int? reps,
+    String? notes,
+    bool? markAsCompleted,
+  )
+  onSetUpdated;
   final VoidCallback onAddSet;
   final Function(int setIndex)? onRemoveSet;
 
@@ -130,10 +136,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
             height: 4,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  muscleColor,
-                  muscleColor.withValues(alpha: 0.5),
-                ],
+                colors: [muscleColor, muscleColor.withValues(alpha: 0.5)],
               ),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(AppDimensions.borderRadiusLarge),
@@ -149,10 +152,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
           SizeTransition(
             sizeFactor: _expandAnimation,
             child: Column(
-              children: [
-                const Divider(height: 1),
-                _buildExerciseBody(context),
-              ],
+              children: [const Divider(height: 1), _buildExerciseBody(context)],
             ),
           ),
         ],
@@ -219,9 +219,9 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
                   Row(
                     children: [
                       // Muscle group chips with colors
-                      ...widget.exercise.targetMuscleGroups
-                          .take(2)
-                          .map((muscle) {
+                      ...widget.exercise.targetMuscleGroups.take(2).map((
+                        muscle,
+                      ) {
                         final chipColor = AppColors.getMuscleGroupColor(muscle);
                         return Padding(
                           padding: const EdgeInsets.only(right: 4),
@@ -387,7 +387,8 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
 
     // Check if current session has beaten the PR
     final currentBestEpley = _calculateCurrentBestEpley();
-    final isPRBeaten = currentBestEpley != null &&
+    final isPRBeaten =
+        currentBestEpley != null &&
         _allTimePR != null &&
         currentBestEpley > _allTimePR!;
 
@@ -410,10 +411,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
         if (isPRBeaten) ...[
           const SizedBox(width: 6),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 4,
-              vertical: 1,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -451,12 +449,14 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
   /// Calculate the best Epley score from current workout's completed sets
   double? _calculateCurrentBestEpley() {
     final completedSets = widget.exercise.sets
-        .where((set) =>
-            set.isCompleted &&
-            set.actualWeight != null &&
-            set.actualReps != null &&
-            set.actualWeight! > 0 &&
-            set.actualReps! > 0)
+        .where(
+          (set) =>
+              set.isCompleted &&
+              set.actualWeight != null &&
+              set.actualReps != null &&
+              set.actualWeight! > 0 &&
+              set.actualReps! > 0,
+        )
         .toList();
 
     if (completedSets.isEmpty) return null;
@@ -532,8 +532,9 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: context.surfaceVariant,
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                borderRadius: BorderRadius.circular(
+                  AppDimensions.borderRadiusSmall,
+                ),
               ),
               child: Text(
                 widget.exercise.notes!,
@@ -641,9 +642,13 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
 
   /// Build a dismissible set row that can be swiped to delete
   Widget _buildDismissibleSet(
-      BuildContext context, int index, ExerciseSet set) {
+    BuildContext context,
+    int index,
+    ExerciseSet set,
+  ) {
     // Only allow dismissing if workout is started and there's more than one set
-    final canDismiss = widget.isWorkoutStarted &&
+    final canDismiss =
+        widget.isWorkoutStarted &&
         widget.exercise.sets.length > 1 &&
         widget.onRemoveSet != null;
 
@@ -695,7 +700,9 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
 
   /// Show confirmation dialog before removing a set
   Future<bool> _showRemoveSetConfirmation(
-      BuildContext context, int setNumber) async {
+    BuildContext context,
+    int setNumber,
+  ) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -727,10 +734,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
               backgroundColor: dialogContext.errorColor,
               foregroundColor: dialogContext.onError,
             ),
-            child: const Text(
-              'Remove',
-              style: AppTextStyles.labelMedium,
-            ),
+            child: const Text('Remove', style: AppTextStyles.labelMedium),
           ),
         ],
       ),

@@ -113,14 +113,16 @@ void main() {
         expect(found2.id, equals(found3!.id));
       });
 
-      test('getCachedCustomExerciseById should return null for non-existent',
-          () async {
-        final found = await datasource.getCachedCustomExerciseById(
-          'does_not_exist',
-        );
+      test(
+        'getCachedCustomExerciseById should return null for non-existent',
+        () async {
+          final found = await datasource.getCachedCustomExerciseById(
+            'does_not_exist',
+          );
 
-        expect(found, isNull);
-      });
+          expect(found, isNull);
+        },
+      );
 
       test('removeCustomExercise should delete exercise', () async {
         await datasource.cacheCustomExercise(testExercise);
@@ -186,10 +188,7 @@ void main() {
         await datasource.cachePreference(testPreference);
 
         final newPrefs = [
-          UserExercisePreferences.create(
-            exerciseId: 'squat',
-            preferredSets: 4,
-          ),
+          UserExercisePreferences.create(exerciseId: 'squat', preferredSets: 4),
           UserExercisePreferences.create(
             exerciseId: 'deadlift',
             preferredSets: 3,
@@ -214,14 +213,16 @@ void main() {
         expect(found!.preferredSets, equals(5));
       });
 
-      test('getCachedPreferenceForExercise should return null for non-existent',
-          () async {
-        final found = await datasource.getCachedPreferenceForExercise(
-          'does_not_exist',
-        );
+      test(
+        'getCachedPreferenceForExercise should return null for non-existent',
+        () async {
+          final found = await datasource.getCachedPreferenceForExercise(
+            'does_not_exist',
+          );
 
-        expect(found, isNull);
-      });
+          expect(found, isNull);
+        },
+      );
 
       test('removePreference should delete preference', () async {
         await datasource.cachePreference(testPreference);
@@ -235,10 +236,7 @@ void main() {
       test('clearPreferencesCache should remove all preferences', () async {
         await datasource.cachePreference(testPreference);
         await datasource.cachePreference(
-          UserExercisePreferences.create(
-            exerciseId: 'squat',
-            preferredSets: 4,
-          ),
+          UserExercisePreferences.create(exerciseId: 'squat', preferredSets: 4),
         );
 
         await datasource.clearPreferencesCache();
@@ -248,100 +246,120 @@ void main() {
     });
 
     group('Cache Timestamps', () {
-      test('getLastCustomExercisesCacheUpdate should return null when empty',
-          () async {
-        final timestamp = await datasource.getLastCustomExercisesCacheUpdate();
+      test(
+        'getLastCustomExercisesCacheUpdate should return null when empty',
+        () async {
+          final timestamp = await datasource
+              .getLastCustomExercisesCacheUpdate();
 
-        expect(timestamp, isNull);
-      });
+          expect(timestamp, isNull);
+        },
+      );
 
       test(
-          'getLastCustomExercisesCacheUpdate should return timestamp after caching',
-          () async {
-        final before = DateTime.now();
+        'getLastCustomExercisesCacheUpdate should return timestamp after caching',
+        () async {
+          final before = DateTime.now();
 
-        await datasource.cacheCustomExercise(
-          Exercise(
-            id: 'test',
-            name: 'Test',
-            category: ExerciseCategory.strength,
-            targetMuscleGroups: [MuscleGroup.fullBody],
-            defaultSets: 3,
-            defaultReps: 10,
-            isDefault: false,
-          ),
-        );
+          await datasource.cacheCustomExercise(
+            Exercise(
+              id: 'test',
+              name: 'Test',
+              category: ExerciseCategory.strength,
+              targetMuscleGroups: [MuscleGroup.fullBody],
+              defaultSets: 3,
+              defaultReps: 10,
+              isDefault: false,
+            ),
+          );
 
-        final timestamp = await datasource.getLastCustomExercisesCacheUpdate();
-        final after = DateTime.now();
+          final timestamp = await datasource
+              .getLastCustomExercisesCacheUpdate();
+          final after = DateTime.now();
 
-        expect(timestamp, isNotNull);
-        expect(timestamp!.isAfter(before) || timestamp.isAtSameMomentAs(before),
-            isTrue);
-        expect(timestamp.isBefore(after) || timestamp.isAtSameMomentAs(after),
-            isTrue);
-      });
-
-      test('getLastPreferencesCacheUpdate should return null when empty',
-          () async {
-        final timestamp = await datasource.getLastPreferencesCacheUpdate();
-
-        expect(timestamp, isNull);
-      });
+          expect(timestamp, isNotNull);
+          expect(
+            timestamp!.isAfter(before) || timestamp.isAtSameMomentAs(before),
+            isTrue,
+          );
+          expect(
+            timestamp.isBefore(after) || timestamp.isAtSameMomentAs(after),
+            isTrue,
+          );
+        },
+      );
 
       test(
-          'getLastPreferencesCacheUpdate should return timestamp after caching',
-          () async {
-        final before = DateTime.now();
+        'getLastPreferencesCacheUpdate should return null when empty',
+        () async {
+          final timestamp = await datasource.getLastPreferencesCacheUpdate();
 
-        await datasource.cachePreference(
-          UserExercisePreferences.create(
-            exerciseId: 'bench',
-            preferredSets: 5,
-          ),
-        );
+          expect(timestamp, isNull);
+        },
+      );
 
-        final timestamp = await datasource.getLastPreferencesCacheUpdate();
-        final after = DateTime.now();
+      test(
+        'getLastPreferencesCacheUpdate should return timestamp after caching',
+        () async {
+          final before = DateTime.now();
 
-        expect(timestamp, isNotNull);
-        expect(timestamp!.isAfter(before) || timestamp.isAtSameMomentAs(before),
-            isTrue);
-        expect(timestamp.isBefore(after) || timestamp.isAtSameMomentAs(after),
-            isTrue);
-      });
+          await datasource.cachePreference(
+            UserExercisePreferences.create(
+              exerciseId: 'bench',
+              preferredSets: 5,
+            ),
+          );
+
+          final timestamp = await datasource.getLastPreferencesCacheUpdate();
+          final after = DateTime.now();
+
+          expect(timestamp, isNotNull);
+          expect(
+            timestamp!.isAfter(before) || timestamp.isAtSameMomentAs(before),
+            isTrue,
+          );
+          expect(
+            timestamp.isBefore(after) || timestamp.isAtSameMomentAs(after),
+            isTrue,
+          );
+        },
+      );
     });
 
     group('Cache Expiration', () {
-      test('isCustomExercisesCacheExpired should return true when empty',
-          () async {
-        final expired = await datasource.isCustomExercisesCacheExpired(
-          maxAge: const Duration(minutes: 5),
-        );
+      test(
+        'isCustomExercisesCacheExpired should return true when empty',
+        () async {
+          final expired = await datasource.isCustomExercisesCacheExpired(
+            maxAge: const Duration(minutes: 5),
+          );
 
-        expect(expired, isTrue);
-      });
+          expect(expired, isTrue);
+        },
+      );
 
-      test('isCustomExercisesCacheExpired should return false when fresh',
-          () async {
-        await datasource.cacheCustomExercise(
-          Exercise(
-            id: 'test',
-            name: 'Test',
-            category: ExerciseCategory.strength,
-            targetMuscleGroups: [MuscleGroup.fullBody],
-            defaultSets: 3,
-            defaultReps: 10,
-            isDefault: false,
-          ),
-        );
+      test(
+        'isCustomExercisesCacheExpired should return false when fresh',
+        () async {
+          await datasource.cacheCustomExercise(
+            Exercise(
+              id: 'test',
+              name: 'Test',
+              category: ExerciseCategory.strength,
+              targetMuscleGroups: [MuscleGroup.fullBody],
+              defaultSets: 3,
+              defaultReps: 10,
+              isDefault: false,
+            ),
+          );
 
-        final expired = await datasource.isCustomExercisesCacheExpired(
-          maxAge: const Duration(minutes: 5),
-        );
+          final expired = await datasource.isCustomExercisesCacheExpired(
+            maxAge: const Duration(minutes: 5),
+          );
 
-        expect(expired, isFalse);
-      });
+          expect(expired, isFalse);
+        },
+      );
 
       test('isPreferencesCacheExpired should return true when empty', () async {
         final expired = await datasource.isPreferencesCacheExpired(
@@ -351,21 +369,23 @@ void main() {
         expect(expired, isTrue);
       });
 
-      test('isPreferencesCacheExpired should return false when fresh',
-          () async {
-        await datasource.cachePreference(
-          UserExercisePreferences.create(
-            exerciseId: 'bench',
-            preferredSets: 5,
-          ),
-        );
+      test(
+        'isPreferencesCacheExpired should return false when fresh',
+        () async {
+          await datasource.cachePreference(
+            UserExercisePreferences.create(
+              exerciseId: 'bench',
+              preferredSets: 5,
+            ),
+          );
 
-        final expired = await datasource.isPreferencesCacheExpired(
-          maxAge: const Duration(minutes: 5),
-        );
+          final expired = await datasource.isPreferencesCacheExpired(
+            maxAge: const Duration(minutes: 5),
+          );
 
-        expect(expired, isFalse);
-      });
+          expect(expired, isFalse);
+        },
+      );
     });
 
     group('Instance Cache Isolation', () {
@@ -383,10 +403,7 @@ void main() {
           ),
         );
         await datasource.cachePreference(
-          UserExercisePreferences.create(
-            exerciseId: 'bench',
-            preferredSets: 5,
-          ),
+          UserExercisePreferences.create(exerciseId: 'bench', preferredSets: 5),
         );
 
         // Create a new instance - it should have empty caches (instance isolation)
@@ -395,20 +412,11 @@ void main() {
           (await newDatasource.getCachedCustomExercises()).length,
           equals(0),
         );
-        expect(
-          (await newDatasource.getCachedPreferences()).length,
-          equals(0),
-        );
+        expect((await newDatasource.getCachedPreferences()).length, equals(0));
 
         // Original instance should still have its data
-        expect(
-          (await datasource.getCachedCustomExercises()).length,
-          equals(1),
-        );
-        expect(
-          (await datasource.getCachedPreferences()).length,
-          equals(1),
-        );
+        expect((await datasource.getCachedCustomExercises()).length, equals(1));
+        expect((await datasource.getCachedPreferences()).length, equals(1));
       });
 
       test('clearAllCaches should reset caches for the instance', () async {
@@ -425,10 +433,7 @@ void main() {
           ),
         );
         await impl.cachePreference(
-          UserExercisePreferences.create(
-            exerciseId: 'bench',
-            preferredSets: 5,
-          ),
+          UserExercisePreferences.create(exerciseId: 'bench', preferredSets: 5),
         );
 
         impl.clearAllCaches();

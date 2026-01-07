@@ -204,10 +204,13 @@ void main() {
         expect(cycle.canBeActivatedOn(startDate), isTrue);
         expect(cycle.canBeActivatedOn(endDate), isTrue);
         expect(
-            cycle.canBeActivatedOn(startDate.subtract(const Duration(days: 1))),
-            isFalse);
-        expect(cycle.canBeActivatedOn(endDate.add(const Duration(days: 1))),
-            isFalse);
+          cycle.canBeActivatedOn(startDate.subtract(const Duration(days: 1))),
+          isFalse,
+        );
+        expect(
+          cycle.canBeActivatedOn(endDate.add(const Duration(days: 1))),
+          isFalse,
+        );
 
         // Completed cycles cannot be activated
         final completedCycle = cycle.complete();
@@ -227,10 +230,7 @@ void main() {
         );
 
         // Should not be able to start future cycle now
-        expect(
-          () => futureCycle.start(),
-          throwsA(isA<StateError>()),
-        );
+        expect(() => futureCycle.start(), throwsA(isA<StateError>()));
 
         // Should be able to start it on its start date
         expect(

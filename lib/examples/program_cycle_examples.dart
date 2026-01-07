@@ -38,8 +38,11 @@ class ProgramCycleExamples {
       description: "Jim Wendler's 5/3/1 strength training program",
       type: ProgramType.strength,
       difficulty: ProgramDifficulty.intermediate,
-      defaultPeriodicity:
-          const WorkoutPeriodicity.weekly([1, 3, 5]), // Mon, Wed, Fri
+      defaultPeriodicity: const WorkoutPeriodicity.weekly([
+        1,
+        3,
+        5,
+      ]), // Mon, Wed, Fri
     );
 
     print("Created program template: ${program.name}");
@@ -54,20 +57,24 @@ class ProgramCycleExamples {
 
     print("Started cycle 1: ${programWithCycle1.activeCycle?.cycleNumber}");
     print(
-        "Current cycle is active: ${programWithCycle1.activeCycle?.isCurrentlyActive}");
+      "Current cycle is active: ${programWithCycle1.activeCycle?.isCurrentlyActive}",
+    );
 
     // Generate sessions for the current cycle
     final activeCycle = programWithCycle1.activeCycle!;
     final cycleWithSessions = activeCycle.generateScheduledSessions();
-    final programWithSessions =
-        programWithCycle1.updateCycle(cycleWithSessions);
+    final programWithSessions = programWithCycle1.updateCycle(
+      cycleWithSessions,
+    );
     print(
-        "Generated ${programWithSessions.activeCycle?.totalWorkoutsCount} sessions for cycle 1");
+      "Generated ${programWithSessions.activeCycle?.totalWorkoutsCount} sessions for cycle 1",
+    );
 
     // Complete the first cycle
     final programAfterCycle1 = programWithSessions.completeCurrentCycle();
     print(
-        "Cycle 1 completed: ${programAfterCycle1.lastCompletedCycle?.isCompleted}");
+      "Cycle 1 completed: ${programAfterCycle1.lastCompletedCycle?.isCompleted}",
+    );
 
     // Start the second cycle using the new API
     final programWithCycle2 = programAfterCycle1.createCycle(
@@ -80,13 +87,16 @@ class ProgramCycleExamples {
     print("Total cycles: ${programWithCycle2.cycles.length}");
     print("Completed cycles: ${programWithCycle2.completedCycles.length}");
     print(
-        "Active cycle: ${programWithCycle2.activeCycle?.cycleNumber ?? 'None'}");
+      "Active cycle: ${programWithCycle2.activeCycle?.cycleNumber ?? 'None'}",
+    );
   }
 
   /// Example: Working with individual cycles
   static void exampleWorkingWithCycles() {
-    final periodicity =
-        const WorkoutPeriodicity.cyclic(workoutDays: 2, restDays: 1);
+    final periodicity = const WorkoutPeriodicity.cyclic(
+      workoutDays: 2,
+      restDays: 1,
+    );
 
     // Create a cycle manually
     final cycle = ProgramCycle.create(
@@ -107,7 +117,8 @@ class ProgramCycleExamples {
 
     print("Generated ${cycleWithSessions.totalWorkoutsCount} sessions");
     print(
-        "Completion percentage: ${(cycleWithSessions.completionPercentage * 100).toStringAsFixed(1)}%");
+      "Completion percentage: ${(cycleWithSessions.completionPercentage * 100).toStringAsFixed(1)}%",
+    );
 
     // Mark cycle as completed
     final completedCycle = cycleWithSessions.complete();
@@ -122,8 +133,14 @@ class ProgramCycleExamples {
       name: "Push/Pull/Legs",
       type: ProgramType.hypertrophy,
       difficulty: ProgramDifficulty.intermediate,
-      defaultPeriodicity:
-          const WorkoutPeriodicity.weekly([1, 2, 3, 5, 6, 7]), // 6 days
+      defaultPeriodicity: const WorkoutPeriodicity.weekly([
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+      ]), // 6 days
     );
 
     // Add multiple cycles using the new API
@@ -157,7 +174,8 @@ class ProgramCycleExamples {
     print("Completed cycles: ${program.completedCycles.length}");
     print("Current cycle: ${program.activeCycle?.cycleNumber ?? 'None'}");
     print(
-        "Last completed cycle: ${program.lastCompletedCycle?.cycleNumber ?? 'None'}");
+      "Last completed cycle: ${program.lastCompletedCycle?.cycleNumber ?? 'None'}",
+    );
     print("Next cycle number: ${program.nextCycleNumber}");
 
     // Query cycles for specific dates
@@ -175,14 +193,18 @@ class ProgramCycleExamples {
       description: "Linear progression strength program",
       type: ProgramType.strength,
       difficulty: ProgramDifficulty.beginner,
-      defaultPeriodicity:
-          const WorkoutPeriodicity.weekly([1, 3, 5]), // Mon, Wed, Fri
+      defaultPeriodicity: const WorkoutPeriodicity.weekly([
+        1,
+        3,
+        5,
+      ]), // Mon, Wed, Fri
       tags: ["strength", "beginner", "linear progression"],
     );
 
     print("Program template created: ${strengthProgram.name}");
     print(
-        "Template has scheduling periodicity: ${strengthProgram.hasSchedulingPeriodicity}");
+      "Template has scheduling periodicity: ${strengthProgram.hasSchedulingPeriodicity}",
+    );
     print("Template frequency: ${strengthProgram.frequencyDescription}");
 
     // Now create multiple cycles of this program
@@ -210,7 +232,8 @@ class ProgramCycleExamples {
     );
 
     print(
-        "Created ${programWithCycles.cycles.length} cycles for ${programWithCycles.name}");
+      "Created ${programWithCycles.cycles.length} cycles for ${programWithCycles.name}",
+    );
 
     // Generate sessions for each cycle
     for (int i = 0; i < programWithCycles.cycles.length; i++) {
@@ -219,7 +242,8 @@ class ProgramCycleExamples {
       programWithCycles = programWithCycles.updateCycle(cycleWithSessions);
 
       print(
-          "Cycle ${cycle.cycleNumber}: ${cycleWithSessions.totalWorkoutsCount} sessions generated");
+        "Cycle ${cycle.cycleNumber}: ${cycleWithSessions.totalWorkoutsCount} sessions generated",
+      );
       print("  Duration: ${cycleWithSessions.durationInWeeks} weeks");
       print("  Notes: ${cycleWithSessions.notes}");
     }
@@ -228,7 +252,8 @@ class ProgramCycleExamples {
     print("\nProgram template is still clean and reusable:");
     print("- Template name: ${strengthProgram.name}");
     print(
-        "- Template has ${strengthProgram.cycles.length} cycles (should be 0)");
+      "- Template has ${strengthProgram.cycles.length} cycles (should be 0)",
+    );
     print("- Template can be used to create new program instances");
   }
 
@@ -242,8 +267,12 @@ class ProgramCycleExamples {
       description: "Muscle building program with planned cycles",
       type: ProgramType.hypertrophy,
       difficulty: ProgramDifficulty.intermediate,
-      defaultPeriodicity:
-          const WorkoutPeriodicity.weekly([1, 2, 4, 5]), // 4x per week
+      defaultPeriodicity: const WorkoutPeriodicity.weekly([
+        1,
+        2,
+        4,
+        5,
+      ]), // 4x per week
       tags: ["hypertrophy", "muscle building"],
     );
 
@@ -260,7 +289,8 @@ class ProgramCycleExamples {
 
     print("Has active cycle: ${programWithCycles.activeCycle != null}");
     print(
-        "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber}");
+      "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber}",
+    );
 
     // Create second cycle with future dates - this should not automatically activate
     programWithCycles = programWithCycles.createCycle(
@@ -273,7 +303,8 @@ class ProgramCycleExamples {
     print("Total cycles: ${programWithCycles.allCycles.length}");
     print("Has active cycle: ${programWithCycles.activeCycle != null}");
     print(
-        "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber}");
+      "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber}",
+    );
 
     // Complete the current active cycle
     final activeCycle = programWithCycles.activeCycle!;
@@ -287,7 +318,8 @@ class ProgramCycleExamples {
     print("Has active cycle: ${programWithCycles.activeCycle != null}");
     print("Completed cycles: ${programWithCycles.completedCycles.length}");
     print(
-        "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber ?? 'None'}");
+      "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber ?? 'None'}",
+    );
 
     // Create and activate a third cycle with future dates (after second cycle)
     programWithCycles = programWithCycles.createCycle(
@@ -299,7 +331,8 @@ class ProgramCycleExamples {
     print("\nAfter creating third cycle:");
     print("Has active cycle: ${programWithCycles.activeCycle != null}");
     print(
-        "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber}");
+      "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber}",
+    );
 
     // Demonstrate trying to activate a specific cycle
     final firstCycle = programWithCycles.allCycles.first;
@@ -308,7 +341,8 @@ class ProgramCycleExamples {
       programWithCycles = programWithCycles.activateCycle(firstCycle.id);
       print("\nSuccessfully activated cycle ${firstCycle.cycleNumber}");
       print(
-          "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber}");
+        "Current active cycle: ${programWithCycles.activeCycle?.cycleNumber}",
+      );
     } catch (e) {
       print("\nError activating cycle: $e");
       print("This is expected if the cycle is outside the valid date range");
@@ -358,7 +392,8 @@ class ProgramCycleExamples {
 
     for (final cycle in activatableCycles) {
       print(
-          "- ${cycle.notes}: ${cycle.startDate} to ${cycle.effectiveEndDate}");
+        "- ${cycle.notes}: ${cycle.startDate} to ${cycle.effectiveEndDate}",
+      );
     }
 
     // Try to activate future cycle (should fail)
@@ -372,7 +407,8 @@ class ProgramCycleExamples {
     // Refresh activation based on current date
     programWithCycles = programWithCycles.refreshCycleActivation();
     print(
-        "\nAfter refresh - Active cycles: ${programWithCycles.activeCyclesCount}");
+      "\nAfter refresh - Active cycles: ${programWithCycles.activeCyclesCount}",
+    );
 
     // Check overlap before creating
     final wouldOverlap = programWithCycles.wouldCycleOverlap(
@@ -403,7 +439,8 @@ class ProgramCycleExamples {
     );
 
     print(
-        "Added base cycle: $baseDate to ${baseDate.add(const Duration(days: 30))}");
+      "Added base cycle: $baseDate to ${baseDate.add(const Duration(days: 30))}",
+    );
 
     // Test various overlap scenarios
     final testCases = [
@@ -442,7 +479,8 @@ class ProgramCycleExamples {
       // First check with wouldCycleOverlap
       final wouldOverlap = program.wouldCycleOverlap(start, end);
       print(
-          '$name - Would overlap: $wouldOverlap (expected: ${!shouldSucceed})');
+        '$name - Would overlap: $wouldOverlap (expected: ${!shouldSucceed})',
+      );
 
       // Then try to create the cycle
       try {

@@ -25,10 +25,7 @@ enum ShellTab {
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
 
-  const AppShell({
-    super.key,
-    required this.child,
-  });
+  const AppShell({super.key, required this.child});
 
   @override
   ConsumerState<AppShell> createState() => _AppShellState();
@@ -64,6 +61,8 @@ class _AppShellState extends ConsumerState<AppShell> {
         if (!shouldLeave) return; // User chose to stay
       }
     }
+
+    if (!mounted) return;
 
     switch (index) {
       case 0:

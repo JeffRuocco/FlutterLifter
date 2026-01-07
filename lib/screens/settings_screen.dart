@@ -62,7 +62,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       });
 
       LoggingService.logUserAction(
-          'Debug mode ${enabled ? 'enabled' : 'disabled'} from main settings');
+        'Debug mode ${enabled ? 'enabled' : 'disabled'} from main settings',
+      );
 
       if (mounted) {
         if (enabled) {
@@ -123,10 +124,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               Container(
                                 padding: const EdgeInsets.all(AppSpacing.sm),
                                 decoration: BoxDecoration(
-                                  color: context.primaryColor
-                                      .withValues(alpha: 0.1),
+                                  color: context.primaryColor.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   borderRadius: BorderRadius.circular(
-                                      AppDimensions.borderRadiusSmall),
+                                    AppDimensions.borderRadiusSmall,
+                                  ),
                                 ),
                                 child: HugeIcon(
                                   icon: HugeIcons.strokeRoundedPaintBrush01,
@@ -138,8 +141,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Theme',
-                                      style: AppTextStyles.titleMedium),
+                                  Text(
+                                    'Theme',
+                                    style: AppTextStyles.titleMedium,
+                                  ),
                                   Text(
                                     'Choose your preferred appearance',
                                     style: AppTextStyles.bodySmall.copyWith(
@@ -190,7 +195,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       subtitle: 'Workout reminders and updates',
                       onTap: () {
                         showInfoMessage(
-                            context, 'Notification settings coming soon');
+                          context,
+                          'Notification settings coming soon',
+                        );
                       },
                     ),
                     Divider(height: 1, color: context.outlineColor),
@@ -241,7 +248,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     decoration: BoxDecoration(
                       color: context.warningColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(
-                          AppDimensions.borderRadiusMedium),
+                        AppDimensions.borderRadiusMedium,
+                      ),
                       border: Border.all(
                         color: context.warningColor.withValues(alpha: 0.3),
                       ),
@@ -354,17 +362,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Text(
         title,
-        style: AppTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
+        style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
 
   Widget _buildSettingsCard(BuildContext context, List<Widget> children) {
-    return AppCard(
-      child: Column(children: children),
-    );
+    return AppCard(child: Column(children: children));
   }
 
   Widget _buildSettingsTile(
@@ -410,8 +414,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
                     color: context.secondaryColor.withValues(alpha: 0.1),
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.borderRadiusSmall,
+                    ),
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedColors,
@@ -463,7 +468,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedAdd01,
                       color: ColorUtils.getContrastingTextColor(
-                          context.primaryColor),
+                        context.primaryColor,
+                      ),
                       size: 18,
                     ),
                     label: const Text('Create New'),

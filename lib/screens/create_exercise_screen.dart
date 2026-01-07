@@ -21,10 +21,7 @@ import '../widgets/empty_state.dart';
 class CreateExerciseScreen extends ConsumerStatefulWidget {
   final String? exerciseId;
 
-  const CreateExerciseScreen({
-    super.key,
-    this.exerciseId,
-  });
+  const CreateExerciseScreen({super.key, this.exerciseId});
 
   bool get isEditMode => exerciseId != null;
 
@@ -150,7 +147,9 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
 
     if (_selectedMuscleGroups.isEmpty) {
       showWarningMessage(
-          context, 'Please select at least one target muscle group');
+        context,
+        'Please select at least one target muscle group',
+      );
       return;
     }
 
@@ -464,9 +463,7 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                 return Chip(
                   label: Text(
                     mg.displayName,
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: color,
-                    ),
+                    style: AppTextStyles.labelSmall.copyWith(color: color),
                   ),
                   backgroundColor: color.withValues(alpha: 0.1),
                   deleteIcon: HugeIcon(
@@ -495,8 +492,9 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
             if (muscleGroups.isEmpty) return const SizedBox.shrink();
 
             final isExpanded = _expandedRegions[region] ?? false;
-            final selectedInRegion =
-                _selectedMuscleGroups.where((mg) => mg.region == region).length;
+            final selectedInRegion = _selectedMuscleGroups
+                .where((mg) => mg.region == region)
+                .length;
 
             return Column(
               children: [
@@ -508,8 +506,9 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                     });
                   },
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.sm,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -527,10 +526,12 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  context.primaryColor.withValues(alpha: 0.1),
+                              color: context.primaryColor.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(
-                                  AppDimensions.borderRadiusSmall),
+                                AppDimensions.borderRadiusSmall,
+                              ),
                             ),
                             child: Text(
                               '$selectedInRegion',
@@ -576,8 +577,9 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                               }
                             });
                           },
-                          selectedColor:
-                              context.primaryColor.withValues(alpha: 0.2),
+                          selectedColor: context.primaryColor.withValues(
+                            alpha: 0.2,
+                          ),
                           checkmarkColor: context.primaryColor,
                           labelStyle: AppTextStyles.labelSmall.copyWith(
                             color: isSelected
@@ -662,10 +664,12 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                           child: TextFormField(
                             initialValue: _defaultWeight?.toString() ?? '',
                             keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
+                              decimal: true,
+                            ),
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d*\.?\d{0,1}')),
+                                RegExp(r'^\d*\.?\d{0,1}'),
+                              ),
                             ],
                             decoration: InputDecoration(
                               hintText: 'Optional',
@@ -676,7 +680,8 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                               fillColor: context.surfaceVariant,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                    AppDimensions.borderRadiusMedium),
+                                  AppDimensions.borderRadiusMedium,
+                                ),
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(

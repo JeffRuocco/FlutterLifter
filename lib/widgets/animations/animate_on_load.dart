@@ -107,13 +107,11 @@ class _AnimatedCounterState extends ConsumerState<AnimatedCounter>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
-    _animation = IntTween(begin: 0, end: widget.value).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
+    _animation = IntTween(
+      begin: 0,
+      end: widget.value,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
   }
 
@@ -182,9 +180,7 @@ class PulseWidget extends ConsumerWidget {
     }
 
     return child
-        .animate(
-          onPlay: infinite ? (controller) => controller.repeat() : null,
-        )
+        .animate(onPlay: infinite ? (controller) => controller.repeat() : null)
         .scale(
           begin: const Offset(1, 1),
           end: const Offset(1.05, 1.05),
@@ -253,7 +249,10 @@ class SlideInWidget extends ConsumerWidget {
       return child;
     }
 
-    return child.animate(delay: delay).fadeIn(duration: duration).slide(
+    return child
+        .animate(delay: delay)
+        .fadeIn(duration: duration)
+        .slide(
           begin: begin,
           end: Offset.zero,
           duration: duration,

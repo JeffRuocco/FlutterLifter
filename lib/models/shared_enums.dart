@@ -1,5 +1,5 @@
 /// Shared enums and types used across multiple model files
-library shared_enums;
+library;
 
 /// Enum for filtering exercises by source (default built-in vs custom user-created)
 enum ExerciseSource {
@@ -59,12 +59,7 @@ extension ExerciseCategoryExtension on ExerciseCategory {
 }
 
 /// Enum for program difficulty levels
-enum ProgramDifficulty {
-  beginner,
-  intermediate,
-  advanced,
-  expert,
-}
+enum ProgramDifficulty { beginner, intermediate, advanced, expert }
 
 extension ProgramDifficultyExtension on ProgramDifficulty {
   String get displayName {
@@ -172,14 +167,7 @@ extension PeriodicityTypeExtension on PeriodicityType {
 }
 
 /// Enum for muscle group regions (used for grouping in UI)
-enum MuscleGroupRegion {
-  upperPush,
-  upperPull,
-  legs,
-  core,
-  cardio,
-  other,
-}
+enum MuscleGroupRegion { upperPush, upperPull, legs, core, cardio, other }
 
 extension MuscleGroupRegionExtension on MuscleGroupRegion {
   String get displayName {

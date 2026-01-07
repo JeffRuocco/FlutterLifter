@@ -6,31 +6,22 @@ abstract class OperationResult {
 
 /// Operation completed successfully
 class OperationSuccess extends OperationResult {
-  const OperationSuccess({
-    required super.message,
-  });
+  const OperationSuccess({required super.message});
 }
 
 /// Operation failed with an error
 class OperationError extends OperationResult {
   final Exception? exception;
 
-  const OperationError({
-    required super.message,
-    this.exception,
-  });
+  const OperationError({required super.message, this.exception});
 }
 
 /// Operation requires user confirmation or warning
 class OperationWarning extends OperationResult {
-  const OperationWarning({
-    required super.message,
-  });
+  const OperationWarning({required super.message});
 }
 
 /// Operation requires user confirmation or warning
 class OperationInfo extends OperationResult {
-  const OperationInfo({
-    required super.message,
-  });
+  const OperationInfo({required super.message});
 }

@@ -19,11 +19,13 @@ This document explains how Riverpod is used throughout the FlutterLifter applica
 
 ## Overview
 
-FlutterLifter uses [flutter_riverpod](https://pub.dev/packages/flutter_riverpod) (version ^2.6.1) for:
+FlutterLifter uses [flutter_riverpod](https://pub.dev/packages/flutter_riverpod) (version ^3.1.0) for:
 
 - **Dependency Injection**: Providing services, repositories, and configurations throughout the app
 - **State Management**: Managing UI state with reactive updates
 - **Async Operations**: Handling loading states and errors gracefully
+
+> **Note**: As of version 3.0, Riverpod uses the new `Notifier` pattern instead of the deprecated `StateNotifier`. All notifiers in this project have been migrated to use the modern Riverpod 3.x API.
 
 ---
 
@@ -140,7 +142,7 @@ FlutterLifter follows a layered architecture where Riverpod connects each layer:
                              │
 ┌────────────────────────────▼────────────────────────────────────┐
 │  State Management Layer (Providers)                             │
-│  - StateNotifierProvider for complex state                      │
+│  - NotifierProvider for complex state                           │
 │  - Provider for simple dependencies                             │
 │  - FutureProvider for async data                                │
 └────────────────────────────┬────────────────────────────────────┘
@@ -188,38 +190,57 @@ final apiServiceProvider = Provider<ApiService>((ref) {
 });
 ```
 
-### 2. `StateNotifierProvider` - Complex State Management
+### 2. `NotifierProvider` - Complex State Management
 
-Used when state changes over time and the UI needs to react.
+Used when state changes over time and the UI needs to react. In Riverpod 3.x, we use `Notifier` instead of the deprecated `StateNotifier`.
 
 ```dart
 // lib/core/theme/theme_provider.dart
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  final SharedPreferences _prefs;
-
-  ThemeModeNotifier(this._prefs) : super(_loadThemeMode(_prefs));
+class ThemeModeNotifier extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() {
+    // Initial state - this throws because we need SharedPreferences
+    throw UnimplementedError(
+      'themeModeNotifierProvider must be overridden with SharedPreferences',
+    );
+  }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
-    await _prefs.setString(_themeModeKey, mode.name);
+    // Note: SharedPreferences access handled via subclass
   }
 }
 
 final themeModeNotifierProvider =
-    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  throw UnimplementedError(
-    'themeModeNotifierProvider must be overridden with SharedPreferences',
+    NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
+
+// For initialization with SharedPreferences, use an override helper:
+dynamic createThemeModeProviderOverride(SharedPreferences prefs) {
+  return themeModeNotifierProvider.overrideWith(
+    () => _InitializedThemeModeNotifier(prefs),
   );
-});
+}
+
+// Private subclass that provides initial state from SharedPreferences
+class _InitializedThemeModeNotifier extends ThemeModeNotifier {
+  final SharedPreferences _prefs;
+  _InitializedThemeModeNotifier(this._prefs);
+
+  @override
+  ThemeMode build() => _loadThemeMode(_prefs);
+}
 ```
 
 ```dart
 // lib/core/providers/workout_provider.dart
-class WorkoutNotifier extends StateNotifier<WorkoutState> {
-  final WorkoutService _workoutService;
-  final Ref _ref;
+class WorkoutNotifier extends Notifier<WorkoutState> {
+  late WorkoutService _workoutService;
 
-  WorkoutNotifier(this._workoutService, this._ref) : super(const WorkoutState());
+  @override
+  WorkoutState build() {
+    _workoutService = ref.watch(workoutServiceProvider);
+    return const WorkoutState();
+  }
 
   Future<void> startWorkout(WorkoutSession session) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -236,11 +257,14 @@ class WorkoutNotifier extends StateNotifier<WorkoutState> {
 }
 
 final workoutNotifierProvider =
-    StateNotifierProvider<WorkoutNotifier, WorkoutState>((ref) {
-  final workoutService = ref.watch(workoutServiceProvider);
-  return WorkoutNotifier(workoutService, ref);
-});
+    NotifierProvider<WorkoutNotifier, WorkoutState>(WorkoutNotifier.new);
 ```
+
+> **Migration Note**: The key differences from the old `StateNotifier` pattern:
+>
+> - Notifier uses `build()` to return initial state instead of passing to `super()`
+> - Access `ref` directly as an inherited property (no need for `Ref _ref` field)
+> - Override syntax uses `.overrideWith(() => ...)` instead of `.overrideWith((ref) => ...)`
 
 ### 3. `FutureProvider` - Async Data Loading
 
@@ -524,7 +548,7 @@ void main() async {
 
 ### 2. Immutable State Classes
 
-Use immutable state with `copyWith()` for StateNotifier:
+Use immutable state with `copyWith()` for Notifier:
 
 ```dart
 class WorkoutState {
@@ -563,8 +587,14 @@ class WorkoutService {
 }
 
 // Provider: Wraps service for reactive UI state
-class WorkoutNotifier extends StateNotifier<WorkoutState> {
-  final WorkoutService _workoutService;
+class WorkoutNotifier extends Notifier<WorkoutState> {
+  late WorkoutService _workoutService;
+  
+  @override
+  WorkoutState build() {
+    _workoutService = ref.watch(workoutServiceProvider);
+    return const WorkoutState();
+  }
   
   Future<void> startWorkout(WorkoutSession session) async {
     state = state.copyWith(isLoading: true);
@@ -787,7 +817,7 @@ historyAsync.when(
 | `searchExercisesProvider(query)` | `FutureProvider.family` | `List<Exercise>` | Search results |
 | **Workouts** | | | |
 | `workoutServiceProvider` | `Provider` | `WorkoutService` | Direct service access |
-| `workoutNotifierProvider` | `StateNotifierProvider` | `WorkoutState` | Full workout state + notifier |
+| `workoutNotifierProvider` | `NotifierProvider` | `WorkoutState` | Full workout state + notifier |
 | `currentWorkoutProvider` | `Provider` | `WorkoutSession?` | Current session only |
 | `hasActiveWorkoutProvider` | `Provider` | `bool` | Is workout in progress? |
 | `workoutHistoryProvider` | `FutureProvider` | `List<WorkoutSession>` | Past workouts |
@@ -801,7 +831,7 @@ historyAsync.when(
 | Need | Provider Type | Example |
 | ---- | ------------- | ------- |
 | Singleton service | `Provider` | `apiServiceProvider` |
-| Mutable UI state | `StateNotifierProvider` | `workoutNotifierProvider` |
+| Mutable UI state | `NotifierProvider` | `workoutNotifierProvider` |
 | One-time async load | `FutureProvider` | `workoutHistoryProvider` |
 | Continuous stream | `StreamProvider` | `connectivityStreamProvider` |
 | Derived/computed state | `Provider` | `hasActiveWorkoutProvider` |

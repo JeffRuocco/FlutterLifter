@@ -61,7 +61,8 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
       });
 
       LoggingService.logUserAction(
-          'Debug logging ${enabled ? 'enabled' : 'disabled'}');
+        'Debug logging ${enabled ? 'enabled' : 'disabled'}',
+      );
 
       if (mounted) {
         if (enabled) {
@@ -89,7 +90,8 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
       });
 
       LoggingService.logUserAction(
-          'Verbose logging ${enabled ? 'enabled' : 'disabled'}');
+        'Verbose logging ${enabled ? 'enabled' : 'disabled'}',
+      );
 
       if (mounted) {
         if (enabled) {
@@ -134,10 +136,7 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
           content: SingleChildScrollView(
             child: SelectableText(
               logs.isEmpty ? 'No logs available' : logs,
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 12,
-              ),
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
             ),
           ),
           actions: [
@@ -198,7 +197,8 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
                     decoration: BoxDecoration(
                       color: context.warningColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(
-                          AppDimensions.borderRadiusMedium),
+                        AppDimensions.borderRadiusMedium,
+                      ),
                       border: Border.all(
                         color: context.warningColor.withValues(alpha: 0.3),
                       ),
@@ -243,12 +243,21 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
                       padding: const EdgeInsets.all(AppSpacing.md),
                       child: Column(
                         children: [
-                          _buildInfoRow(context, 'Debug Mode',
-                              kDebugMode ? 'Enabled' : 'Disabled'),
-                          _buildInfoRow(context, 'Total Logs',
-                              '${LoggingService.logCount}'),
-                          _buildInfoRow(context, 'Build Mode',
-                              kReleaseMode ? 'Release' : 'Development'),
+                          _buildInfoRow(
+                            context,
+                            'Debug Mode',
+                            kDebugMode ? 'Enabled' : 'Disabled',
+                          ),
+                          _buildInfoRow(
+                            context,
+                            'Total Logs',
+                            '${LoggingService.logCount}',
+                          ),
+                          _buildInfoRow(
+                            context,
+                            'Build Mode',
+                            kReleaseMode ? 'Release' : 'Development',
+                          ),
                         ],
                       ),
                     ),
@@ -328,9 +337,7 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
       padding: EdgeInsets.only(bottom: AppSpacing.sm),
       child: Text(
         title,
-        style: AppTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
+        style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -374,9 +381,7 @@ class _DebugSettingsScreenState extends ConsumerState<DebugSettingsScreen> {
       ),
       title: Text(
         title,
-        style: TextStyle(
-          color: isDestructive ? context.errorColor : null,
-        ),
+        style: TextStyle(color: isDestructive ? context.errorColor : null),
       ),
       subtitle: Text(subtitle),
       trailing: HugeIcon(

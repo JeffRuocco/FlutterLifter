@@ -26,7 +26,8 @@ abstract class ExerciseLocalDataSource {
   // User exercise preferences operations
   Future<List<UserExercisePreferences>> getCachedPreferences();
   Future<UserExercisePreferences?> getCachedPreferenceForExercise(
-      String exerciseId);
+    String exerciseId,
+  );
   Future<void> cachePreference(UserExercisePreferences preferences);
   Future<void> cachePreferences(List<UserExercisePreferences> preferences);
   Future<void> removePreference(String exerciseId);
@@ -35,10 +36,12 @@ abstract class ExerciseLocalDataSource {
   // Cache metadata
   Future<DateTime?> getLastCustomExercisesCacheUpdate();
   Future<DateTime?> getLastPreferencesCacheUpdate();
-  Future<bool> isCustomExercisesCacheExpired(
-      {Duration maxAge = defaultCacheMaxAge});
-  Future<bool> isPreferencesCacheExpired(
-      {Duration maxAge = defaultCacheMaxAge});
+  Future<bool> isCustomExercisesCacheExpired({
+    Duration maxAge = defaultCacheMaxAge,
+  });
+  Future<bool> isPreferencesCacheExpired({
+    Duration maxAge = defaultCacheMaxAge,
+  });
 }
 
 /// In-memory implementation of ExerciseLocalDataSource
@@ -103,7 +106,8 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
 
   @override
   Future<UserExercisePreferences?> getCachedPreferenceForExercise(
-      String exerciseId) async {
+    String exerciseId,
+  ) async {
     return _preferencesCache[exerciseId.toLowerCase()];
   }
 
@@ -116,7 +120,8 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
 
   @override
   Future<void> cachePreferences(
-      List<UserExercisePreferences> preferences) async {
+    List<UserExercisePreferences> preferences,
+  ) async {
     _preferencesCache.clear();
     for (final pref in preferences) {
       _preferencesCache[pref.exerciseId.toLowerCase()] = pref;
@@ -213,7 +218,8 @@ class HiveExerciseLocalDataSource implements ExerciseLocalDataSource {
 
   @override
   Future<UserExercisePreferences?> getCachedPreferenceForExercise(
-      String exerciseId) async {
+    String exerciseId,
+  ) async {
     throw UnimplementedError('Hive implementation pending');
   }
 
@@ -224,7 +230,8 @@ class HiveExerciseLocalDataSource implements ExerciseLocalDataSource {
 
   @override
   Future<void> cachePreferences(
-      List<UserExercisePreferences> preferences) async {
+    List<UserExercisePreferences> preferences,
+  ) async {
     throw UnimplementedError('Hive implementation pending');
   }
 

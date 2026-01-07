@@ -11,8 +11,11 @@ class PeriodicityExamples {
       description: 'Classic 3-day weekly split',
       type: ProgramType.strength,
       difficulty: ProgramDifficulty.intermediate,
-      defaultPeriodicity:
-          const WorkoutPeriodicity.weekly([1, 3, 5]), // Mon, Wed, Fri
+      defaultPeriodicity: const WorkoutPeriodicity.weekly([
+        1,
+        3,
+        5,
+      ]), // Mon, Wed, Fri
     );
   }
 
@@ -23,8 +26,10 @@ class PeriodicityExamples {
       description: '3 days training, 1 day rest cycle',
       type: ProgramType.hypertrophy,
       difficulty: ProgramDifficulty.advanced,
-      defaultPeriodicity:
-          const WorkoutPeriodicity.cyclic(workoutDays: 3, restDays: 1),
+      defaultPeriodicity: const WorkoutPeriodicity.cyclic(
+        workoutDays: 3,
+        restDays: 1,
+      ),
     );
   }
 
@@ -57,17 +62,21 @@ class PeriodicityExamples {
     final cycleWithSessions = cycle.generateScheduledSessions();
 
     print(
-        'Generated ${cycleWithSessions.scheduledSessions.length} workout sessions');
+      'Generated ${cycleWithSessions.scheduledSessions.length} workout sessions',
+    );
     print('Program frequency: ${program.frequencyDescription}');
     print('Periodicity: ${program.periodicityDescription}');
 
     // Print first few sessions
-    for (int i = 0;
-        i < cycleWithSessions.scheduledSessions.length && i < 5;
-        i++) {
+    for (
+      int i = 0;
+      i < cycleWithSessions.scheduledSessions.length && i < 5;
+      i++
+    ) {
       final session = cycleWithSessions.scheduledSessions[i];
       print(
-          'Session ${i + 1}: ${session.date.toLocal().toString().split(' ')[0]}');
+        'Session ${i + 1}: ${session.date.toLocal().toString().split(' ')[0]}',
+      );
     }
   }
 
@@ -89,11 +98,14 @@ class PeriodicityExamples {
     print('Checking workout expectations for ${programWithCycle.name}:');
     print('Periodicity: ${programWithCycle.periodicityDescription}');
     print(
-        'Is workout expected today? ${programWithCycle.isWorkoutExpectedOnDate(today)}');
+      'Is workout expected today? ${programWithCycle.isWorkoutExpectedOnDate(today)}',
+    );
     print(
-        'Is workout expected tomorrow? ${programWithCycle.isWorkoutExpectedOnDate(tomorrow)}');
+      'Is workout expected tomorrow? ${programWithCycle.isWorkoutExpectedOnDate(tomorrow)}',
+    );
     print(
-        'Is workout expected day after? ${programWithCycle.isWorkoutExpectedOnDate(dayAfter)}');
+      'Is workout expected day after? ${programWithCycle.isWorkoutExpectedOnDate(dayAfter)}',
+    );
   }
 
   /// Example 6: Custom schedule using metadata
@@ -106,7 +118,7 @@ class PeriodicityExamples {
       defaultPeriodicity: const WorkoutPeriodicity.custom({
         'type': 'competition_prep',
         'phases': ['base', 'intensity', 'peak', 'deload'],
-        'schedule': 'variable'
+        'schedule': 'variable',
       }),
     );
   }
@@ -132,30 +144,35 @@ class PeriodicityExamples {
     );
 
     print(
-        'Created execution cycle: ${programWithCycle.activeCycle?.cycleNumber}');
+      'Created execution cycle: ${programWithCycle.activeCycle?.cycleNumber}',
+    );
     print(
-        'Cycle duration: ${programWithCycle.activeCycle?.durationInWeeks} weeks\n');
+      'Cycle duration: ${programWithCycle.activeCycle?.durationInWeeks} weeks\n',
+    );
 
     // 3. Generate sessions for the cycle
     final activeCycle = programWithCycle.activeCycle!;
     final cycleWithSessions = activeCycle.generateScheduledSessions();
 
     print(
-        'Generated ${cycleWithSessions.scheduledSessions.length} workout sessions');
+      'Generated ${cycleWithSessions.scheduledSessions.length} workout sessions',
+    );
     print('Sessions for cycle ${cycleWithSessions.cycleNumber}:');
 
     for (int i = 0; i < cycleWithSessions.scheduledSessions.length; i++) {
       final session = cycleWithSessions.scheduledSessions[i];
       final dayName = _getDayName(session.date.weekday);
       print(
-          '  Session ${i + 1}: $dayName, ${session.date.toLocal().toString().split(' ')[0]}');
+        '  Session ${i + 1}: $dayName, ${session.date.toLocal().toString().split(' ')[0]}',
+      );
     }
 
     // 4. Show template is still reusable
     print('\nTemplate remains unchanged and reusable:');
     print('- Template cycles: ${programTemplate.allCycles.length}');
     print(
-        '- Template can create new cycles: ${programTemplate.nextCycleNumber}');
+      '- Template can create new cycles: ${programTemplate.nextCycleNumber}',
+    );
 
     // 5. Demonstrate convenience methods with the new API
     print('\n--- Convenience Methods ---');
@@ -167,7 +184,8 @@ class PeriodicityExamples {
     );
 
     print(
-        'Started immediate cycle: ${programWithImmediateCycle.activeCycle?.notes}');
+      'Started immediate cycle: ${programWithImmediateCycle.activeCycle?.notes}',
+    );
     print('Active cycles: ${programWithImmediateCycle.activeCyclesCount}');
 
     // Check what cycles can be activated
@@ -255,7 +273,8 @@ class PeriodicityExamples {
         notes: "Quick start cycle",
       );
       print(
-          '✓ Started immediate cycle: ${immediateProgram.activeCycle?.notes}');
+        '✓ Started immediate cycle: ${immediateProgram.activeCycle?.notes}',
+      );
     } catch (e) {
       print('Cannot start immediate cycle (may overlap): $e');
     }
@@ -263,7 +282,8 @@ class PeriodicityExamples {
     // Refresh activation
     programWithCycles = programWithCycles.refreshCycleActivation();
     print(
-        'After refresh - Active cycles: ${programWithCycles.activeCyclesCount}');
+      'After refresh - Active cycles: ${programWithCycles.activeCyclesCount}',
+    );
 
     // 4. Demonstrate enhanced cycle properties
     print('\n4. Enhanced Cycle Properties:');

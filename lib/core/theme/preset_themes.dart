@@ -80,16 +80,16 @@ class PresetThemes {
 
   /// All preset themes
   static List<CustomTheme> get all => [
-        defaultTheme,
-        oceanTheme,
-        sunsetTheme,
-        forestTheme,
-        midnightTheme,
-        lavenderTheme,
-        material3Theme,
-        material3DarkTheme,
-        whiteAndGoldTheme,
-      ];
+    defaultTheme,
+    oceanTheme,
+    sunsetTheme,
+    forestTheme,
+    midnightTheme,
+    lavenderTheme,
+    material3Theme,
+    material3DarkTheme,
+    whiteAndGoldTheme,
+  ];
 
   /// Get a preset theme by ID
   static CustomTheme? getById(String id) {

@@ -30,9 +30,7 @@ class EmptyState extends StatelessWidget {
   });
 
   /// Factory for no workouts state
-  factory EmptyState.noWorkouts({
-    VoidCallback? onCreateWorkout,
-  }) {
+  factory EmptyState.noWorkouts({VoidCallback? onCreateWorkout}) {
     return EmptyState(
       lottieAsset: 'assets/lottie/empty_workout.json',
       icon: HugeIcons.strokeRoundedDumbbell01,
@@ -44,9 +42,7 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Factory for no programs state
-  factory EmptyState.noPrograms({
-    VoidCallback? onBrowsePrograms,
-  }) {
+  factory EmptyState.noPrograms({VoidCallback? onBrowsePrograms}) {
     return EmptyState(
       lottieAsset: 'assets/lottie/empty_program.json',
       icon: HugeIcons.strokeRoundedTask01,
@@ -59,9 +55,7 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Factory for no exercises state
-  factory EmptyState.noExercises({
-    VoidCallback? onAddExercise,
-  }) {
+  factory EmptyState.noExercises({VoidCallback? onAddExercise}) {
     return EmptyState(
       icon: HugeIcons.strokeRoundedGymnasticRings,
       title: 'No Exercises',
@@ -72,10 +66,7 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Factory for error state
-  factory EmptyState.error({
-    String? message,
-    VoidCallback? onRetry,
-  }) {
+  factory EmptyState.error({String? message, VoidCallback? onRetry}) {
     return EmptyState(
       icon: HugeIcons.strokeRoundedAlert02,
       iconColor: AppColors.error,
@@ -103,9 +94,7 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Factory for offline state
-  factory EmptyState.offline({
-    VoidCallback? onRetry,
-  }) {
+  factory EmptyState.offline({VoidCallback? onRetry}) {
     return EmptyState(
       icon: HugeIcons.strokeRoundedWifiDisconnected01,
       title: 'You\'re Offline',
@@ -199,11 +188,7 @@ class EmptyState extends StatelessWidget {
         color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
-      child: Icon(
-        icon,
-        size: iconSize,
-        color: color,
-      ),
+      child: Icon(icon, size: iconSize, color: color),
     );
   }
 }

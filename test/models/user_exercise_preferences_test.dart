@@ -79,20 +79,20 @@ void main() {
 
         // Check timestamps are reasonable
         expect(
-            pref.createdAt.isAfter(before) ||
-                pref.createdAt.isAtSameMomentAs(before),
-            isTrue);
+          pref.createdAt.isAfter(before) ||
+              pref.createdAt.isAtSameMomentAs(before),
+          isTrue,
+        );
         expect(
-            pref.createdAt.isBefore(after) ||
-                pref.createdAt.isAtSameMomentAs(after),
-            isTrue);
+          pref.createdAt.isBefore(after) ||
+              pref.createdAt.isAtSameMomentAs(after),
+          isTrue,
+        );
         expect(pref.updatedAt, equals(pref.createdAt));
       });
 
       test('should create with only exerciseId', () {
-        final pref = UserExercisePreferences.create(
-          exerciseId: 'squat',
-        );
+        final pref = UserExercisePreferences.create(exerciseId: 'squat');
 
         expect(pref.exerciseId, equals('squat'));
         expect(pref.preferredSets, isNull);
@@ -105,9 +105,7 @@ void main() {
 
     group('hasPreferences', () {
       test('should return false when no preferences set', () {
-        final pref = UserExercisePreferences.create(
-          exerciseId: 'bench',
-        );
+        final pref = UserExercisePreferences.create(exerciseId: 'bench');
 
         expect(pref.hasPreferences, isFalse);
       });
@@ -282,8 +280,10 @@ void main() {
         expect(modified.id, equals(testExercise.id));
         expect(modified.name, equals(testExercise.name));
         expect(modified.category, equals(testExercise.category));
-        expect(modified.targetMuscleGroups,
-            equals(testExercise.targetMuscleGroups));
+        expect(
+          modified.targetMuscleGroups,
+          equals(testExercise.targetMuscleGroups),
+        );
         expect(modified.isDefault, equals(testExercise.isDefault));
       });
     });

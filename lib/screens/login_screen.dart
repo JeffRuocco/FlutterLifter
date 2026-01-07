@@ -123,10 +123,7 @@ class _LoginScreenState extends State<LoginScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: context.isDarkMode
-                ? [
-                    context.surfaceColor,
-                    context.surfaceVariant,
-                  ]
+                ? [context.surfaceColor, context.surfaceVariant]
                 : [
                     context.primaryColor.withValues(alpha: 0.05),
                     context.surfaceColor,
@@ -253,7 +250,8 @@ class _LoginScreenState extends State<LoginScreen>
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text('Forgot password clicked')),
+                                  content: Text('Forgot password clicked'),
+                                ),
                               );
                             },
                           ),
@@ -290,7 +288,8 @@ class _LoginScreenState extends State<LoginScreen>
                       Expanded(child: Divider(color: context.outlineColor)),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md),
+                          horizontal: AppSpacing.md,
+                        ),
                         child: Text(
                           'Or continue with',
                           style: AppTextStyles.bodyMedium.copyWith(
@@ -318,7 +317,8 @@ class _LoginScreenState extends State<LoginScreen>
                         label: 'Google',
                         backgroundColor: AppColors.google,
                         textColor: ColorUtils.getContrastingTextColor(
-                            AppColors.google),
+                          AppColors.google,
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -332,20 +332,23 @@ class _LoginScreenState extends State<LoginScreen>
                         label: 'Facebook',
                         backgroundColor: AppColors.facebook,
                         textColor: ColorUtils.getContrastingTextColor(
-                            AppColors.facebook),
+                          AppColors.facebook,
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     SlideInWidget(
                       delay: const Duration(milliseconds: 1100),
                       child: _SocialLoginButton(
-                        onPressed:
-                            _isLoading ? null : () => _signInWithApple(context),
+                        onPressed: _isLoading
+                            ? null
+                            : () => _signInWithApple(context),
                         icon: HugeIcons.strokeRoundedApple,
                         label: 'Apple',
                         backgroundColor: AppColors.apple,
-                        textColor:
-                            ColorUtils.getContrastingTextColor(AppColors.apple),
+                        textColor: ColorUtils.getContrastingTextColor(
+                          AppColors.apple,
+                        ),
                       ),
                     ),
                   ],
@@ -430,8 +433,9 @@ class _AnimatedLogoState extends State<_AnimatedLogo>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius:
-                BorderRadius.circular(AppDimensions.borderRadiusXLarge),
+            borderRadius: BorderRadius.circular(
+              AppDimensions.borderRadiusXLarge,
+            ),
             boxShadow: [
               BoxShadow(
                 color: context.primaryColor.withValues(
@@ -481,8 +485,9 @@ class _SocialLoginButton extends StatelessWidget {
           backgroundColor: backgroundColor,
           foregroundColor: textColor,
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(AppDimensions.borderRadiusLarge),
+            borderRadius: BorderRadius.circular(
+              AppDimensions.borderRadiusLarge,
+            ),
           ),
           elevation: 2,
         ),
@@ -491,10 +496,7 @@ class _SocialLoginButton extends StatelessWidget {
           size: AppDimensions.iconMedium * 0.8,
           color: textColor,
         ),
-        label: Text(
-          label,
-          style: AppTextStyles.buttonText,
-        ),
+        label: Text(label, style: AppTextStyles.buttonText),
       ),
     );
   }

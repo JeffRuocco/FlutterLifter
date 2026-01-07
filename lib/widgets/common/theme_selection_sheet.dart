@@ -24,10 +24,8 @@ Future<String?> showThemeSelectionSheet({
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => ThemeSelectionSheet(
-      onCreateNew: onCreateNew,
-      onEditTheme: onEditTheme,
-    ),
+    builder: (context) =>
+        ThemeSelectionSheet(onCreateNew: onCreateNew, onEditTheme: onEditTheme),
   );
 }
 
@@ -36,11 +34,7 @@ class ThemeSelectionSheet extends ConsumerStatefulWidget {
   final VoidCallback? onCreateNew;
   final VoidCallback? onEditTheme;
 
-  const ThemeSelectionSheet({
-    super.key,
-    this.onCreateNew,
-    this.onEditTheme,
-  });
+  const ThemeSelectionSheet({super.key, this.onCreateNew, this.onEditTheme});
 
   @override
   ConsumerState<ThemeSelectionSheet> createState() =>
@@ -83,11 +77,13 @@ class _ThemeSelectionSheetState extends ConsumerState<ThemeSelectionSheet> {
                     // Preset themes section
                     _buildSectionHeader(context, 'Default Themes'),
                     const SizedBox(height: AppSpacing.sm),
-                    ...themeState.presetThemes.map((theme) => _buildThemeItem(
-                          context,
-                          theme,
-                          isSelected: theme.id == activeThemeId,
-                        )),
+                    ...themeState.presetThemes.map(
+                      (theme) => _buildThemeItem(
+                        context,
+                        theme,
+                        isSelected: theme.id == activeThemeId,
+                      ),
+                    ),
 
                     const SizedBox(height: AppSpacing.lg),
 
@@ -102,13 +98,15 @@ class _ThemeSelectionSheetState extends ConsumerState<ThemeSelectionSheet> {
                     if (themeState.customThemes.isEmpty)
                       _buildEmptyCustomThemes(context)
                     else
-                      ...themeState.customThemes.map((theme) => _buildThemeItem(
-                            context,
-                            theme,
-                            isSelected: theme.id == activeThemeId,
-                            canDelete: true,
-                            canEdit: true,
-                          )),
+                      ...themeState.customThemes.map(
+                        (theme) => _buildThemeItem(
+                          context,
+                          theme,
+                          isSelected: theme.id == activeThemeId,
+                          canDelete: true,
+                          canEdit: true,
+                        ),
+                      ),
 
                     const SizedBox(height: AppSpacing.xl),
                   ],
@@ -196,9 +194,7 @@ class _ThemeSelectionSheetState extends ConsumerState<ThemeSelectionSheet> {
       ),
       label: Text(
         'Create New',
-        style: AppTextStyles.labelMedium.copyWith(
-          color: context.primaryColor,
-        ),
+        style: AppTextStyles.labelMedium.copyWith(color: context.primaryColor),
       ),
     );
   }
@@ -241,8 +237,9 @@ class _ThemeSelectionSheetState extends ConsumerState<ThemeSelectionSheet> {
   }) {
     return Dismissible(
       key: Key(theme.id),
-      direction:
-          canDelete ? DismissDirection.endToStart : DismissDirection.none,
+      direction: canDelete
+          ? DismissDirection.endToStart
+          : DismissDirection.none,
       confirmDismiss: (direction) async {
         return await _confirmDelete(context, theme);
       },
@@ -271,8 +268,9 @@ class _ThemeSelectionSheetState extends ConsumerState<ThemeSelectionSheet> {
             color: isSelected
                 ? context.primaryColor.withValues(alpha: 0.1)
                 : Colors.transparent,
-            borderRadius:
-                BorderRadius.circular(AppDimensions.borderRadiusMedium),
+            borderRadius: BorderRadius.circular(
+              AppDimensions.borderRadiusMedium,
+            ),
             border: Border.all(
               color: isSelected ? context.primaryColor : context.outlineVariant,
               width: isSelected ? 2 : 1,
@@ -313,8 +311,9 @@ class _ThemeSelectionSheetState extends ConsumerState<ThemeSelectionSheet> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  context.secondaryColor.withValues(alpha: 0.1),
+                              color: context.secondaryColor.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(
                                 AppDimensions.borderRadiusSmall,
                               ),
@@ -387,9 +386,7 @@ class _ThemeSelectionSheetState extends ConsumerState<ThemeSelectionSheet> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: context.errorColor,
-            ),
+            style: TextButton.styleFrom(foregroundColor: context.errorColor),
             child: const Text('Delete'),
           ),
         ],

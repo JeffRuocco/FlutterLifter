@@ -61,14 +61,10 @@ class ExerciseSet {
 
     if (isCompleted) {
       markIncomplete();
-      return const OperationInfo(
-        message: 'Set marked as incomplete',
-      );
+      return const OperationInfo(message: 'Set marked as incomplete');
     } else {
       markCompleted();
-      return const OperationSuccess(
-        message: 'Set completed! 💪',
-      );
+      return const OperationSuccess(message: 'Set completed! 💪');
     }
   }
 
@@ -265,11 +261,14 @@ class Exercise {
         (e) => e.toString() == 'ExerciseCategory.${json['category']}',
         orElse: () => ExerciseCategory.other,
       ),
-      targetMuscleGroups: (json['targetMuscleGroups'] as List<dynamic>?)
-              ?.map((m) => MuscleGroup.values.firstWhere(
-                    (e) => e.toString() == 'MuscleGroup.$m' || e.name == m,
-                    orElse: () => MuscleGroup.fullBody,
-                  ))
+      targetMuscleGroups:
+          (json['targetMuscleGroups'] as List<dynamic>?)
+              ?.map(
+                (m) => MuscleGroup.values.firstWhere(
+                  (e) => e.toString() == 'MuscleGroup.$m' || e.name == m,
+                  orElse: () => MuscleGroup.fullBody,
+                ),
+              )
               .toList() ??
           [],
       defaultSets: json['defaultSets'] ?? 3,
@@ -479,8 +478,8 @@ class WorkoutExercise {
       exercise: Exercise.fromJson(json['exercise']),
       sets: json['sets'] != null
           ? (json['sets'] as List)
-              .map((setJson) => ExerciseSet.fromJson(setJson))
-              .toList()
+                .map((setJson) => ExerciseSet.fromJson(setJson))
+                .toList()
           : [],
       restTime: Duration(seconds: json['restTimeSeconds'] ?? 180),
       notes: json['notes'],

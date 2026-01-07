@@ -103,11 +103,7 @@ class ApiException implements Exception {
   final int? statusCode;
   final Map<String, dynamic>? details;
 
-  const ApiException(
-    this.message, {
-    this.statusCode,
-    this.details,
-  });
+  const ApiException(this.message, {this.statusCode, this.details});
 
   @override
   String toString() {

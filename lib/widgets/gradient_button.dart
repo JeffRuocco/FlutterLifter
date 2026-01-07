@@ -69,7 +69,8 @@ class _GradientButtonState extends ConsumerState<GradientButton>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: widget.borderRadius ??
+          borderRadius:
+              widget.borderRadius ??
               BorderRadius.circular(AppDimensions.borderRadiusMedium),
           boxShadow: isEnabled && !_isPressed
               ? [
@@ -84,15 +85,16 @@ class _GradientButtonState extends ConsumerState<GradientButton>
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: widget.borderRadius ??
+            borderRadius:
+                widget.borderRadius ??
                 BorderRadius.circular(AppDimensions.borderRadiusMedium),
             onTap: widget.onPressed,
-            splashColor:
-                ColorUtils.getContrastingTextColor(context.primaryColor)
-                    .withValues(alpha: 0.2),
-            highlightColor:
-                ColorUtils.getContrastingTextColor(context.primaryColor)
-                    .withValues(alpha: 0.1),
+            splashColor: ColorUtils.getContrastingTextColor(
+              context.primaryColor,
+            ).withValues(alpha: 0.2),
+            highlightColor: ColorUtils.getContrastingTextColor(
+              context.primaryColor,
+            ).withValues(alpha: 0.1),
             child: Center(
               child: widget.isLoading
                   ? SizedBox(
@@ -110,11 +112,7 @@ class _GradientButtonState extends ConsumerState<GradientButton>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         if (widget.icon != null) ...[
-                          Icon(
-                            widget.icon,
-                            color: context.onPrimary,
-                            size: 20,
-                          ),
+                          Icon(widget.icon, color: context.onPrimary, size: 20),
                           SizedBox(width: AppSpacing.sm),
                         ],
                         Text(
@@ -204,7 +202,8 @@ class _GradientOutlineButtonState extends ConsumerState<GradientOutlineButton> {
           color: _isPressed
               ? effectiveBorderColor.withValues(alpha: 0.1)
               : Colors.transparent,
-          borderRadius: widget.borderRadius ??
+          borderRadius:
+              widget.borderRadius ??
               BorderRadius.circular(AppDimensions.borderRadiusMedium),
           border: Border.all(
             color: isEnabled
@@ -216,7 +215,8 @@ class _GradientOutlineButtonState extends ConsumerState<GradientOutlineButton> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: widget.borderRadius ??
+            borderRadius:
+                widget.borderRadius ??
                 BorderRadius.circular(AppDimensions.borderRadiusMedium),
             onTap: widget.onPressed,
             splashColor: effectiveBorderColor.withValues(alpha: 0.2),

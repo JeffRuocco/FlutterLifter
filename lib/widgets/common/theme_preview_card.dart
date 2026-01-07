@@ -44,14 +44,16 @@ class ThemePreviewCard extends StatelessWidget {
     final primary = primaryColor ?? theme?.primaryColor ?? Colors.blue;
     final secondary = secondaryColor ?? theme?.secondaryColor ?? Colors.teal;
 
-    final backgroundColor =
-        isDarkMode ? AppColors.surfaceDark : AppColors.surface;
+    final backgroundColor = isDarkMode
+        ? AppColors.surfaceDark
+        : AppColors.surface;
     final surfaceColor = isDarkMode
         ? AppColors.surfaceContainerDark
         : AppColors.surfaceContainer;
     final textColor = isDarkMode ? Colors.white : const Color(0xFF212121);
-    final secondaryTextColor =
-        isDarkMode ? Colors.white70 : const Color(0xFF616161);
+    final secondaryTextColor = isDarkMode
+        ? Colors.white70
+        : const Color(0xFF616161);
 
     return GestureDetector(
       onTap: onTap,
@@ -64,8 +66,8 @@ class ThemePreviewCard extends StatelessWidget {
             color: isSelected
                 ? primary
                 : (isDarkMode
-                    ? const Color(0xFF404040)
-                    : const Color(0xFFCED4DA)),
+                      ? const Color(0xFF404040)
+                      : const Color(0xFFCED4DA)),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
@@ -77,8 +79,9 @@ class ThemePreviewCard extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius:
-              BorderRadius.circular(AppDimensions.cardBorderRadius - 1),
+          borderRadius: BorderRadius.circular(
+            AppDimensions.cardBorderRadius - 1,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -88,18 +91,20 @@ class ThemePreviewCard extends StatelessWidget {
 
               // Content preview
               Padding(
-                padding:
-                    EdgeInsets.all(expanded ? AppSpacing.md : AppSpacing.sm),
+                padding: EdgeInsets.all(
+                  expanded ? AppSpacing.md : AppSpacing.sm,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Sample headline
                     Text(
                       theme?.name ?? 'Custom Theme',
-                      style: (expanded
-                              ? AppTextStyles.titleMedium
-                              : AppTextStyles.titleSmall)
-                          .copyWith(color: textColor),
+                      style:
+                          (expanded
+                                  ? AppTextStyles.titleMedium
+                                  : AppTextStyles.titleSmall)
+                              .copyWith(color: textColor),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -130,19 +135,18 @@ class ThemePreviewCard extends StatelessWidget {
       height: expanded ? 48 : 32,
       child: Row(
         children: [
-          Expanded(
-            child: Container(color: primary),
-          ),
-          Expanded(
-            child: Container(color: secondary),
-          ),
+          Expanded(child: Container(color: primary)),
+          Expanded(child: Container(color: secondary)),
         ],
       ),
     );
   }
 
   Widget _buildSampleButton(
-      Color primary, Color textColor, Color surfaceColor) {
+    Color primary,
+    Color textColor,
+    Color surfaceColor,
+  ) {
     return Row(
       children: [
         // Primary button preview
@@ -153,8 +157,9 @@ class ThemePreviewCard extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: primary,
-            borderRadius:
-                BorderRadius.circular(AppDimensions.borderRadiusLarge),
+            borderRadius: BorderRadius.circular(
+              AppDimensions.borderRadiusLarge,
+            ),
           ),
           child: Text(
             'Button',
@@ -172,8 +177,9 @@ class ThemePreviewCard extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: surfaceColor,
-            borderRadius:
-                BorderRadius.circular(AppDimensions.borderRadiusLarge),
+            borderRadius: BorderRadius.circular(
+              AppDimensions.borderRadiusLarge,
+            ),
             border: Border.all(color: primary),
           ),
           child: Text(
@@ -215,10 +221,7 @@ class ThemeColorSwatch extends StatelessWidget {
               decoration: BoxDecoration(
                 color: secondaryColor,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white,
-                  width: 2,
-                ),
+                border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.1),
@@ -237,10 +240,7 @@ class ThemeColorSwatch extends StatelessWidget {
               decoration: BoxDecoration(
                 color: primaryColor,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white,
-                  width: 2,
-                ),
+                border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.15),

@@ -16,20 +16,12 @@ class ApiResponse<T> {
 
   /// Success response factory
   factory ApiResponse.success(T data, {String? message}) {
-    return ApiResponse(
-      success: true,
-      data: data,
-      message: message,
-    );
+    return ApiResponse(success: true, data: data, message: message);
   }
 
   /// Error response factory
   factory ApiResponse.error(String error, {int? statusCode}) {
-    return ApiResponse(
-      success: false,
-      error: error,
-      statusCode: statusCode,
-    );
+    return ApiResponse(success: false, error: error, statusCode: statusCode);
   }
 
   /// Loading state factory

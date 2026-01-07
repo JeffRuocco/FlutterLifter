@@ -52,9 +52,9 @@ class ExerciseSessionRecord {
     final bestEpley = sets.isEmpty
         ? null
         : sets
-            .where((s) => !s.isWarmup)
-            .map((s) => s.epleyScore)
-            .fold<double>(0, (a, b) => a > b ? a : b);
+              .where((s) => !s.isWarmup)
+              .map((s) => s.epleyScore)
+              .fold<double>(0, (a, b) => a > b ? a : b);
 
     return ExerciseSessionRecord(
       id: Utils.generateId(),

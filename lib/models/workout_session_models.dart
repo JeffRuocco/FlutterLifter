@@ -115,11 +115,12 @@ class WorkoutSession {
       date: DateTime.parse(json['date']),
       exercises: json['exercises'] != null
           ? (json['exercises'] as List)
-              .map((exerciseJson) => WorkoutExercise.fromJson(exerciseJson))
-              .toList()
+                .map((exerciseJson) => WorkoutExercise.fromJson(exerciseJson))
+                .toList()
           : [],
-      startTime:
-          json['startTime'] != null ? DateTime.parse(json['startTime']) : null,
+      startTime: json['startTime'] != null
+          ? DateTime.parse(json['startTime'])
+          : null,
       endTime: json['endTime'] != null ? DateTime.parse(json['endTime']) : null,
       notes: json['notes'],
       metadata: json['metadata'],
