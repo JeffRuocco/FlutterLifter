@@ -42,8 +42,9 @@ class ExerciseLibraryFilter {
       selectedMuscleGroup: clearMuscleGroup
           ? null
           : (selectedMuscleGroup ?? this.selectedMuscleGroup),
-      selectedCategory:
-          clearCategory ? null : (selectedCategory ?? this.selectedCategory),
+      selectedCategory: clearCategory
+          ? null
+          : (selectedCategory ?? this.selectedCategory),
       selectedSource: selectedSource ?? this.selectedSource,
     );
   }
@@ -125,8 +126,9 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
           source: _filter.selectedSource,
         );
       } else {
-        exercises =
-            await repository.getExercises(source: _filter.selectedSource);
+        exercises = await repository.getExercises(
+          source: _filter.selectedSource,
+        );
       }
 
       setState(() {
@@ -180,10 +182,7 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildMyExercisesTab(),
-          _buildDiscoverTab(),
-        ],
+        children: [_buildMyExercisesTab(), _buildDiscoverTab()],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -218,9 +217,7 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
           ),
 
         // Content
-        Expanded(
-          child: _buildExerciseList(),
-        ),
+        Expanded(child: _buildExerciseList()),
       ],
     );
   }
@@ -262,8 +259,9 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
                 filled: true,
                 fillColor: context.surfaceVariant,
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppDimensions.borderRadiusMedium),
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.borderRadiusMedium,
+                  ),
                   borderSide: BorderSide.none,
                 ),
                 contentPadding: const EdgeInsets.symmetric(
@@ -325,7 +323,8 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
                     _buildFilterChip(
                       _filter.selectedMuscleGroup!.displayName,
                       onRemove: () => _updateFilter(
-                          _filter.copyWith(clearMuscleGroup: true)),
+                        _filter.copyWith(clearMuscleGroup: true),
+                      ),
                     ),
                   if (_filter.selectedCategory != null)
                     _buildFilterChip(
@@ -337,7 +336,8 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
                     _buildFilterChip(
                       _filter.selectedSource.displayName,
                       onRemove: () => _updateFilter(
-                          _filter.copyWith(selectedSource: ExerciseSource.all)),
+                        _filter.copyWith(selectedSource: ExerciseSource.all),
+                      ),
                     ),
                 ],
               ),
@@ -363,9 +363,7 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
       child: Chip(
         label: Text(
           label,
-          style: AppTextStyles.labelSmall.copyWith(
-            color: context.primaryColor,
-          ),
+          style: AppTextStyles.labelSmall.copyWith(color: context.primaryColor),
         ),
         backgroundColor: context.primaryColor.withValues(alpha: 0.1),
         deleteIcon: HugeIcon(
@@ -395,10 +393,7 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
     }
 
     if (_errorMessage != null) {
-      return EmptyState.error(
-        message: _errorMessage!,
-        onRetry: _loadExercises,
-      );
+      return EmptyState.error(message: _errorMessage!, onRetry: _loadExercises);
     }
 
     if (_exercises.isEmpty) {
@@ -477,7 +472,9 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
   }
 
   Widget _buildRegionSection(
-      MuscleGroupRegion region, List<Exercise> exercises) {
+    MuscleGroupRegion region,
+    List<Exercise> exercises,
+  ) {
     final isExpanded = _expandedRegions[region] ?? true;
 
     return Column(
@@ -537,18 +534,21 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
         AnimatedCrossFade(
           firstChild: Column(
             children: exercises
-                .map((e) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: _ExerciseListTile(
-                        exercise: e,
-                        onTap: () => _navigateToExerciseDetail(e),
-                      ),
-                    ))
+                .map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: _ExerciseListTile(
+                      exercise: e,
+                      onTap: () => _navigateToExerciseDetail(e),
+                    ),
+                  ),
+                )
                 .toList(),
           ),
           secondChild: const SizedBox.shrink(),
-          crossFadeState:
-              isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+          crossFadeState: isExpanded
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
           duration: const Duration(milliseconds: 200),
         ),
 
@@ -615,10 +615,7 @@ class _ExerciseListTile extends StatelessWidget {
   final Exercise exercise;
   final VoidCallback onTap;
 
-  const _ExerciseListTile({
-    required this.exercise,
-    required this.onTap,
-  });
+  const _ExerciseListTile({required this.exercise, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -676,7 +673,8 @@ class _ExerciseListTile extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: context.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(
-                              AppDimensions.borderRadiusSmall),
+                            AppDimensions.borderRadiusSmall,
+                          ),
                         ),
                         child: Text(
                           exercise.category.displayName,
@@ -992,8 +990,9 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                           );
                         });
                       },
-                      selectedColor:
-                          context.primaryColor.withValues(alpha: 0.2),
+                      selectedColor: context.primaryColor.withValues(
+                        alpha: 0.2,
+                      ),
                       checkmarkColor: context.primaryColor,
                       labelStyle: AppTextStyles.labelSmall.copyWith(
                         color: isSelected

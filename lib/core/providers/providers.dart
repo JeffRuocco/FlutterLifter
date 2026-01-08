@@ -2,7 +2,7 @@
 ///
 /// This file exports all providers used throughout the application.
 /// Import this file to access any provider.
-library flutter_lifter.core.providers;
+library;
 
 export 'storage_provider.dart';
 export 'api_provider.dart';

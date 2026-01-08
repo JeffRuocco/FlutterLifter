@@ -111,9 +111,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
 
-              Expanded(
-                child: _buildProgramsList(),
-              ),
+              Expanded(child: _buildProgramsList()),
             ],
           ),
         ),
@@ -127,24 +125,17 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         itemCount: 3,
         itemBuilder: (context, index) => const Padding(
           padding: EdgeInsets.only(bottom: AppSpacing.md),
-          child: SkeletonCard(
-            height: 140,
-          ),
+          child: SkeletonCard(height: 140),
         ),
       );
     }
 
     if (_errorMessage != null) {
-      return EmptyState.error(
-        message: _errorMessage!,
-        onRetry: _loadPrograms,
-      );
+      return EmptyState.error(message: _errorMessage!, onRetry: _loadPrograms);
     }
 
     if (_programs.isEmpty) {
-      return EmptyState.noPrograms(
-        onBrowsePrograms: _createCustomProgram,
-      );
+      return EmptyState.noPrograms(onBrowsePrograms: _createCustomProgram);
     }
 
     return RefreshIndicator(
@@ -184,9 +175,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
           // Create Custom Program Card
           SlideInWidget(
             delay: Duration(milliseconds: 500 + (_programs.length * 100)),
-            child: _CreateProgramCard(
-              onTap: () => _createCustomProgram(),
-            ),
+            child: _CreateProgramCard(onTap: () => _createCustomProgram()),
           ),
 
           const SizedBox(height: AppSpacing.xxl),
@@ -244,8 +233,9 @@ class _ProgramCard extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: program.getColor(context).withValues(alpha: 0.1),
-                  borderRadius:
-                      BorderRadius.circular(AppDimensions.borderRadiusMedium),
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.borderRadiusMedium,
+                  ),
                 ),
                 child: HugeIcon(
                   icon: program.icon,
@@ -267,23 +257,22 @@ class _ProgramCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Row(
                       children: [
-                        _InfoChip(
-                          label: duration,
-                          color: context.primaryColor,
-                        ),
+                        _InfoChip(label: duration, color: context.primaryColor),
                         const SizedBox(width: AppSpacing.xs),
                         _InfoChip(
                           label: program.difficulty.displayName,
                           color: _getDifficultyColor(
-                              context, program.difficulty.displayName),
+                            context,
+                            program.difficulty.displayName,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              Icon(
-                HugeIcons.strokeRoundedArrowRight01,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
                 size: AppDimensions.iconSmall,
                 color: context.textSecondary,
               ),
@@ -322,10 +311,7 @@ class _InfoChip extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _InfoChip({
-    required this.label,
-    required this.color,
-  });
+  const _InfoChip({required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -337,10 +323,7 @@ class _InfoChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Text(
         label,
@@ -356,9 +339,7 @@ class _InfoChip extends StatelessWidget {
 class _CreateProgramCard extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _CreateProgramCard({
-    required this.onTap,
-  });
+  const _CreateProgramCard({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -408,8 +389,9 @@ class _CreateProgramCard extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: context.primaryColor,
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.borderRadiusLarge),
+              borderRadius: BorderRadius.circular(
+                AppDimensions.borderRadiusLarge,
+              ),
             ),
             child: Text(
               'Get Started',

@@ -131,15 +131,17 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
     if (query.isNotEmpty) {
       filtered = filtered.where((exercise) {
         return exercise.name.toLowerCase().contains(query) ||
-            exercise.targetMuscleGroups
-                .any((m) => m.displayName.toLowerCase().contains(query));
+            exercise.targetMuscleGroups.any(
+              (m) => m.displayName.toLowerCase().contains(query),
+            );
       }).toList();
     }
 
     // Apply category filter
     if (_selectedCategory != null) {
-      filtered =
-          filtered.where((e) => e.category == _selectedCategory).toList();
+      filtered = filtered
+          .where((e) => e.category == _selectedCategory)
+          .toList();
     }
 
     return filtered;
@@ -236,9 +238,7 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
             Divider(height: 1, color: context.outlineVariant),
 
             // Exercise List
-            Expanded(
-              child: _buildExerciseList(scrollController),
-            ),
+            Expanded(child: _buildExerciseList(scrollController)),
           ],
         ),
       ),
@@ -283,9 +283,7 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
           vertical: AppSpacing.sm,
         ),
       ),
-      style: AppTextStyles.bodyMedium.copyWith(
-        color: context.textPrimary,
-      ),
+      style: AppTextStyles.bodyMedium.copyWith(color: context.textPrimary),
       onChanged: (_) => setState(() {}),
     );
   }
@@ -346,10 +344,7 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
     }
 
     if (_errorMessage != null) {
-      return EmptyState.error(
-        message: _errorMessage!,
-        onRetry: _loadExercises,
-      );
+      return EmptyState.error(message: _errorMessage!, onRetry: _loadExercises);
     }
 
     final filtered = _filteredExercises;
@@ -389,7 +384,9 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
   }
 
   Widget _buildGroupedList(
-      ScrollController scrollController, List<Exercise> exercises) {
+    ScrollController scrollController,
+    List<Exercise> exercises,
+  ) {
     // Group exercises by primary muscle group's region
     final Map<MuscleGroupRegion, List<Exercise>> groupedExercises = {};
 
@@ -420,7 +417,9 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
   }
 
   Widget _buildRegionSection(
-      MuscleGroupRegion region, List<Exercise> exercises) {
+    MuscleGroupRegion region,
+    List<Exercise> exercises,
+  ) {
     final isExpanded = _expandedRegions[region] ?? true;
 
     return Column(
@@ -480,19 +479,22 @@ class _ExercisePickerState extends ConsumerState<ExercisePicker> {
         AnimatedCrossFade(
           firstChild: Column(
             children: exercises
-                .map((e) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: _ExercisePickerTile(
-                        exercise: e,
-                        onTap: () => widget.onExerciseSelected(e),
-                        isCurrentExercise: widget.currentExercise?.id == e.id,
-                      ),
-                    ))
+                .map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: _ExercisePickerTile(
+                      exercise: e,
+                      onTap: () => widget.onExerciseSelected(e),
+                      isCurrentExercise: widget.currentExercise?.id == e.id,
+                    ),
+                  ),
+                )
                 .toList(),
           ),
           secondChild: const SizedBox.shrink(),
-          crossFadeState:
-              isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+          crossFadeState: isExpanded
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
           duration: const Duration(milliseconds: 200),
         ),
 
@@ -621,7 +623,8 @@ class _ExercisePickerTile extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: context.outlineVariant,
                         borderRadius: BorderRadius.circular(
-                            AppDimensions.borderRadiusSmall),
+                          AppDimensions.borderRadiusSmall,
+                        ),
                       ),
                       child: Text(
                         'Current',

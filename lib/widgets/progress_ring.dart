@@ -105,13 +105,9 @@ class _AnimatedProgressRingState extends ConsumerState<AnimatedProgressRing>
       duration: widget.animationDuration,
       vsync: this,
     );
-    _progressAnimation = Tween<double>(
-      begin: 0,
-      end: widget.progress,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: widget.animationCurve,
-    ));
+    _progressAnimation = Tween<double>(begin: 0, end: widget.progress).animate(
+      CurvedAnimation(parent: _controller, curve: widget.animationCurve),
+    );
     _controller.forward();
   }
 
@@ -120,13 +116,10 @@ class _AnimatedProgressRingState extends ConsumerState<AnimatedProgressRing>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.progress != widget.progress) {
       _previousProgress = _progressAnimation.value;
-      _progressAnimation = Tween<double>(
-        begin: _previousProgress,
-        end: widget.progress,
-      ).animate(CurvedAnimation(
-        parent: _controller,
-        curve: widget.animationCurve,
-      ));
+      _progressAnimation =
+          Tween<double>(begin: _previousProgress, end: widget.progress).animate(
+            CurvedAnimation(parent: _controller, curve: widget.animationCurve),
+          );
       _controller
         ..reset()
         ..forward();

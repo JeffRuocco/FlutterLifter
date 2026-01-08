@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -19,10 +20,7 @@ import '../widgets/exercise_detail_content.dart';
 class ExerciseDetailScreen extends ConsumerStatefulWidget {
   final String exerciseId;
 
-  const ExerciseDetailScreen({
-    super.key,
-    required this.exerciseId,
-  });
+  const ExerciseDetailScreen({super.key, required this.exerciseId});
 
   @override
   ConsumerState<ExerciseDetailScreen> createState() =>
@@ -185,8 +183,9 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
           onSelected: (value) async {
             switch (value) {
               case 'edit':
-                await context
-                    .push('${AppRoutes.exercises}/${_exercise!.id}/edit');
+                await context.push(
+                  '${AppRoutes.exercises}/${_exercise!.id}/edit',
+                );
                 _loadExercise(); // Refresh after returning from edit screen
                 break;
               case 'share':
@@ -240,9 +239,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           _exercise!.name,
-          style: AppTextStyles.titleMedium.copyWith(
-            color: context.onSurface,
-          ),
+          style: AppTextStyles.titleMedium.copyWith(color: context.onSurface),
         ),
         background: Container(
           decoration: BoxDecoration(
@@ -268,7 +265,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     );
   }
 
-  IconData _getCategoryIcon(ExerciseCategory category) {
+  HugeIconData _getCategoryIcon(ExerciseCategory category) {
     switch (category) {
       case ExerciseCategory.strength:
         return HugeIcons.strokeRoundedDumbbell01;

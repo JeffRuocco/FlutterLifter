@@ -7,10 +7,7 @@ class ProgramResponse {
   final List<Program> programs;
   final String? message;
 
-  const ProgramResponse({
-    required this.programs,
-    this.message,
-  });
+  const ProgramResponse({required this.programs, this.message});
 
   factory ProgramResponse.fromJson(Map<String, dynamic> json) {
     return ProgramResponse(

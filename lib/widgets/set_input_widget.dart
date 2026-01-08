@@ -17,8 +17,12 @@ class SetInputWidget extends StatefulWidget {
 
   /// Callback function that will be called when the set data (weight, reps, notes) is updated
   final Function(
-          double? weight, int? reps, String? notes, bool? markAsCompleted)?
-      onUpdated;
+    double? weight,
+    int? reps,
+    String? notes,
+    bool? markAsCompleted,
+  )?
+  onUpdated;
 
   const SetInputWidget({
     super.key,
@@ -64,9 +68,7 @@ class _SetInputWidgetState extends State<SetInputWidget> {
 
     // Initialize reps controller
     final repsValue = widget.exerciseSet.actualReps;
-    _repsController = TextEditingController(
-      text: repsValue?.toString() ?? '',
-    );
+    _repsController = TextEditingController(text: repsValue?.toString() ?? '');
 
     // Initialize notes controller
     _notesController.text = widget.exerciseSet.notes ?? '';
@@ -84,8 +86,9 @@ class _SetInputWidgetState extends State<SetInputWidget> {
 
     // Compare model data to current text field values
     final currentWeightText = widget.exerciseSet.actualWeight != null
-        ? widget.exerciseSet.actualWeight!
-            .toStringAsFixed(widget.exerciseSet.actualWeight! % 1 == 0 ? 0 : 1)
+        ? widget.exerciseSet.actualWeight!.toStringAsFixed(
+            widget.exerciseSet.actualWeight! % 1 == 0 ? 0 : 1,
+          )
         : '';
 
     final currentRepsText = widget.exerciseSet.actualReps?.toString() ?? '';
@@ -173,10 +176,7 @@ class _SetInputWidgetState extends State<SetInputWidget> {
               backgroundColor: context.errorColor,
               foregroundColor: context.onError,
             ),
-            child: const Text(
-              'Unmark',
-              style: AppTextStyles.labelMedium,
-            ),
+            child: const Text('Unmark', style: AppTextStyles.labelMedium),
           ),
         ],
       ),
@@ -226,22 +226,23 @@ class _SetInputWidgetState extends State<SetInputWidget> {
               Expanded(
                 flex: 2,
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                  ),
                   child: _buildInputField(
                     controller: _weightController,
                     enabled: isEditable,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                     ],
                     suffix: 'lbs',
-                    placeholder: widget.exerciseSet.targetWeight
-                            ?.toStringAsFixed(
-                                widget.exerciseSet.targetWeight! % 1 == 0
-                                    ? 0
-                                    : 1) ??
+                    placeholder:
+                        widget.exerciseSet.targetWeight?.toStringAsFixed(
+                          widget.exerciseSet.targetWeight! % 1 == 0 ? 0 : 1,
+                        ) ??
                         '--',
                   ),
                 ),
@@ -251,15 +252,14 @@ class _SetInputWidgetState extends State<SetInputWidget> {
               Expanded(
                 flex: 2,
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                  ),
                   child: _buildInputField(
                     controller: _repsController,
                     enabled: isEditable,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     placeholder:
                         widget.exerciseSet.targetReps?.toString() ?? '--',
                   ),
@@ -277,9 +277,7 @@ class _SetInputWidgetState extends State<SetInputWidget> {
                   child: Container(
                     width: 48,
                     height: 48,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: const BoxDecoration(shape: BoxShape.circle),
                     child: Container(
                       width: 32,
                       height: 32,
@@ -293,11 +291,12 @@ class _SetInputWidgetState extends State<SetInputWidget> {
                         boxShadow: isCompleted
                             ? [
                                 BoxShadow(
-                                  color: context.successColor
-                                      .withValues(alpha: 0.3),
+                                  color: context.successColor.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
-                                )
+                                ),
                               ]
                             : null,
                       ),
@@ -313,8 +312,9 @@ class _SetInputWidgetState extends State<SetInputWidget> {
                               margin: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                  color: context.textSecondary
-                                      .withValues(alpha: 0.5),
+                                  color: context.textSecondary.withValues(
+                                    alpha: 0.5,
+                                  ),
                                   width: 2,
                                 ),
                                 shape: BoxShape.circle,

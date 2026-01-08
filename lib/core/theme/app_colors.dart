@@ -143,8 +143,9 @@ class AppColors {
   /// Glass effect colors for light mode
   static Color glassLight = Colors.white.withValues(alpha: 0.7);
   static Color glassLightStrong = Colors.white.withValues(alpha: 0.85);
-  static Color glassBorderLight =
-      const Color(0xFF000000).withValues(alpha: 0.08);
+  static Color glassBorderLight = const Color(
+    0xFF000000,
+  ).withValues(alpha: 0.08);
 
   /// Glass effect colors for dark mode
   static Color glassDark = Colors.white.withValues(alpha: 0.08);

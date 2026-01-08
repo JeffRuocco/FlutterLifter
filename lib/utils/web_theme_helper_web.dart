@@ -13,8 +13,9 @@ class WebThemeHelper {
       LoggingService.debug('Setting meta theme color to $hexColor');
 
       // Remove existing theme-color meta tags
-      final existingTags =
-          web.document.querySelectorAll('meta[name="theme-color"]');
+      final existingTags = web.document.querySelectorAll(
+        'meta[name="theme-color"]',
+      );
       for (int i = 0; i < existingTags.length; i++) {
         final element = existingTags.item(i) as web.Element?;
         element?.remove();

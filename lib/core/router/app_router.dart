@@ -87,8 +87,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const HomeScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: AppDurations.fast,
             ),
           ),
@@ -102,8 +102,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const ProgramsScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: AppDurations.fast,
             ),
             routes: [
@@ -117,17 +117,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                   child: const CreateProgramScreen(),
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
-                    return SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(1, 0),
-                        end: Offset.zero,
-                      ).animate(CurvedAnimation(
-                        parent: animation,
-                        curve: AppCurves.standard,
-                      )),
-                      child: child,
-                    );
-                  },
+                        return SlideTransition(
+                          position:
+                              Tween<Offset>(
+                                begin: const Offset(1, 0),
+                                end: Offset.zero,
+                              ).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: AppCurves.standard,
+                                ),
+                              ),
+                          child: child,
+                        );
+                      },
                   transitionDuration: AppDurations.medium,
                 ),
               ),
@@ -143,8 +146,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const ExerciseLibraryScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: AppDurations.fast,
             ),
             routes: [
@@ -158,17 +161,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                   child: const CreateExerciseScreen(),
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
-                    return SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(1, 0),
-                        end: Offset.zero,
-                      ).animate(CurvedAnimation(
-                        parent: animation,
-                        curve: AppCurves.standard,
-                      )),
-                      child: child,
-                    );
-                  },
+                        return SlideTransition(
+                          position:
+                              Tween<Offset>(
+                                begin: const Offset(1, 0),
+                                end: Offset.zero,
+                              ).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: AppCurves.standard,
+                                ),
+                              ),
+                          child: child,
+                        );
+                      },
                   transitionDuration: AppDurations.medium,
                 ),
               ),
@@ -184,17 +190,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                     child: ExerciseDetailScreen(exerciseId: exerciseId),
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(1, 0),
-                          end: Offset.zero,
-                        ).animate(CurvedAnimation(
-                          parent: animation,
-                          curve: AppCurves.standard,
-                        )),
-                        child: child,
-                      );
-                    },
+                          return SlideTransition(
+                            position:
+                                Tween<Offset>(
+                                  begin: const Offset(1, 0),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: AppCurves.standard,
+                                  ),
+                                ),
+                            child: child,
+                          );
+                        },
                     transitionDuration: AppDurations.medium,
                   );
                 },
@@ -211,17 +220,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                         child: CreateExerciseScreen(exerciseId: exerciseId),
                         transitionsBuilder:
                             (context, animation, secondaryAnimation, child) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(1, 0),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(
-                              parent: animation,
-                              curve: AppCurves.standard,
-                            )),
-                            child: child,
-                          );
-                        },
+                              return SlideTransition(
+                                position:
+                                    Tween<Offset>(
+                                      begin: const Offset(1, 0),
+                                      end: Offset.zero,
+                                    ).animate(
+                                      CurvedAnimation(
+                                        parent: animation,
+                                        curve: AppCurves.standard,
+                                      ),
+                                    ),
+                                child: child,
+                              );
+                            },
                         transitionDuration: AppDurations.medium,
                       );
                     },
@@ -238,17 +250,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                         child: ExerciseHistoryScreen(exerciseId: exerciseId),
                         transitionsBuilder:
                             (context, animation, secondaryAnimation, child) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(1, 0),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(
-                              parent: animation,
-                              curve: AppCurves.standard,
-                            )),
-                            child: child,
-                          );
-                        },
+                              return SlideTransition(
+                                position:
+                                    Tween<Offset>(
+                                      begin: const Offset(1, 0),
+                                      end: Offset.zero,
+                                    ).animate(
+                                      CurvedAnimation(
+                                        parent: animation,
+                                        curve: AppCurves.standard,
+                                      ),
+                                    ),
+                                child: child,
+                              );
+                            },
                         transitionDuration: AppDurations.medium,
                       );
                     },
@@ -267,8 +282,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const WorkoutScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: AppDurations.fast,
             ),
           ),
@@ -282,8 +297,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const ProgressScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: AppDurations.fast,
             ),
           ),
@@ -300,13 +315,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: const SettingsScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(1, 0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: AppCurves.standard,
-              )),
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(1, 0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: AppCurves.standard,
+                    ),
+                  ),
               child: child,
             );
           },
@@ -322,17 +340,20 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const DebugSettingsScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(1, 0),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: animation,
-                    curve: AppCurves.standard,
-                  )),
-                  child: child,
-                );
-              },
+                    return SlideTransition(
+                      position:
+                          Tween<Offset>(
+                            begin: const Offset(1, 0),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: AppCurves.standard,
+                            ),
+                          ),
+                      child: child,
+                    );
+                  },
               transitionDuration: AppDurations.medium,
             ),
           ),
@@ -345,17 +366,20 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: const WidgetGalleryScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(1, 0),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: animation,
-                    curve: AppCurves.standard,
-                  )),
-                  child: child,
-                );
-              },
+                    return SlideTransition(
+                      position:
+                          Tween<Offset>(
+                            begin: const Offset(1, 0),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: AppCurves.standard,
+                            ),
+                          ),
+                      child: child,
+                    );
+                  },
               transitionDuration: AppDurations.medium,
             ),
           ),
@@ -370,17 +394,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                 child: ThemeEditorScreen(editThemeId: editThemeId),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 1),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: animation,
-                      curve: AppCurves.standard,
-                    )),
-                    child: child,
-                  );
-                },
+                      return SlideTransition(
+                        position:
+                            Tween<Offset>(
+                              begin: const Offset(0, 1),
+                              end: Offset.zero,
+                            ).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: AppCurves.standard,
+                              ),
+                            ),
+                        child: child,
+                      );
+                    },
                 transitionDuration: AppDurations.medium,
               );
             },

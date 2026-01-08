@@ -16,11 +16,9 @@ final themeRepositoryProvider = Provider<ThemeRepository>((ref) {
 
 /// Provider for the custom theme state notifier
 final customThemeNotifierProvider =
-    StateNotifierProvider<CustomThemeNotifier, CustomThemeState>((ref) {
-  throw UnimplementedError(
-    'customThemeNotifierProvider must be overridden with ThemeRepository',
-  );
-});
+    NotifierProvider<CustomThemeNotifier, CustomThemeState>(
+      CustomThemeNotifier.new,
+    );
 
 /// Provider for getting dynamic ThemeData based on custom theme
 final dynamicLightThemeProvider = Provider<ThemeData>((ref) {
@@ -46,15 +44,21 @@ final dynamicDarkThemeProvider = Provider<ThemeData>((ref) {
   );
 });
 
-/// StateNotifier for managing custom theme state
-class CustomThemeNotifier extends StateNotifier<CustomThemeState> {
-  final ThemeRepository _repository;
+/// Notifier for managing custom theme state
+class CustomThemeNotifier extends Notifier<CustomThemeState> {
+  late ThemeRepository _repository;
 
-  CustomThemeNotifier(this._repository)
-      : super(CustomThemeState(
-          presetThemes: PresetThemes.all,
-          isLoading: true,
-        )) {
+  @override
+  CustomThemeState build() {
+    // Will be overridden with proper repository
+    throw UnimplementedError(
+      'customThemeNotifierProvider must be overridden with ThemeRepository',
+    );
+  }
+
+  /// Initialize the notifier with repository
+  void init(ThemeRepository repository) {
+    _repository = repository;
     _loadInitialState();
   }
 
@@ -160,14 +164,28 @@ class CustomThemeNotifier extends StateNotifier<CustomThemeState> {
   }
 }
 
+/// Subclass that properly initializes with ThemeRepository
+class _InitializedCustomThemeNotifier extends CustomThemeNotifier {
+  final ThemeRepository _initRepository;
+
+  _InitializedCustomThemeNotifier(this._initRepository);
+
+  @override
+  CustomThemeState build() {
+    _repository = _initRepository;
+    _loadInitialState();
+    return CustomThemeState(presetThemes: PresetThemes.all, isLoading: true);
+  }
+}
+
 /// Creates providers with the given SharedPreferences instance
-List<Override> createThemeProviderOverrides(SharedPreferences prefs) {
+List<dynamic> createThemeProviderOverrides(SharedPreferences prefs) {
   final repository = LocalThemeRepository(prefs);
 
   return [
     themeRepositoryProvider.overrideWithValue(repository),
     customThemeNotifierProvider.overrideWith(
-      (ref) => CustomThemeNotifier(repository),
+      () => _InitializedCustomThemeNotifier(repository),
     ),
   ];
 }

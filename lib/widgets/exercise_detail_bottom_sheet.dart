@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../core/theme/app_colors.dart';
@@ -19,10 +20,7 @@ class ExerciseDetailBottomSheet extends StatelessWidget {
   /// The exercise to display details for
   final Exercise exercise;
 
-  const ExerciseDetailBottomSheet({
-    super.key,
-    required this.exercise,
-  });
+  const ExerciseDetailBottomSheet({super.key, required this.exercise});
 
   /// Shows the exercise detail bottom sheet as a modal.
   static Future<void> show(BuildContext context, Exercise exercise) {
@@ -42,7 +40,7 @@ class ExerciseDetailBottomSheet extends StatelessWidget {
     return AppColors.getMuscleGroupColor(primaryMuscle);
   }
 
-  IconData _getCategoryIcon(ExerciseCategory category) {
+  HugeIconData _getCategoryIcon(ExerciseCategory category) {
     switch (category) {
       case ExerciseCategory.strength:
         return HugeIcons.strokeRoundedDumbbell01;

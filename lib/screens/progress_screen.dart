@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -107,8 +108,9 @@ class ProgressScreen extends ConsumerWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.borderRadiusLarge),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.borderRadiusLarge,
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -122,7 +124,8 @@ class ProgressScreen extends ConsumerWidget {
                           child: HugeIcon(
                             icon: HugeIcons.strokeRoundedFire,
                             color: ColorUtils.getContrastingTextColor(
-                                context.primaryColor),
+                              context.primaryColor,
+                            ),
                             size: AppDimensions.iconLarge,
                           ),
                         ),
@@ -301,7 +304,7 @@ class ProgressScreen extends ConsumerWidget {
 
   Widget _buildFeatureItem(
     BuildContext context, {
-    required IconData icon,
+    required HugeIconData icon,
     required String title,
     required String subtitle,
     required Duration delay,
@@ -320,8 +323,9 @@ class ProgressScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: context.primaryColor.withValues(alpha: 0.1),
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                borderRadius: BorderRadius.circular(
+                  AppDimensions.borderRadiusSmall,
+                ),
               ),
               child: HugeIcon(
                 icon: icon,

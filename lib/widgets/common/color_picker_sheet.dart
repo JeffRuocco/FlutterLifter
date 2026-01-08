@@ -236,9 +236,7 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
                   borderRadius: BorderRadius.circular(
                     AppDimensions.borderRadiusMedium,
                   ),
-                  border: Border.all(
-                    color: context.outlineColor,
-                  ),
+                  border: Border.all(color: context.outlineColor),
                 ),
               ),
             ],
@@ -270,9 +268,7 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
                   borderRadius: BorderRadius.circular(
                     AppDimensions.borderRadiusMedium,
                   ),
-                  border: Border.all(
-                    color: context.outlineColor,
-                  ),
+                  border: Border.all(color: context.outlineColor),
                 ),
               ),
             ],
@@ -297,9 +293,7 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
       decoration: BoxDecoration(
         color: context.warningColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
-        border: Border.all(
-          color: context.warningColor.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: context.warningColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

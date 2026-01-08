@@ -62,8 +62,9 @@ class ExerciseFilterState {
       searchQuery: searchQuery ?? this.searchQuery,
       selectedMuscleGroups: selectedMuscleGroups ?? this.selectedMuscleGroups,
       selectedCategories: selectedCategories ?? this.selectedCategories,
-      sourceFilter:
-          clearSourceFilter ? null : (sourceFilter ?? this.sourceFilter),
+      sourceFilter: clearSourceFilter
+          ? null
+          : (sourceFilter ?? this.sourceFilter),
       sortOption: sortOption ?? this.sortOption,
       favoritesFirst: favoritesFirst ?? this.favoritesFirst,
     );
@@ -103,9 +104,12 @@ enum ExerciseSortOption {
   const ExerciseSortOption(this.displayName);
 }
 
-/// StateNotifier for managing exercise filter state
-class ExerciseFilterNotifier extends StateNotifier<ExerciseFilterState> {
-  ExerciseFilterNotifier() : super(const ExerciseFilterState());
+/// Notifier for managing exercise filter state
+class ExerciseFilterNotifier extends Notifier<ExerciseFilterState> {
+  @override
+  ExerciseFilterState build() {
+    return const ExerciseFilterState();
+  }
 
   /// Update search query
   void setSearchQuery(String query) {
@@ -201,9 +205,9 @@ class ExerciseFilterNotifier extends StateNotifier<ExerciseFilterState> {
 
 /// Provider for exercise filter state
 final exerciseFilterProvider =
-    StateNotifierProvider<ExerciseFilterNotifier, ExerciseFilterState>(
-  (ref) => ExerciseFilterNotifier(),
-);
+    NotifierProvider<ExerciseFilterNotifier, ExerciseFilterState>(
+      ExerciseFilterNotifier.new,
+    );
 
 /// Extension to filter and sort a list of exercises based on filter state
 extension ExerciseFilterExtension on List<Exercise> {
@@ -221,8 +225,9 @@ extension ExerciseFilterExtension on List<Exercise> {
       final query = filterState.searchQuery.toLowerCase();
       result = result.where((e) {
         return e.name.toLowerCase().contains(query) ||
-            e.targetMuscleGroups
-                .any((m) => m.displayName.toLowerCase().contains(query)) ||
+            e.targetMuscleGroups.any(
+              (m) => m.displayName.toLowerCase().contains(query),
+            ) ||
             e.category.displayName.toLowerCase().contains(query) ||
             (e.instructions?.toLowerCase().contains(query) ?? false);
       }).toList();
@@ -231,8 +236,9 @@ extension ExerciseFilterExtension on List<Exercise> {
     // Apply muscle group filter
     if (filterState.selectedMuscleGroups.isNotEmpty) {
       result = result.where((e) {
-        return e.targetMuscleGroups
-            .any((m) => filterState.selectedMuscleGroups.contains(m));
+        return e.targetMuscleGroups.any(
+          (m) => filterState.selectedMuscleGroups.contains(m),
+        );
       }).toList();
     }
 
@@ -262,10 +268,12 @@ extension ExerciseFilterExtension on List<Exercise> {
 
     // Apply favorites first if enabled
     if (filterState.favoritesFirst && favoriteIds != null) {
-      final favorites =
-          result.where((e) => favoriteIds.contains(e.id)).toList();
-      final nonFavorites =
-          result.where((e) => !favoriteIds.contains(e.id)).toList();
+      final favorites = result
+          .where((e) => favoriteIds.contains(e.id))
+          .toList();
+      final nonFavorites = result
+          .where((e) => !favoriteIds.contains(e.id))
+          .toList();
       result = [...favorites, ...nonFavorites];
     }
 

@@ -12,8 +12,9 @@ import 'package:flutter_lifter/models/exercise_models.dart';
 
 void main() {
   group('Set Notes Space Input Tests', () {
-    testWidgets('Should allow typing spaces in notes field',
-        (WidgetTester tester) async {
+    testWidgets('Should allow typing spaces in notes field', (
+      WidgetTester tester,
+    ) async {
       // Create a test exercise set
       final exerciseSet = ExerciseSet.create(
         targetReps: 10,
@@ -65,8 +66,9 @@ void main() {
       // The test passes if no exceptions were thrown and the text with spaces was accepted
     });
 
-    testWidgets('Should preserve spaces when updating notes',
-        (WidgetTester tester) async {
+    testWidgets('Should preserve spaces when updating notes', (
+      WidgetTester tester,
+    ) async {
       // Create a test exercise set with existing notes containing spaces
       final exerciseSet = ExerciseSet.create(
         targetReps: 10,
@@ -96,12 +98,16 @@ void main() {
 
       // Add more text with spaces
       await tester.enterText(
-          notesField, 'Existing note with spaces and more spaces');
+        notesField,
+        'Existing note with spaces and more spaces',
+      );
       await tester.pumpAndSettle();
 
       // Verify the updated text with spaces is accepted
-      expect(find.text('Existing note with spaces and more spaces'),
-          findsOneWidget);
+      expect(
+        find.text('Existing note with spaces and more spaces'),
+        findsOneWidget,
+      );
     });
   });
 }

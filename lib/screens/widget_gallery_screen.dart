@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -94,7 +95,7 @@ class _WidgetGalleryScreenState extends ConsumerState<WidgetGalleryScreen>
 
 class _GalleryTab {
   final String label;
-  final IconData icon;
+  final HugeIconData icon;
 
   const _GalleryTab(this.label, this.icon);
 }
@@ -159,8 +160,9 @@ class _ColorRow extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: color,
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.borderRadiusSmall),
+              borderRadius: BorderRadius.circular(
+                AppDimensions.borderRadiusSmall,
+              ),
               border: Border.all(color: context.outlineColor),
             ),
           ),
@@ -251,10 +253,7 @@ class _TypographyItem extends StatelessWidget {
               color: context.textSecondary,
             ),
           ),
-          Text(
-            'The quick brown fox',
-            style: style,
-          ),
+          Text('The quick brown fox', style: style),
         ],
       ),
     );
@@ -290,18 +289,21 @@ class _ButtonsGallery extends StatelessWidget {
           runSpacing: AppSpacing.sm,
           children: [
             AppButton(
-                text: 'Default',
-                onPressed: () {},
-                type: AppButtonType.outlined),
+              text: 'Default',
+              onPressed: () {},
+              type: AppButtonType.outlined,
+            ),
             AppButton(
-                text: 'Loading',
-                onPressed: () {},
-                isLoading: true,
-                type: AppButtonType.outlined),
+              text: 'Loading',
+              onPressed: () {},
+              isLoading: true,
+              type: AppButtonType.outlined,
+            ),
             const AppButton(
-                text: 'Disabled',
-                onPressed: null,
-                type: AppButtonType.outlined),
+              text: 'Disabled',
+              onPressed: null,
+              type: AppButtonType.outlined,
+            ),
           ],
         ),
         VSpace.lg(),
@@ -311,9 +313,15 @@ class _ButtonsGallery extends StatelessWidget {
           runSpacing: AppSpacing.sm,
           children: [
             AppButton(
-                text: 'Default', onPressed: () {}, type: AppButtonType.text),
+              text: 'Default',
+              onPressed: () {},
+              type: AppButtonType.text,
+            ),
             const AppButton(
-                text: 'Disabled', onPressed: null, type: AppButtonType.text),
+              text: 'Disabled',
+              onPressed: null,
+              type: AppButtonType.text,
+            ),
           ],
         ),
         VSpace.lg(),
@@ -399,26 +407,20 @@ class _ButtonsGallery extends StatelessWidget {
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
           children: [
-            GradientButton(
-              label: 'Primary Action',
-              onPressed: () {},
-            ),
+            GradientButton(label: 'Primary Action', onPressed: () {}),
             GradientButton(
               label: 'With Icon',
               icon: HugeIcons.strokeRoundedAdd01,
               onPressed: () {},
             ),
-            GradientOutlineButton(
-              label: 'Outline Style',
-              onPressed: () {},
-            ),
+            GradientOutlineButton(label: 'Outline Style', onPressed: () {}),
           ],
         ),
       ],
     );
   }
 
-  IconData _getThemeIcon(ThemeSelection selection) {
+  HugeIconData _getThemeIcon(ThemeSelection selection) {
     switch (selection) {
       case ThemeSelection.light:
         return HugeIcons.strokeRoundedSun01;
@@ -443,10 +445,7 @@ class _InputsGallery extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         _SectionHeader('Text Fields'),
-        AppTextFormField(
-          labelText: 'Default Input',
-          hintText: 'Enter text...',
-        ),
+        AppTextFormField(labelText: 'Default Input', hintText: 'Enter text...'),
         VSpace.md(),
         AppTextFormField(
           labelText: 'With Prefix',
@@ -518,13 +517,8 @@ class _InputsGallery extends StatelessWidget {
               selected: false,
               onSelected: (_) {},
             ),
-            ActionChip(
-              label: const Text('Action'),
-              onPressed: () {},
-            ),
-            const InputChip(
-              label: Text('Input'),
-            ),
+            ActionChip(label: const Text('Action'), onPressed: () {}),
+            const InputChip(label: Text('Input')),
           ],
         ),
       ],
@@ -575,8 +569,9 @@ class _CardsGallery extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: context.primaryColor.withValues(alpha: 0.1),
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                borderRadius: BorderRadius.circular(
+                  AppDimensions.borderRadiusSmall,
+                ),
               ),
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedDumbbell01,
@@ -713,7 +708,7 @@ class _IconSizeDemo extends StatelessWidget {
 }
 
 class _IconItem {
-  final IconData icon;
+  final HugeIconData icon;
   final String label;
 
   const _IconItem(this.icon, this.label);
@@ -738,8 +733,9 @@ class _IconGrid extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: context.surfaceVariant,
-                  borderRadius:
-                      BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.borderRadiusSmall,
+                  ),
                 ),
                 child: HugeIcon(
                   icon: item.icon,
@@ -793,8 +789,9 @@ class _SpacingGallery extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
             border: Border.all(color: context.outlineColor),
-            borderRadius:
-                BorderRadius.circular(AppDimensions.borderRadiusMedium),
+            borderRadius: BorderRadius.circular(
+              AppDimensions.borderRadiusMedium,
+            ),
           ),
           child: Row(
             children: [
@@ -813,9 +810,7 @@ class _SpacingGallery extends StatelessWidget {
         VSpace.md(),
         Text(
           'HSpace.xs() → HSpace.lg()',
-          style: AppTextStyles.bodySmall.copyWith(
-            color: context.textSecondary,
-          ),
+          style: AppTextStyles.bodySmall.copyWith(color: context.textSecondary),
         ),
       ],
     );
@@ -839,11 +834,7 @@ class _SpacingItem extends StatelessWidget {
             width: 50,
             child: Text(name, style: AppTextStyles.titleSmall),
           ),
-          Container(
-            width: value,
-            height: 24,
-            color: context.primaryColor,
-          ),
+          Container(width: value, height: 24, color: context.primaryColor),
           HSpace.sm(),
           Text(
             '${px}dp',
@@ -929,9 +920,7 @@ class _SectionHeader extends StatelessWidget {
       padding: EdgeInsets.only(bottom: AppSpacing.md),
       child: Text(
         title,
-        style: AppTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
+        style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -993,10 +982,7 @@ class _AnimationsGalleryState extends ConsumerState<_AnimationsGallery> {
             ),
             Column(
               children: [
-                MiniProgressRing(
-                  progress: 0.5,
-                  color: context.secondaryColor,
-                ),
+                MiniProgressRing(progress: 0.5, color: context.secondaryColor),
                 VSpace.sm(),
                 Text('Mini', style: AppTextStyles.labelSmall),
               ],
@@ -1043,9 +1029,13 @@ class _AnimationsGalleryState extends ConsumerState<_AnimationsGallery> {
           children: [
             _AnimationDemoCard('FadeInWidget', 'Smooth opacity transition'),
             _AnimationDemoCard(
-                'SlideInWidget', 'Slide + fade from any direction'),
+              'SlideInWidget',
+              'Slide + fade from any direction',
+            ),
             _AnimationDemoCard(
-                'PulseWidget', 'Subtle attention-grabbing pulse'),
+              'PulseWidget',
+              'Subtle attention-grabbing pulse',
+            ),
           ],
         ),
         VSpace.lg(),
@@ -1112,10 +1102,12 @@ class _AnimationsGalleryState extends ConsumerState<_AnimationsGallery> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('John Doe', style: AppTextStyles.titleSmall),
-                  Text('Premium Member',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: context.textSecondary,
-                      )),
+                  Text(
+                    'Premium Member',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: context.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -1125,9 +1117,7 @@ class _AnimationsGalleryState extends ConsumerState<_AnimationsGallery> {
         _SectionHeader('Empty States'),
         SizedBox(
           height: 300,
-          child: EmptyState.noWorkouts(
-            onCreateWorkout: () {},
-          ),
+          child: EmptyState.noWorkouts(onCreateWorkout: () {}),
         ),
         VSpace.md(),
         SizedBox(
@@ -1159,8 +1149,9 @@ class _AnimationDemoCard extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: context.primaryColor.withValues(alpha: 0.1),
-              borderRadius:
-                  BorderRadius.circular(AppDimensions.borderRadiusSmall),
+              borderRadius: BorderRadius.circular(
+                AppDimensions.borderRadiusSmall,
+              ),
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedMotion01,

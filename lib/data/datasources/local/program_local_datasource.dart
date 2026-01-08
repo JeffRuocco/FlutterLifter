@@ -64,8 +64,9 @@ class ProgramLocalDataSourceImpl implements ProgramLocalDataSource {
   }
 
   @override
-  Future<bool> isCacheExpired(
-      {Duration maxAge = ProgramLocalDataSource._defaultCacheMaxAge}) async {
+  Future<bool> isCacheExpired({
+    Duration maxAge = ProgramLocalDataSource._defaultCacheMaxAge,
+  }) async {
     if (_lastUpdate == null) return true;
     return DateTime.now().difference(_lastUpdate!).compareTo(maxAge) > 0;
   }
@@ -109,8 +110,9 @@ class SqliteProgramLocalDataSource implements ProgramLocalDataSource {
   }
 
   @override
-  Future<bool> isCacheExpired(
-      {Duration maxAge = ProgramLocalDataSource._defaultCacheMaxAge}) async {
+  Future<bool> isCacheExpired({
+    Duration maxAge = ProgramLocalDataSource._defaultCacheMaxAge,
+  }) async {
     throw UnimplementedError('SQLite implementation pending');
   }
 }

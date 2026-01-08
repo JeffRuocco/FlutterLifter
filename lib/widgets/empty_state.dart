@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:lottie/lottie.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -9,7 +10,7 @@ import '../core/theme/app_text_styles.dart';
 /// A beautiful empty state widget with optional Lottie animation
 class EmptyState extends StatelessWidget {
   final String? lottieAsset;
-  final IconData? icon;
+  final HugeIconData? icon;
   final String title;
   final String? description;
   final String? actionLabel;
@@ -30,9 +31,7 @@ class EmptyState extends StatelessWidget {
   });
 
   /// Factory for no workouts state
-  factory EmptyState.noWorkouts({
-    VoidCallback? onCreateWorkout,
-  }) {
+  factory EmptyState.noWorkouts({VoidCallback? onCreateWorkout}) {
     return EmptyState(
       lottieAsset: 'assets/lottie/empty_workout.json',
       icon: HugeIcons.strokeRoundedDumbbell01,
@@ -44,9 +43,7 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Factory for no programs state
-  factory EmptyState.noPrograms({
-    VoidCallback? onBrowsePrograms,
-  }) {
+  factory EmptyState.noPrograms({VoidCallback? onBrowsePrograms}) {
     return EmptyState(
       lottieAsset: 'assets/lottie/empty_program.json',
       icon: HugeIcons.strokeRoundedTask01,
@@ -59,9 +56,7 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Factory for no exercises state
-  factory EmptyState.noExercises({
-    VoidCallback? onAddExercise,
-  }) {
+  factory EmptyState.noExercises({VoidCallback? onAddExercise}) {
     return EmptyState(
       icon: HugeIcons.strokeRoundedGymnasticRings,
       title: 'No Exercises',
@@ -72,10 +67,7 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Factory for error state
-  factory EmptyState.error({
-    String? message,
-    VoidCallback? onRetry,
-  }) {
+  factory EmptyState.error({String? message, VoidCallback? onRetry}) {
     return EmptyState(
       icon: HugeIcons.strokeRoundedAlert02,
       iconColor: AppColors.error,
@@ -103,9 +95,7 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Factory for offline state
-  factory EmptyState.offline({
-    VoidCallback? onRetry,
-  }) {
+  factory EmptyState.offline({VoidCallback? onRetry}) {
     return EmptyState(
       icon: HugeIcons.strokeRoundedWifiDisconnected01,
       title: 'You\'re Offline',
@@ -162,7 +152,7 @@ class EmptyState extends StatelessWidget {
               SizedBox(height: AppSpacing.xl),
               FilledButton.icon(
                 onPressed: onAction,
-                icon: Icon(HugeIcons.strokeRoundedAdd01, size: 18),
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18),
                 label: Text(actionLabel!),
               ),
             ],
@@ -199,11 +189,9 @@ class EmptyState extends StatelessWidget {
         color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
-      child: Icon(
-        icon,
-        size: iconSize,
-        color: color,
-      ),
+      child: icon != null
+          ? HugeIcon(icon: icon!, size: iconSize, color: color)
+          : SizedBox.shrink(),
     );
   }
 }

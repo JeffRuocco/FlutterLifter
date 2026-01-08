@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -24,10 +25,7 @@ import '../widgets/animations/animate_on_load.dart';
 class ExerciseHistoryScreen extends ConsumerStatefulWidget {
   final String exerciseId;
 
-  const ExerciseHistoryScreen({
-    super.key,
-    required this.exerciseId,
-  });
+  const ExerciseHistoryScreen({super.key, required this.exerciseId});
 
   @override
   ConsumerState<ExerciseHistoryScreen> createState() =>
@@ -99,9 +97,7 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
       appBar: AppBar(
         title: Text(
           _exercise?.name ?? 'Exercise History',
-          style: AppTextStyles.titleMedium.copyWith(
-            color: context.onSurface,
-          ),
+          style: AppTextStyles.titleMedium.copyWith(color: context.onSurface),
         ),
         backgroundColor: context.surfaceColor,
         iconTheme: IconThemeData(color: context.onSurface),
@@ -132,7 +128,7 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
           child: EmptyState(
-            icon: HugeIcons.strokeRoundedChart,
+            icon: HugeIcons.strokeRoundedChartLineData01,
             title: 'No History Yet',
             description:
                 'Complete a workout with this exercise to start tracking your progress.',
@@ -210,16 +206,13 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
               horizontal: AppSpacing.screenPadding,
             ),
             sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final session = _history!.sessions[index];
-                  return SlideInWidget(
-                    delay: Duration(milliseconds: 400 + (index * 50)),
-                    child: _buildSessionCard(session, index),
-                  );
-                },
-                childCount: _history!.sessions.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final session = _history!.sessions[index];
+                return SlideInWidget(
+                  delay: Duration(milliseconds: 400 + (index * 50)),
+                  child: _buildSessionCard(session, index),
+                );
+              }, childCount: _history!.sessions.length),
             ),
           ),
 
@@ -363,7 +356,7 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
   }
 
   Widget _buildQuickStatCard({
-    required IconData icon,
+    required HugeIconData icon,
     required String label,
     required String value,
     required Color color,
@@ -372,11 +365,7 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
       padding: const EdgeInsets.all(AppSpacing.sm),
       child: Column(
         children: [
-          HugeIcon(
-            icon: icon,
-            color: color,
-            size: AppDimensions.iconMedium,
-          ),
+          HugeIcon(icon: icon, color: color, size: AppDimensions.iconMedium),
           const VSpace.xs(),
           Text(
             value,
@@ -449,10 +438,12 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
     }
 
     // Build a simple chart visualization
-    final maxPR =
-        progression.map((e) => e.epleyScore).reduce((a, b) => a > b ? a : b);
-    final minPR =
-        progression.map((e) => e.epleyScore).reduce((a, b) => a < b ? a : b);
+    final maxPR = progression
+        .map((e) => e.epleyScore)
+        .reduce((a, b) => a > b ? a : b);
+    final minPR = progression
+        .map((e) => e.epleyScore)
+        .reduce((a, b) => a < b ? a : b);
 
     return AppCard(
       child: Column(
@@ -564,8 +555,9 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
                       Row(
                         children: [
                           Text(
-                            DateFormat('EEEE, MMM d')
-                                .format(session.performedAt),
+                            DateFormat(
+                              'EEEE, MMM d',
+                            ).format(session.performedAt),
                             style: AppTextStyles.titleSmall.copyWith(
                               color: context.textPrimary,
                               fontWeight: FontWeight.w600,
@@ -579,8 +571,9 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: context.successColor
-                                    .withValues(alpha: 0.15),
+                                color: context.successColor.withValues(
+                                  alpha: 0.15,
+                                ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Row(
@@ -713,8 +706,8 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
               color: set.isWarmup
                   ? context.outlineVariant.withValues(alpha: 0.3)
                   : isPRSet
-                      ? context.successColor.withValues(alpha: 0.15)
-                      : context.primaryColor.withValues(alpha: 0.1),
+                  ? context.successColor.withValues(alpha: 0.15)
+                  : context.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
@@ -724,8 +717,8 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
                   color: set.isWarmup
                       ? context.textSecondary
                       : isPRSet
-                          ? context.successColor
-                          : context.primaryColor,
+                      ? context.successColor
+                      : context.primaryColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -743,8 +736,9 @@ class _ExerciseHistoryScreenState extends ConsumerState<ExerciseHistoryScreen> {
                     color: set.isWarmup
                         ? context.textSecondary
                         : context.textPrimary,
-                    fontWeight:
-                        set.isWarmup ? FontWeight.normal : FontWeight.w500,
+                    fontWeight: set.isWarmup
+                        ? FontWeight.normal
+                        : FontWeight.w500,
                   ),
                 ),
                 if (isPRSet) ...[
@@ -820,11 +814,7 @@ class _PRChartPainter extends CustomPainter {
     final gridCount = 3;
     for (var i = 0; i <= gridCount; i++) {
       final y = size.height * (1 - i / gridCount);
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(size.width, y),
-        gridPaint,
-      );
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
     }
 
     // Draw line chart

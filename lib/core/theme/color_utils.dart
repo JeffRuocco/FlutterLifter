@@ -65,8 +65,10 @@ class ColorUtils {
   /// that still provides sufficient contrast, giving a more cohesive look.
   ///
   /// Falls back to black or white if no tinted option works.
-  static Color getOnColor(Color backgroundColor,
-      {double minContrastRatio = 4.5}) {
+  static Color getOnColor(
+    Color backgroundColor, {
+    double minContrastRatio = 4.5,
+  }) {
     final bgLuminance = backgroundColor.computeLuminance();
     final isLightBg = bgLuminance > 0.5;
 
@@ -88,8 +90,10 @@ class ColorUtils {
     var tinted = hsl.withLightness(targetLightness).toColor();
 
     // Check if it meets contrast requirements
-    final contrastRatio =
-        ContrastUtils.getContrastRatio(tinted, backgroundColor);
+    final contrastRatio = ContrastUtils.getContrastRatio(
+      tinted,
+      backgroundColor,
+    );
 
     if (contrastRatio >= minContrastRatio) {
       return tinted;
@@ -137,7 +141,8 @@ class ColorUtils {
       // For light theme: lighter, less saturated version
       return hsl
           .withLightness(
-              (hsl.lightness + (1 - hsl.lightness) * 0.7).clamp(0.85, 0.95))
+            (hsl.lightness + (1 - hsl.lightness) * 0.7).clamp(0.85, 0.95),
+          )
           .withSaturation((hsl.saturation * 0.5).clamp(0.0, 0.6))
           .toColor();
     }
@@ -149,12 +154,11 @@ class ColorUtils {
   /// - `onColor`: For use on the source color directly
   /// - `container`: A muted container version of the source
   /// - `onContainer`: For use on the container color
-  static ColorSet getColorSet(
-    Color sourceColor, {
-    required bool forDarkTheme,
-  }) {
-    final container =
-        getContainerColor(sourceColor, forDarkTheme: forDarkTheme);
+  static ColorSet getColorSet(Color sourceColor, {required bool forDarkTheme}) {
+    final container = getContainerColor(
+      sourceColor,
+      forDarkTheme: forDarkTheme,
+    );
 
     return ColorSet(
       onColor: getOnColor(sourceColor),
@@ -199,15 +203,21 @@ class ContrastUtils {
 
   /// WCAG AA requires 4.5:1 for normal text, 3:1 for large text
   /// Large text is 18pt+ regular or 14pt+ bold
-  static bool meetsWCAGAA(Color foreground, Color background,
-      {bool largeText = false}) {
+  static bool meetsWCAGAA(
+    Color foreground,
+    Color background, {
+    bool largeText = false,
+  }) {
     final ratio = getContrastRatio(foreground, background);
     return largeText ? ratio >= 3.0 : ratio >= 4.5;
   }
 
   /// WCAG AAA requires 7:1 for normal text, 4.5:1 for large text
-  static bool meetsWCAGAAA(Color foreground, Color background,
-      {bool largeText = false}) {
+  static bool meetsWCAGAAA(
+    Color foreground,
+    Color background, {
+    bool largeText = false,
+  }) {
     final ratio = getContrastRatio(foreground, background);
     return largeText ? ratio >= 4.5 : ratio >= 7.0;
   }

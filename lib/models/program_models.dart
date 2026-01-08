@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lifter/core/theme/theme_extensions.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:flutter_lifter/models/workout_session_models.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_lifter/utils/utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -34,39 +35,39 @@ class WorkoutPeriodicity {
   /// Creates a weekly periodicity (e.g., Monday, Wednesday, Friday)
   /// [days] is a list of integers representing the days of the week (1=Monday, 7=Sunday)
   const WorkoutPeriodicity.weekly(List<int> days)
-      : type = PeriodicityType.weekly,
-        weeklyDays = days,
-        workoutDays = null,
-        restDays = null,
-        intervalDays = null,
-        customPattern = null;
+    : type = PeriodicityType.weekly,
+      weeklyDays = days,
+      workoutDays = null,
+      restDays = null,
+      intervalDays = null,
+      customPattern = null;
 
   /// Creates a cyclic periodicity (e.g., 3 days on, 1 day rest)
   const WorkoutPeriodicity.cyclic({
     required int this.workoutDays,
     required int this.restDays,
-  })  : type = PeriodicityType.cyclic,
-        weeklyDays = null,
-        intervalDays = null,
-        customPattern = null;
+  }) : type = PeriodicityType.cyclic,
+       weeklyDays = null,
+       intervalDays = null,
+       customPattern = null;
 
   /// Creates an interval periodicity (e.g., every 2 days)
   const WorkoutPeriodicity.interval(int days)
-      : type = PeriodicityType.interval,
-        weeklyDays = null,
-        workoutDays = null,
-        restDays = null,
-        intervalDays = days,
-        customPattern = null;
+    : type = PeriodicityType.interval,
+      weeklyDays = null,
+      workoutDays = null,
+      restDays = null,
+      intervalDays = days,
+      customPattern = null;
 
   /// Creates a custom periodicity with flexible patterns
   const WorkoutPeriodicity.custom(Map<String, dynamic> pattern)
-      : type = PeriodicityType.custom,
-        weeklyDays = null,
-        workoutDays = null,
-        restDays = null,
-        intervalDays = null,
-        customPattern = pattern;
+    : type = PeriodicityType.custom,
+      weeklyDays = null,
+      workoutDays = null,
+      restDays = null,
+      intervalDays = null,
+      customPattern = pattern;
 
   /// Returns a human-readable description of the periodicity
   String get description {
@@ -138,7 +139,10 @@ class WorkoutPeriodicity {
   }
 
   void _generateWeeklyDates(
-      DateTime startDate, DateTime endDate, List<DateTime> workoutDates) {
+    DateTime startDate,
+    DateTime endDate,
+    List<DateTime> workoutDates,
+  ) {
     if (weeklyDays == null || weeklyDays!.isEmpty) return;
 
     var currentDate = startDate;
@@ -152,7 +156,10 @@ class WorkoutPeriodicity {
   }
 
   void _generateCyclicDates(
-      DateTime startDate, DateTime endDate, List<DateTime> workoutDates) {
+    DateTime startDate,
+    DateTime endDate,
+    List<DateTime> workoutDates,
+  ) {
     if (workoutDays == null || restDays == null) return;
 
     var currentDate = startDate;
@@ -171,7 +178,10 @@ class WorkoutPeriodicity {
   }
 
   void _generateIntervalDates(
-      DateTime startDate, DateTime endDate, List<DateTime> workoutDates) {
+    DateTime startDate,
+    DateTime endDate,
+    List<DateTime> workoutDates,
+  ) {
     if (intervalDays == null) return;
 
     var currentDate = startDate;
@@ -183,7 +193,10 @@ class WorkoutPeriodicity {
   }
 
   void _generateCustomDates(
-      DateTime startDate, DateTime endDate, List<DateTime> workoutDates) {
+    DateTime startDate,
+    DateTime endDate,
+    List<DateTime> workoutDates,
+  ) {
     // Custom implementation would depend on the specific pattern stored in customPattern
     // This is a placeholder for future custom scheduling logic
   }
@@ -272,13 +285,13 @@ class WorkoutPeriodicity {
 
   @override
   int get hashCode => Object.hash(
-        type,
-        weeklyDays,
-        workoutDays,
-        restDays,
-        intervalDays,
-        customPattern,
-      );
+    type,
+    weeklyDays,
+    workoutDays,
+    restDays,
+    intervalDays,
+    customPattern,
+  );
 
   @override
   String toString() {
@@ -358,8 +371,8 @@ class ProgramCycle {
     this.scheduledSessions = const [],
     this.periodicity,
     this.notes,
-  })  : id = Utils.generateId(),
-        createdAt = DateTime.now();
+  }) : id = Utils.generateId(),
+       createdAt = DateTime.now();
 
   /// Returns the duration of the cycle in days
   int? get durationInDays {
@@ -410,7 +423,8 @@ class ProgramCycle {
 
   /// Loads the program from a repository if not already cached
   Future<Program?> loadProgram(
-      Future<Program?> Function(String) programLoader) async {
+    Future<Program?> Function(String) programLoader,
+  ) async {
     if (_program != null) return _program;
     _program = await programLoader(programId);
     return _program;
@@ -435,11 +449,11 @@ class ProgramCycle {
     return scheduledSessions
         .where((session) => !session.isCompleted && !session.date.isAfter(now))
         .fold<WorkoutSession?>(null, (latest, session) {
-      if (latest == null || session.date.isAfter(latest.date)) {
-        return session;
-      }
-      return latest;
-    });
+          if (latest == null || session.date.isAfter(latest.date)) {
+            return session;
+          }
+          return latest;
+        });
   }
 
   /// Returns the next scheduled workout session in this cycle
@@ -448,11 +462,11 @@ class ProgramCycle {
     return scheduledSessions
         .where((session) => !session.isCompleted && session.date.isAfter(now))
         .fold<WorkoutSession?>(null, (next, session) {
-      if (next == null || session.date.isBefore(next.date)) {
-        return session;
-      }
-      return next;
-    });
+          if (next == null || session.date.isBefore(next.date)) {
+            return session;
+          }
+          return next;
+        });
   }
 
   /// Returns the most recent completed workout in this cycle
@@ -460,30 +474,36 @@ class ProgramCycle {
     return scheduledSessions
         .where((session) => session.isCompleted)
         .fold<WorkoutSession?>(null, (latest, session) {
-      if (latest == null || session.date.isAfter(latest.date)) {
-        return session;
-      }
-      return latest;
-    });
+          if (latest == null || session.date.isAfter(latest.date)) {
+            return session;
+          }
+          return latest;
+        });
   }
 
   /// Returns workouts scheduled for a specific week in this cycle
   List<WorkoutSession> getWorkoutsForWeek(DateTime weekStart) {
     final weekEnd = weekStart.add(const Duration(days: 7));
     return scheduledSessions
-        .where((session) =>
-            session.date.isAfter(weekStart.subtract(const Duration(days: 1))) &&
-            session.date.isBefore(weekEnd))
+        .where(
+          (session) =>
+              session.date.isAfter(
+                weekStart.subtract(const Duration(days: 1)),
+              ) &&
+              session.date.isBefore(weekEnd),
+        )
         .toList();
   }
 
   /// Returns workouts scheduled for a specific date in this cycle
   List<WorkoutSession> getWorkoutsForDate(DateTime date) {
     return scheduledSessions
-        .where((session) =>
-            session.date.year == date.year &&
-            session.date.month == date.month &&
-            session.date.day == date.day)
+        .where(
+          (session) =>
+              session.date.year == date.year &&
+              session.date.month == date.month &&
+              session.date.day == date.day,
+        )
         .toList();
   }
 
@@ -498,21 +518,23 @@ class ProgramCycle {
     final cycleEndDate = endDate ?? startDate.add(const Duration(days: 365));
 
     // Generate all workout dates for this cycle
-    final workoutDates =
-        periodicity!.generateWorkoutDates(startDate, cycleEndDate);
+    final workoutDates = periodicity!.generateWorkoutDates(
+      startDate,
+      cycleEndDate,
+    );
 
     // Check if the specific date is in the list of workout dates
-    return workoutDates.any((workoutDate) =>
-        workoutDate.year == checkDate.year &&
-        workoutDate.month == checkDate.month &&
-        workoutDate.day == checkDate.day);
+    return workoutDates.any(
+      (workoutDate) =>
+          workoutDate.year == checkDate.year &&
+          workoutDate.month == checkDate.month &&
+          workoutDate.day == checkDate.day,
+    );
   }
 
   /// Adds a new workout session to this cycle
   ProgramCycle addWorkoutSession(WorkoutSession session) {
-    return copyWith(
-      scheduledSessions: [...scheduledSessions, session],
-    );
+    return copyWith(scheduledSessions: [...scheduledSessions, session]);
   }
 
   /// Removes a workout session from this cycle
@@ -527,16 +549,16 @@ class ProgramCycle {
   /// Updates a workout session in this cycle
   ProgramCycle updateWorkoutSession(WorkoutSession updatedSession) {
     final updatedSessions = scheduledSessions
-        .map((session) =>
-            session.id == updatedSession.id ? updatedSession : session)
+        .map(
+          (session) =>
+              session.id == updatedSession.id ? updatedSession : session,
+        )
         .toList();
     return copyWith(scheduledSessions: updatedSessions);
   }
 
   /// Generates and schedules workout sessions for this cycle based on program's periodicity
-  ProgramCycle generateScheduledSessions({
-    bool replaceExisting = false,
-  }) {
+  ProgramCycle generateScheduledSessions({bool replaceExisting = false}) {
     final cycleEndDate =
         endDate ?? startDate.add(const Duration(days: 84)); // Default 12 weeks
 
@@ -553,10 +575,12 @@ class ProgramCycle {
     for (final date in workoutDates) {
       // Skip if session already exists for this date (when not replacing)
       if (!replaceExisting &&
-          scheduledSessions.any((session) =>
-              session.date.year == date.year &&
-              session.date.month == date.month &&
-              session.date.day == date.day)) {
+          scheduledSessions.any(
+            (session) =>
+                session.date.year == date.year &&
+                session.date.month == date.month &&
+                session.date.day == date.day,
+          )) {
         continue;
       }
 
@@ -585,10 +609,7 @@ class ProgramCycle {
       throw StateError('Cycle cannot be started: outside valid date range');
     }
 
-    return copyWith(
-      isActive: true,
-      isCompleted: false,
-    );
+    return copyWith(isActive: true, isCompleted: false);
   }
 
   /// Stops/pauses the cycle
@@ -651,8 +672,8 @@ class ProgramCycle {
       isCompleted: json['isCompleted'] ?? false,
       scheduledSessions: json['scheduledSessions'] != null
           ? (json['scheduledSessions'] as List)
-              .map((sessionJson) => WorkoutSession.fromJson(sessionJson))
-              .toList()
+                .map((sessionJson) => WorkoutSession.fromJson(sessionJson))
+                .toList()
           : [],
       periodicity: json['periodicity'] != null
           ? WorkoutPeriodicity.fromJson(json['periodicity'])
@@ -672,8 +693,9 @@ class ProgramCycle {
       'endDate': endDate?.toIso8601String(),
       'isActive': isActive,
       'isCompleted': isCompleted,
-      'scheduledSessions':
-          scheduledSessions.map((session) => session.toJson()).toList(),
+      'scheduledSessions': scheduledSessions
+          .map((session) => session.toJson())
+          .toList(),
       'periodicity': periodicity?.toJson(),
       'notes': notes,
       'createdAt': createdAt.toIso8601String(),
@@ -745,18 +767,20 @@ class Program {
     this.imageUrl,
     this.metadata,
     this.cycles = const [],
-  })  : id = Utils.generateId(),
-        createdAt = DateTime.now();
+  }) : id = Utils.generateId(),
+       createdAt = DateTime.now();
 
   /// Returns the most recently completed cycle
   ProgramCycle? get lastCompletedCycle {
-    return cycles.where((cycle) => cycle.isCompleted).fold<ProgramCycle?>(null,
-        (latest, cycle) {
-      if (latest == null || cycle.createdAt.isAfter(latest.createdAt)) {
-        return cycle;
-      }
-      return latest;
-    });
+    return cycles.where((cycle) => cycle.isCompleted).fold<ProgramCycle?>(
+      null,
+      (latest, cycle) {
+        if (latest == null || cycle.createdAt.isAfter(latest.createdAt)) {
+          return cycle;
+        }
+        return latest;
+      },
+    );
   }
 
   /// Returns the next cycle number
@@ -800,7 +824,8 @@ class Program {
         endDate ?? startDate.add(const Duration(days: 365));
 
     return !cycles.any((existingCycle) {
-      final existingEnd = existingCycle.endDate ??
+      final existingEnd =
+          existingCycle.endDate ??
           existingCycle.startDate.add(const Duration(days: 365));
 
       // Check for overlap: new cycle starts before existing ends AND new cycle ends after existing starts
@@ -900,12 +925,14 @@ class Program {
     );
 
     // Check if cycle is within valid date range for activation
-    final effectiveEndDate = targetCycle.endDate ??
+    final effectiveEndDate =
+        targetCycle.endDate ??
         targetCycle.startDate.add(const Duration(days: 365));
 
     if (targetCycle.startDate.isAfter(now) || effectiveEndDate.isBefore(now)) {
       throw ArgumentError(
-          'Cycle cannot be activated: outside valid date range');
+        'Cycle cannot be activated: outside valid date range',
+      );
     }
 
     final updatedCycles = cycles.map((cycle) {
@@ -979,8 +1006,10 @@ class Program {
     final from = fromDate ?? DateTime.now();
     final futureEnd = from.add(const Duration(days: 365)); // Look ahead 1 year
 
-    final futureDates =
-        defaultPeriodicity!.generateWorkoutDates(from, futureEnd);
+    final futureDates = defaultPeriodicity!.generateWorkoutDates(
+      from,
+      futureEnd,
+    );
     return futureDates.isNotEmpty ? futureDates.first : null;
   }
 
@@ -1007,16 +1036,16 @@ class Program {
   }
 
   /// Returns the program icon, falling back to a default icon
-  IconData get icon {
+  HugeIconData get icon {
     if (metadata != null && metadata!.containsKey('icon')) {
-      return metadata!['icon'] as IconData;
+      return metadata!['icon'] as HugeIconData;
     }
     // Return a default icon
     return HugeIcons.strokeRoundedDumbbell01;
   }
 
   /// Stores the program icon in metadata
-  Program storeIcon(IconData icon) {
+  Program storeIcon(HugeIconData icon) {
     var updatedMetadata = {...?metadata, 'icon': icon};
     return copyWith(metadata: updatedMetadata);
   }
@@ -1079,8 +1108,8 @@ class Program {
       metadata: json['metadata'],
       cycles: json['cycles'] != null
           ? (json['cycles'] as List)
-              .map((cycleJson) => ProgramCycle.fromJson(cycleJson))
-              .toList()
+                .map((cycleJson) => ProgramCycle.fromJson(cycleJson))
+                .toList()
           : [],
     );
   }

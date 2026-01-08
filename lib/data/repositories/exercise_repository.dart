@@ -196,7 +196,8 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
     // Ensure the exercise is not marked as default
     if (exercise.isDefault) {
       throw ArgumentError(
-          'Cannot create a custom exercise with isDefault=true');
+        'Cannot create a custom exercise with isDefault=true',
+      );
     }
 
     // Normalize the exercise name to title case
@@ -219,8 +220,9 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
     }
 
     // Verify the custom exercise exists
-    final existing =
-        await localDataSource.getCachedCustomExerciseById(exercise.id);
+    final existing = await localDataSource.getCachedCustomExerciseById(
+      exercise.id,
+    );
     if (existing == null) {
       throw ArgumentError('Custom exercise with ID "${exercise.id}" not found');
     }
@@ -384,15 +386,17 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
 
   @override
   Future<UserExercisePreferences?> getPreferenceForExercise(
-      String exerciseId) async {
+    String exerciseId,
+  ) async {
     return localDataSource.getCachedPreferenceForExercise(exerciseId);
   }
 
   @override
   Future<void> setPreference(UserExercisePreferences preferences) async {
     // Verify the exercise exists (default or custom)
-    final exercise =
-        await getExerciseByIdWithoutPreferences(preferences.exerciseId);
+    final exercise = await getExerciseByIdWithoutPreferences(
+      preferences.exerciseId,
+    );
     if (exercise == null) {
       throw ArgumentError(
         'Cannot set preference for non-existent exercise: ${preferences.exerciseId}',

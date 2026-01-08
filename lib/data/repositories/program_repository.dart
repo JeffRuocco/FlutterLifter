@@ -216,7 +216,8 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
   @override
   Future<List<Program>> getProgramsByDifficulty(
-      ProgramDifficulty difficulty) async {
+    ProgramDifficulty difficulty,
+  ) async {
     if (useMockData && mockDataSource != null) {
       return await mockDataSource!.getProgramsByDifficulty(difficulty);
     }
@@ -269,7 +270,8 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
   @override
   Future<List<ProgramCycle>> getProgramCyclesWithProgram(
-      String programId) async {
+    String programId,
+  ) async {
     final program = await getProgramById(programId);
     if (program == null) return [];
 

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -69,8 +70,8 @@ class AppCard extends StatefulWidget {
     this.elevation,
     this.borderRadius,
     this.enableHaptics = true,
-  })  : style = AppCardStyle.elevated,
-        gradientColors = null;
+  }) : style = AppCardStyle.elevated,
+       gradientColors = null;
 
   /// Factory for outlined card
   const AppCard.outlined({
@@ -82,9 +83,9 @@ class AppCard extends StatefulWidget {
     this.onTap,
     this.borderRadius,
     this.enableHaptics = true,
-  })  : style = AppCardStyle.outlined,
-        elevation = 0,
-        gradientColors = null;
+  }) : style = AppCardStyle.outlined,
+       elevation = 0,
+       gradientColors = null;
 
   /// Factory for filled card
   const AppCard.filled({
@@ -96,9 +97,9 @@ class AppCard extends StatefulWidget {
     this.onTap,
     this.borderRadius,
     this.enableHaptics = true,
-  })  : style = AppCardStyle.filled,
-        elevation = 0,
-        gradientColors = null;
+  }) : style = AppCardStyle.filled,
+       elevation = 0,
+       gradientColors = null;
 
   /// Factory for glass card
   const AppCard.glass({
@@ -109,10 +110,10 @@ class AppCard extends StatefulWidget {
     this.onTap,
     this.borderRadius,
     this.enableHaptics = true,
-  })  : style = AppCardStyle.glass,
-        color = null,
-        elevation = 0,
-        gradientColors = null;
+  }) : style = AppCardStyle.glass,
+       color = null,
+       elevation = 0,
+       gradientColors = null;
 
   /// Factory for gradient card
   const AppCard.gradient({
@@ -124,9 +125,9 @@ class AppCard extends StatefulWidget {
     this.gradientColors,
     this.borderRadius,
     this.enableHaptics = true,
-  })  : style = AppCardStyle.gradient,
-        color = null,
-        elevation = 0;
+  }) : style = AppCardStyle.gradient,
+       color = null,
+       elevation = 0;
 
   @override
   State<AppCard> createState() => _AppCardState();
@@ -164,7 +165,8 @@ class _AppCardState extends State<AppCard> {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveRadius = widget.borderRadius ??
+    final effectiveRadius =
+        widget.borderRadius ??
         BorderRadius.circular(AppDimensions.cardBorderRadius);
 
     final scaleValue = _isPressed ? 0.98 : 1.0;
@@ -204,7 +206,8 @@ class _AppCardState extends State<AppCard> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
-        color: widget.color ??
+        color:
+            widget.color ??
             (isDark
                 ? AppColors.surfaceContainerHighDark
                 : context.surfaceColor),
@@ -241,7 +244,8 @@ class _AppCardState extends State<AppCard> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
-        color: widget.color ??
+        color:
+            widget.color ??
             (isDark
                 ? AppColors.surfaceContainerHighDark
                 : context.surfaceColor),
@@ -250,8 +254,8 @@ class _AppCardState extends State<AppCard> {
           color: _isPressed
               ? context.primaryColor.withValues(alpha: 0.5)
               : (isDark
-                  ? AppColors.outlineVariantDark
-                  : context.outlineVariant),
+                    ? AppColors.outlineVariantDark
+                    : context.outlineVariant),
           width: _isPressed ? 1.5 : 1,
         ),
       ),
@@ -273,7 +277,8 @@ class _AppCardState extends State<AppCard> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
-        color: widget.color ??
+        color:
+            widget.color ??
             (isDark
                 ? AppColors.surfaceContainerHighestDark
                 : context.surfaceVariant),
@@ -300,8 +305,9 @@ class _AppCardState extends State<AppCard> {
         borderRadius: borderRadius,
         boxShadow: [
           BoxShadow(
-            color:
-                isDark ? AppColors.glassShadowDark : AppColors.glassShadowLight,
+            color: isDark
+                ? AppColors.glassShadowDark
+                : AppColors.glassShadowLight,
             blurRadius: _isPressed ? 8 : 16,
             offset: Offset(0, _isPressed ? 2 : 4),
             spreadRadius: -2,
@@ -324,11 +330,16 @@ class _AppCardState extends State<AppCard> {
                         Colors.white.withValues(alpha: 0.05),
                       ]
                     : [
-                        Color.lerp(Colors.white, context.primaryColor, 0.04)!
-                            .withValues(alpha: 0.9),
                         Color.lerp(
-                                Colors.white, context.primaryContainer, 0.06)!
-                            .withValues(alpha: 0.75),
+                          Colors.white,
+                          context.primaryColor,
+                          0.04,
+                        )!.withValues(alpha: 0.9),
+                        Color.lerp(
+                          Colors.white,
+                          context.primaryContainer,
+                          0.06,
+                        )!.withValues(alpha: 0.75),
                       ],
               ),
               borderRadius: borderRadius,
@@ -447,8 +458,8 @@ class AppButton extends StatefulWidget {
     this.width,
     this.height,
     this.expanded = false,
-  })  : type = AppButtonType.elevated,
-        gradientColors = null;
+  }) : type = AppButtonType.elevated,
+       gradientColors = null;
 
   /// Factory for outlined button
   const AppButton.outlined({
@@ -462,8 +473,8 @@ class AppButton extends StatefulWidget {
     this.width,
     this.height,
     this.expanded = false,
-  })  : type = AppButtonType.outlined,
-        gradientColors = null;
+  }) : type = AppButtonType.outlined,
+       gradientColors = null;
 
   /// Factory for text button
   const AppButton.text({
@@ -477,8 +488,8 @@ class AppButton extends StatefulWidget {
     this.width,
     this.height,
     this.expanded = false,
-  })  : type = AppButtonType.text,
-        gradientColors = null;
+  }) : type = AppButtonType.text,
+       gradientColors = null;
 
   /// Factory for icon-only button
   const AppButton.icon({
@@ -490,10 +501,10 @@ class AppButton extends StatefulWidget {
     this.enableHaptics = true,
     this.width,
     this.height,
-  })  : type = AppButtonType.icon,
-        text = null,
-        expanded = false,
-        gradientColors = null;
+  }) : type = AppButtonType.icon,
+       text = null,
+       expanded = false,
+       gradientColors = null;
 
   /// Factory for pill button
   const AppButton.pill({
@@ -507,8 +518,8 @@ class AppButton extends StatefulWidget {
     this.width,
     this.height,
     this.expanded = false,
-  })  : type = AppButtonType.pill,
-        gradientColors = null;
+  }) : type = AppButtonType.pill,
+       gradientColors = null;
 
   /// Factory for gradient button
   const AppButton.gradient({
@@ -645,11 +656,7 @@ class _AppButtonState extends State<AppButton>
       );
     }
     if (widget.width != null || widget.height != null) {
-      return SizedBox(
-        width: widget.width,
-        height: widget.height,
-        child: child,
-      );
+      return SizedBox(width: widget.width, height: widget.height, child: child);
     }
     return child;
   }
@@ -742,9 +749,7 @@ class _AppButtonState extends State<AppButton>
         onPressed: widget.isLoading ? null : _handleTap,
         style: (widget.style ?? ElevatedButton.styleFrom()).copyWith(
           shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
-            ),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
           ),
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -807,7 +812,8 @@ class _AppButtonState extends State<AppButton>
                               widget.text ?? '',
                               style: AppTextStyles.buttonText.copyWith(
                                 color: ColorUtils.getContrastingTextColor(
-                                    context.primaryColor),
+                                  context.primaryColor,
+                                ),
                               ),
                             ),
                     ],
@@ -939,7 +945,7 @@ class AppSpacingWidget extends StatelessWidget {
 
   const AppSpacingWidget.vertical(this.size, {super.key}) : isVertical = true;
   const AppSpacingWidget.horizontal(this.size, {super.key})
-      : isVertical = false;
+    : isVertical = false;
 
   @override
   Widget build(BuildContext context) {
@@ -982,7 +988,7 @@ class HSpace extends AppSpacingWidget {
 /// It provides a consistent look with an icon, title, subtitle, and switch.
 class AppSwitchTile extends StatelessWidget {
   /// The icon to display on the left side of the tile.
-  final IconData icon;
+  final HugeIconData icon;
 
   /// The color of the icon. Defaults to primary color.
   final Color? iconColor;
@@ -1144,10 +1150,7 @@ void showInfoMessage(BuildContext context, String message, {int? duration}) {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              message,
-              style: TextStyle(color: context.onInfoColor),
-            ),
+            child: Text(message, style: TextStyle(color: context.onInfoColor)),
           ),
         ],
       ),

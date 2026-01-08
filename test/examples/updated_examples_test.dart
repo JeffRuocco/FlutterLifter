@@ -8,35 +8,59 @@ void main() {
       expect(() => PeriodicityExamples.createWeeklyProgram(), returnsNormally);
       expect(() => PeriodicityExamples.createCyclicProgram(), returnsNormally);
       expect(
-          () => PeriodicityExamples.createIntervalProgram(), returnsNormally);
+        () => PeriodicityExamples.createIntervalProgram(),
+        returnsNormally,
+      );
       expect(() => PeriodicityExamples.createCustomProgram(), returnsNormally);
 
       // Test the main demonstration methods
-      expect(() => PeriodicityExamples.demonstrateScheduleGeneration(),
-          returnsNormally);
-      expect(() => PeriodicityExamples.demonstrateWorkoutChecking(),
-          returnsNormally);
-      expect(() => PeriodicityExamples.demonstrateCompleteWorkflow(),
-          returnsNormally);
-      expect(() => PeriodicityExamples.demonstrateRefactoredFeatures(),
-          returnsNormally);
+      expect(
+        () => PeriodicityExamples.demonstrateScheduleGeneration(),
+        returnsNormally,
+      );
+      expect(
+        () => PeriodicityExamples.demonstrateWorkoutChecking(),
+        returnsNormally,
+      );
+      expect(
+        () => PeriodicityExamples.demonstrateCompleteWorkflow(),
+        returnsNormally,
+      );
+      expect(
+        () => PeriodicityExamples.demonstrateRefactoredFeatures(),
+        returnsNormally,
+      );
     });
 
     test('program cycle examples should run without errors', () {
-      expect(() => ProgramCycleExamples.exampleProgramWithMultipleCycles(),
-          returnsNormally);
-      expect(() => ProgramCycleExamples.exampleWorkingWithCycles(),
-          returnsNormally);
       expect(
-          () => ProgramCycleExamples.exampleQueryingCycles(), returnsNormally);
-      expect(() => ProgramCycleExamples.exampleTemplateVsExecution(),
-          returnsNormally);
-      expect(() => ProgramCycleExamples.exampleDateBasedActivation(),
-          returnsNormally);
-      expect(() => ProgramCycleExamples.exampleOverlapValidation(),
-          returnsNormally);
-      expect(() => ProgramCycleExamples.exampleSingleActiveCycleConstraint(),
-          returnsNormally);
+        () => ProgramCycleExamples.exampleProgramWithMultipleCycles(),
+        returnsNormally,
+      );
+      expect(
+        () => ProgramCycleExamples.exampleWorkingWithCycles(),
+        returnsNormally,
+      );
+      expect(
+        () => ProgramCycleExamples.exampleQueryingCycles(),
+        returnsNormally,
+      );
+      expect(
+        () => ProgramCycleExamples.exampleTemplateVsExecution(),
+        returnsNormally,
+      );
+      expect(
+        () => ProgramCycleExamples.exampleDateBasedActivation(),
+        returnsNormally,
+      );
+      expect(
+        () => ProgramCycleExamples.exampleOverlapValidation(),
+        returnsNormally,
+      );
+      expect(
+        () => ProgramCycleExamples.exampleSingleActiveCycleConstraint(),
+        returnsNormally,
+      );
     });
 
     test('examples should demonstrate new refactored features', () {

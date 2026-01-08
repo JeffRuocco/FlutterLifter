@@ -314,9 +314,9 @@ flutter build apk --verbose
 ## Key Dependencies and Versions
 
 - **Flutter SDK**: 3.32.x (as specified in .github/workflows/deploy.yml)
-- **Dart SDK**: >=2.18.0-66.0.dev <3.0.0
+- **Dart SDK**: ^3.10.0
 - **Java**: Version 17 required for Android builds
-- **State Management**: flutter_riverpod ^2.6.1
+- **State Management**: flutter_riverpod ^3.1.0 (uses modern Notifier API)
 - **Navigation**: go_router ^14.8.1
 - **Icons**: hugeicons ^0.0.7 (use strokeRounded variant only)
 - **Other**: cupertino_icons ^1.0.2, flutter_lints ^6.0.0

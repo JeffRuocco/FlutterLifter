@@ -6,16 +6,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _themeModeKey = 'theme_mode';
 
 /// Provider for SharedPreferences instance
-final sharedPreferencesProvider =
-    FutureProvider<SharedPreferences>((ref) async {
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>((
+  ref,
+) async {
   return SharedPreferences.getInstance();
 });
 
 /// ThemeMode notifier for managing theme state
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  final SharedPreferences _prefs;
+class ThemeModeNotifier extends Notifier<ThemeMode> {
+  late final SharedPreferences _prefs;
 
-  ThemeModeNotifier(this._prefs) : super(_loadThemeMode(_prefs));
+  @override
+  ThemeMode build() {
+    // This will be overridden with SharedPreferences at app startup
+    throw UnimplementedError(
+      'themeModeNotifierProvider must be overridden with SharedPreferences',
+    );
+  }
+
+  /// Initialize the notifier with SharedPreferences
+  void init(SharedPreferences prefs) {
+    _prefs = prefs;
+    state = _loadThemeMode(_prefs);
+  }
 
   /// Load theme mode from SharedPreferences
   static ThemeMode _loadThemeMode(SharedPreferences prefs) {
@@ -65,15 +78,31 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 }
 
+/// Subclass that properly initializes with SharedPreferences
+class _InitializedThemeModeNotifier extends ThemeModeNotifier {
+  final SharedPreferences _sharedPrefs;
+
+  _InitializedThemeModeNotifier(this._sharedPrefs);
+
+  @override
+  ThemeMode build() {
+    _prefs = _sharedPrefs;
+    return ThemeModeNotifier._loadThemeMode(_sharedPrefs);
+  }
+}
+
 /// Provider for theme mode state notifier
 ///
 /// Must be overridden with a valid SharedPreferences instance at app startup.
 final themeModeNotifierProvider =
-    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  throw UnimplementedError(
-    'themeModeNotifierProvider must be overridden with SharedPreferences',
+    NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
+
+/// Factory function to create theme provider override
+dynamic createThemeModeProviderOverride(SharedPreferences prefs) {
+  return themeModeNotifierProvider.overrideWith(
+    () => _InitializedThemeModeNotifier(prefs),
   );
-});
+}
 
 /// Convenience provider for checking if dark mode is active
 final isDarkModeProvider = Provider<bool>((ref) {

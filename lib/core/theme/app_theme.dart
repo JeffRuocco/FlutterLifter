@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_dimensions.dart';
@@ -84,8 +83,10 @@ class AppTheme {
 
     // Generate complete color sets with proper contrast
     final primarySet = ColorUtils.getColorSet(primary, forDarkTheme: isDark);
-    final secondarySet =
-        ColorUtils.getColorSet(secondary, forDarkTheme: isDark);
+    final secondarySet = ColorUtils.getColorSet(
+      secondary,
+      forDarkTheme: isDark,
+    );
 
     if (isDark) {
       return ColorScheme.dark(
@@ -182,7 +183,8 @@ class AppTheme {
   }
 
   static ElevatedButtonThemeData _buildElevatedButtonTheme(
-      ColorScheme colorScheme) {
+    ColorScheme colorScheme,
+  ) {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         minimumSize: const Size(88, AppDimensions.buttonHeightMedium),
@@ -199,7 +201,8 @@ class AppTheme {
   }
 
   static OutlinedButtonThemeData _buildOutlinedButtonTheme(
-      ColorScheme colorScheme) {
+    ColorScheme colorScheme,
+  ) {
     return OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(88, AppDimensions.buttonHeightMedium),
@@ -225,11 +228,15 @@ class AppTheme {
   );
 
   static InputDecorationTheme _buildInputDecorationTheme(
-      bool isDark, ColorScheme colorScheme) {
-    final fillColor =
-        isDark ? AppColors.surfaceContainerHighDark : AppColors.surface;
-    final borderColor =
-        isDark ? AppColors.outlineVariantDark : AppColors.outlineVariant;
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
+    final fillColor = isDark
+        ? AppColors.surfaceContainerHighDark
+        : AppColors.surface;
+    final borderColor = isDark
+        ? AppColors.outlineVariantDark
+        : AppColors.outlineVariant;
 
     return InputDecorationTheme(
       filled: true,
@@ -296,7 +303,9 @@ class AppTheme {
   );
 
   static BottomNavigationBarThemeData _buildBottomNavTheme(
-      bool isDark, ColorScheme colorScheme) {
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
     return BottomNavigationBarThemeData(
       type: BottomNavigationBarType.fixed,
       elevation: 8,
@@ -320,8 +329,9 @@ class AppTheme {
           ? AppColors.surfaceContainerHighDark
           : AppColors.surfaceContainerHigh,
       selectedColor: colorScheme.primary,
-      disabledColor:
-          isDark ? AppColors.surfaceContainerDark : AppColors.surfaceContainer,
+      disabledColor: isDark
+          ? AppColors.surfaceContainerDark
+          : AppColors.surfaceContainer,
       labelStyle: AppTextStyles.labelMedium.copyWith(
         color: colorScheme.onSurface,
       ),
@@ -332,30 +342,18 @@ class AppTheme {
   }
 
   /// Builds the theme for Switch (button) widgets
+  /// Note: Uses Material Icons for thumbIcon since Flutter's SwitchThemeData.thumbIcon
+  /// requires Icon widget, which is incompatible with HugeIcons 1.x (uses HugeIcon widget)
   static SwitchThemeData _buildSwitchTheme(ColorScheme colorScheme) {
     return SwitchThemeData(
-      // thumbColor: WidgetStateProperty.resolveWith((states) {
-      //   if (states.contains(WidgetState.selected)) {
-      //     return colorScheme.onPrimary;
-      //   }
-      //   return null;
-      // }),
-      // trackColor: WidgetStateProperty.resolveWith((states) {
-      //   if (states.contains(WidgetState.selected)) {
-      //     return colorScheme.primary;
-      //   }
-      //   return null;
-      // }),
-      thumbIcon:
-          WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states) {
+      thumbIcon: WidgetStateProperty.resolveWith<Icon?>((
+        Set<WidgetState> states,
+      ) {
         if (states.contains(WidgetState.disabled)) {
-          return Icon(HugeIcons.strokeRoundedCancel01);
+          return const Icon(Icons.close_rounded);
         }
         if (states.contains(WidgetState.selected)) {
-          return Icon(
-            HugeIcons.strokeRoundedTick02,
-            color: colorScheme.primary,
-          );
+          return Icon(Icons.check_rounded, color: colorScheme.primary);
         }
         return null;
       }),

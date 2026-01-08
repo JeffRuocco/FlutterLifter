@@ -81,85 +81,89 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
       final date1 = now.subtract(Duration(days: week * 7 + 3));
       final baseWeight = 135.0 + (7 - week) * 5; // Progress over time
 
-      benchSessions.add(ExerciseSessionRecord(
-        id: Utils.generateId(),
-        exerciseId: benchPressId,
-        workoutSessionId: 'workout-$week-1',
-        performedAt: date1,
-        sets: [
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 1,
-            weight: baseWeight * 0.6,
-            reps: 10,
-            isWarmup: true,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 2,
-            weight: baseWeight * 0.8,
-            reps: 5,
-            isWarmup: true,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 3,
-            weight: baseWeight,
-            reps: 8,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 4,
-            weight: baseWeight,
-            reps: 7,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 5,
-            weight: baseWeight,
-            reps: 6,
-          ),
-        ],
-        sessionPR: calculateEpleyScore(baseWeight, 8),
-      ));
+      benchSessions.add(
+        ExerciseSessionRecord(
+          id: Utils.generateId(),
+          exerciseId: benchPressId,
+          workoutSessionId: 'workout-$week-1',
+          performedAt: date1,
+          sets: [
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 1,
+              weight: baseWeight * 0.6,
+              reps: 10,
+              isWarmup: true,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 2,
+              weight: baseWeight * 0.8,
+              reps: 5,
+              isWarmup: true,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 3,
+              weight: baseWeight,
+              reps: 8,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 4,
+              weight: baseWeight,
+              reps: 7,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 5,
+              weight: baseWeight,
+              reps: 6,
+            ),
+          ],
+          sessionPR: calculateEpleyScore(baseWeight, 8),
+        ),
+      );
 
       // Session 2 of the week
       final date2 = now.subtract(Duration(days: week * 7));
 
-      benchSessions.add(ExerciseSessionRecord(
-        id: Utils.generateId(),
-        exerciseId: benchPressId,
-        workoutSessionId: 'workout-$week-2',
-        performedAt: date2,
-        sets: [
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 1,
-            weight: baseWeight * 0.6,
-            reps: 10,
-            isWarmup: true,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 2,
-            weight: baseWeight + 10,
-            reps: 5,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 3,
-            weight: baseWeight + 10,
-            reps: 4,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 4,
-            weight: baseWeight,
-            reps: 8,
-          ),
-        ],
-        sessionPR: calculateEpleyScore(baseWeight + 10, 5),
-      ));
+      benchSessions.add(
+        ExerciseSessionRecord(
+          id: Utils.generateId(),
+          exerciseId: benchPressId,
+          workoutSessionId: 'workout-$week-2',
+          performedAt: date2,
+          sets: [
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 1,
+              weight: baseWeight * 0.6,
+              reps: 10,
+              isWarmup: true,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 2,
+              weight: baseWeight + 10,
+              reps: 5,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 3,
+              weight: baseWeight + 10,
+              reps: 4,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 4,
+              weight: baseWeight,
+              reps: 8,
+            ),
+          ],
+          sessionPR: calculateEpleyScore(baseWeight + 10, 5),
+        ),
+      );
     }
 
     _sessionsByExercise[benchPressId] = benchSessions;
@@ -175,47 +179,49 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
       final date = now.subtract(Duration(days: week * 7 + 1));
       final baseWeight = 185.0 + (5 - week) * 10;
 
-      squatSessions.add(ExerciseSessionRecord(
-        id: Utils.generateId(),
-        exerciseId: squatId,
-        workoutSessionId: 'squat-workout-$week',
-        performedAt: date,
-        sets: [
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 1,
-            weight: baseWeight * 0.5,
-            reps: 10,
-            isWarmup: true,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 2,
-            weight: baseWeight * 0.75,
-            reps: 5,
-            isWarmup: true,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 3,
-            weight: baseWeight,
-            reps: 5,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 4,
-            weight: baseWeight,
-            reps: 5,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 5,
-            weight: baseWeight,
-            reps: 5,
-          ),
-        ],
-        sessionPR: calculateEpleyScore(baseWeight, 5),
-      ));
+      squatSessions.add(
+        ExerciseSessionRecord(
+          id: Utils.generateId(),
+          exerciseId: squatId,
+          workoutSessionId: 'squat-workout-$week',
+          performedAt: date,
+          sets: [
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 1,
+              weight: baseWeight * 0.5,
+              reps: 10,
+              isWarmup: true,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 2,
+              weight: baseWeight * 0.75,
+              reps: 5,
+              isWarmup: true,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 3,
+              weight: baseWeight,
+              reps: 5,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 4,
+              weight: baseWeight,
+              reps: 5,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 5,
+              weight: baseWeight,
+              reps: 5,
+            ),
+          ],
+          sessionPR: calculateEpleyScore(baseWeight, 5),
+        ),
+      );
     }
 
     _sessionsByExercise[squatId] = squatSessions;
@@ -231,40 +237,42 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
       final date = now.subtract(Duration(days: week * 7 + 2));
       final baseWeight = 225.0 + (3 - week) * 15;
 
-      deadliftSessions.add(ExerciseSessionRecord(
-        id: Utils.generateId(),
-        exerciseId: deadliftId,
-        workoutSessionId: 'deadlift-workout-$week',
-        performedAt: date,
-        sets: [
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 1,
-            weight: baseWeight * 0.5,
-            reps: 8,
-            isWarmup: true,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 2,
-            weight: baseWeight,
-            reps: 3,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 3,
-            weight: baseWeight,
-            reps: 3,
-          ),
-          ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 4,
-            weight: baseWeight - 20,
-            reps: 5,
-          ),
-        ],
-        sessionPR: calculateEpleyScore(baseWeight, 3),
-      ));
+      deadliftSessions.add(
+        ExerciseSessionRecord(
+          id: Utils.generateId(),
+          exerciseId: deadliftId,
+          workoutSessionId: 'deadlift-workout-$week',
+          performedAt: date,
+          sets: [
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 1,
+              weight: baseWeight * 0.5,
+              reps: 8,
+              isWarmup: true,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 2,
+              weight: baseWeight,
+              reps: 3,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 3,
+              weight: baseWeight,
+              reps: 3,
+            ),
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 4,
+              weight: baseWeight - 20,
+              reps: 5,
+            ),
+          ],
+          sessionPR: calculateEpleyScore(baseWeight, 3),
+        ),
+      );
     }
 
     _sessionsByExercise[deadliftId] = deadliftSessions;
@@ -410,13 +418,15 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
 
         // Add warmup set if not bodyweight
         if (!useBodyweight && weight > 0) {
-          sets.add(ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: 1,
-            weight: weight * 0.5,
-            reps: 10,
-            isWarmup: true,
-          ));
+          sets.add(
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: 1,
+              weight: weight * 0.5,
+              reps: 10,
+              isWarmup: true,
+            ),
+          );
         }
 
         // Add working sets with slight rep variation
@@ -424,13 +434,15 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
           final repVariation = setNum == 0 ? 0 : -setNum; // Fatigue simulation
           final actualReps = (repsPerSet + repVariation).clamp(1, 20);
 
-          sets.add(ExerciseSetRecord(
-            id: Utils.generateId(),
-            setNumber: sets.length + 1,
-            weight: useBodyweight ? 0 : weight,
-            reps: actualReps,
-            isWarmup: false,
-          ));
+          sets.add(
+            ExerciseSetRecord(
+              id: Utils.generateId(),
+              setNumber: sets.length + 1,
+              weight: useBodyweight ? 0 : weight,
+              reps: actualReps,
+              isWarmup: false,
+            ),
+          );
         }
 
         // Calculate session PR (best Epley score from working sets)
@@ -438,25 +450,32 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
         final sessionPR = workingSets.isEmpty
             ? 0.0
             : workingSets
-                .map((s) => calculateEpleyScore(
-                    useBodyweight ? 180.0 : s.weight, s.reps))
-                .reduce((a, b) => a > b ? a : b);
+                  .map(
+                    (s) => calculateEpleyScore(
+                      useBodyweight ? 180.0 : s.weight,
+                      s.reps,
+                    ),
+                  )
+                  .reduce((a, b) => a > b ? a : b);
 
-        sessions.add(ExerciseSessionRecord(
-          id: Utils.generateId(),
-          exerciseId: exerciseId,
-          workoutSessionId: '$exerciseId-workout-$week-$session',
-          performedAt: date,
-          sets: sets,
-          sessionPR: sessionPR,
-        ));
+        sessions.add(
+          ExerciseSessionRecord(
+            id: Utils.generateId(),
+            exerciseId: exerciseId,
+            workoutSessionId: '$exerciseId-workout-$week-$session',
+            performedAt: date,
+            sets: sets,
+            sessionPR: sessionPR,
+          ),
+        );
       }
     }
 
     _sessionsByExercise[exerciseId] = sessions;
     if (sessions.isNotEmpty) {
-      _prByExercise[exerciseId] =
-          sessions.map((s) => s.sessionPR ?? 0).reduce((a, b) => a > b ? a : b);
+      _prByExercise[exerciseId] = sessions
+          .map((s) => s.sessionPR ?? 0)
+          .reduce((a, b) => a > b ? a : b);
     }
   }
 
@@ -466,10 +485,7 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
 
     final sessions = _sessionsByExercise[exercise.id] ?? [];
 
-    return ExerciseHistory.fromSessions(
-      exercise: exercise,
-      sessions: sessions,
-    );
+    return ExerciseHistory.fromSessions(exercise: exercise, sessions: sessions);
   }
 
   @override
@@ -578,13 +594,15 @@ class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
           orElse: () => sessions.first,
         );
 
-        entries.add(ExerciseLeaderboardEntry(
-          exerciseId: exerciseId,
-          exerciseName: exerciseNames[exerciseId] ?? exerciseId,
-          allTimePR: pr,
-          prDate: prSession.performedAt,
-          totalSessions: sessions.length,
-        ));
+        entries.add(
+          ExerciseLeaderboardEntry(
+            exerciseId: exerciseId,
+            exerciseName: exerciseNames[exerciseId] ?? exerciseId,
+            allTimePR: pr,
+            prDate: prSession.performedAt,
+            totalSessions: sessions.length,
+          ),
+        );
       }
     }
 

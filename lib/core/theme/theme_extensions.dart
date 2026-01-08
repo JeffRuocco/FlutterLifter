@@ -156,21 +156,21 @@ extension AppThemeExtension on BuildContext {
 
   /// Primary gradient using theme colors
   List<Color> get primaryGradient => [
-        primaryColor,
-        ColorUtils.lighten(primaryColor, 0.1),
-      ];
+    primaryColor,
+    ColorUtils.lighten(primaryColor, 0.1),
+  ];
 
   /// Secondary gradient using theme colors
   List<Color> get secondaryGradient => [
-        secondaryColor,
-        ColorUtils.lighten(secondaryColor, 0.1),
-      ];
+    secondaryColor,
+    ColorUtils.lighten(secondaryColor, 0.1),
+  ];
 
   /// Success gradient
   List<Color> get successGradient => [
-        successColor,
-        ColorUtils.lighten(successColor, 0.15),
-      ];
+    successColor,
+    ColorUtils.lighten(successColor, 0.15),
+  ];
 
   /// Warm gradient - shifts primary toward orange/red tones
   List<Color> get warmGradient {
@@ -181,10 +181,7 @@ extension AppThemeExtension on BuildContext {
         .withHue(warmHue)
         .withSaturation((hsl.saturation + 0.1).clamp(0.0, 1.0))
         .toColor();
-    return [
-      primaryColor,
-      warmColor,
-    ];
+    return [primaryColor, warmColor];
   }
 
   /// Cool gradient - shifts secondary toward blue/cyan tones
@@ -196,9 +193,6 @@ extension AppThemeExtension on BuildContext {
         .withHue(coolHue)
         .withSaturation((hsl.saturation + 0.1).clamp(0.0, 1.0))
         .toColor();
-    return [
-      secondaryColor,
-      coolColor,
-    ];
+    return [secondaryColor, coolColor];
   }
 }

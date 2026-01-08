@@ -78,8 +78,10 @@ class ExerciseHistory {
   /// Average weight across all working sets (all time)
   double get averageWeight {
     if (sessions.isEmpty) return 0;
-    final allWorkingSets =
-        sessions.expand((s) => s.sets).where((set) => !set.isWarmup).toList();
+    final allWorkingSets = sessions
+        .expand((s) => s.sets)
+        .where((set) => !set.isWarmup)
+        .toList();
     if (allWorkingSets.isEmpty) return 0;
     return allWorkingSets.map((s) => s.weight).reduce((a, b) => a + b) /
         allWorkingSets.length;
@@ -125,19 +127,23 @@ class ExerciseHistory {
       final sessionBest = session.bestEpleyScore;
       if (sessionBest > runningBest) {
         runningBest = sessionBest;
-        entries.add(PRProgressionEntry(
-          date: session.performedAt,
-          epleyScore: runningBest,
-          sessionId: session.id,
-          isPR: true,
-        ));
+        entries.add(
+          PRProgressionEntry(
+            date: session.performedAt,
+            epleyScore: runningBest,
+            sessionId: session.id,
+            isPR: true,
+          ),
+        );
       } else {
-        entries.add(PRProgressionEntry(
-          date: session.performedAt,
-          epleyScore: sessionBest,
-          sessionId: session.id,
-          isPR: false,
-        ));
+        entries.add(
+          PRProgressionEntry(
+            date: session.performedAt,
+            epleyScore: sessionBest,
+            sessionId: session.id,
+            isPR: false,
+          ),
+        );
       }
     }
 
@@ -159,10 +165,7 @@ class ExerciseHistory {
   }
 
   /// Get sessions within a date range
-  List<ExerciseSessionRecord> getSessionsInRange(
-    DateTime start,
-    DateTime end,
-  ) {
+  List<ExerciseSessionRecord> getSessionsInRange(DateTime start, DateTime end) {
     return sessions.where((s) {
       return s.performedAt.isAfter(start) && s.performedAt.isBefore(end);
     }).toList();

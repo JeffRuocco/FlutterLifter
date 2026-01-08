@@ -47,8 +47,12 @@ class MockPrograms {
           'Train upper body and lower body on alternating days. Perfect for intermediate lifters.',
       type: ProgramType.general,
       difficulty: ProgramDifficulty.intermediate,
-      defaultPeriodicity: const WorkoutPeriodicity.weekly(
-          [1, 2, 4, 5]), // Mon, Tue, Thu, Fri - 4 days/week
+      defaultPeriodicity: const WorkoutPeriodicity.weekly([
+        1,
+        2,
+        4,
+        5,
+      ]), // Mon, Tue, Thu, Fri - 4 days/week
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
       metadata: {
@@ -108,8 +112,11 @@ class MockPrograms {
           'Train all major muscle groups in a single session. Ideal for beginners and those with limited time.',
       type: ProgramType.general,
       difficulty: ProgramDifficulty.beginner,
-      defaultPeriodicity: const WorkoutPeriodicity.weekly(
-          [1, 3, 5]), // Mon, Wed, Fri - 3 days/week
+      defaultPeriodicity: const WorkoutPeriodicity.weekly([
+        1,
+        3,
+        5,
+      ]), // Mon, Wed, Fri - 3 days/week
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
       metadata: {
@@ -127,13 +134,12 @@ class MockPrograms {
       type: ProgramType.general,
       difficulty: ProgramDifficulty.advanced,
       defaultPeriodicity: const WorkoutPeriodicity.cyclic(
-          workoutDays: 3, restDays: 1), // 3 days on, 1 day rest
+        workoutDays: 3,
+        restDays: 1,
+      ), // 3 days on, 1 day rest
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
-      metadata: {
-        'color': Colors.orange,
-        'icon': HugeIcons.strokeRoundedFire,
-      },
+      metadata: {'color': Colors.orange, 'icon': HugeIcons.strokeRoundedFire},
     ),
   ];
 }

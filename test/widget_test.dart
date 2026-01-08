@@ -23,11 +23,7 @@ void main() {
     // Build our app with ProviderScope and trigger a frame.
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          themeModeNotifierProvider.overrideWith(
-            (ref) => ThemeModeNotifier(prefs),
-          ),
-        ],
+        overrides: [createThemeModeProviderOverride(prefs)],
         child: MaterialApp(
           theme: AppTheme.lightTheme,
           home: const LoginScreen(),

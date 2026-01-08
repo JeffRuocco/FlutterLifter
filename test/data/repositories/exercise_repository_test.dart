@@ -17,61 +17,67 @@ void main() {
 
     group('Factory Constructors', () {
       test(
-          'development factory should create repository with default exercises',
-          () async {
-        final repo = ExerciseRepositoryImpl.development();
-        final exercises = await repo.getDefaultExercises();
+        'development factory should create repository with default exercises',
+        () async {
+          final repo = ExerciseRepositoryImpl.development();
+          final exercises = await repo.getDefaultExercises();
 
-        expect(exercises, isNotEmpty);
-        expect(exercises.every((e) => e.isDefault), isTrue);
-      });
+          expect(exercises, isNotEmpty);
+          expect(exercises.every((e) => e.isDefault), isTrue);
+        },
+      );
 
       test(
-          'production factory should create repository with provided datasource',
-          () async {
-        final datasource = ExerciseLocalDataSourceImpl();
-        final repo = ExerciseRepositoryImpl.production(
-          localDataSource: datasource,
-        );
-        final exercises = await repo.getDefaultExercises();
+        'production factory should create repository with provided datasource',
+        () async {
+          final datasource = ExerciseLocalDataSourceImpl();
+          final repo = ExerciseRepositoryImpl.production(
+            localDataSource: datasource,
+          );
+          final exercises = await repo.getDefaultExercises();
 
-        expect(exercises, isNotEmpty);
-      });
+          expect(exercises, isNotEmpty);
+        },
+      );
 
-      test('production factory should accept custom default exercises',
-          () async {
-        final customDefaults = [
-          Exercise(
-            id: 'custom_default',
-            name: 'Custom Default Exercise',
-            category: ExerciseCategory.strength,
-            targetMuscleGroups: [MuscleGroup.fullBody],
-            defaultSets: 3,
-            defaultReps: 10,
-            isDefault: true,
-          ),
-        ];
+      test(
+        'production factory should accept custom default exercises',
+        () async {
+          final customDefaults = [
+            Exercise(
+              id: 'custom_default',
+              name: 'Custom Default Exercise',
+              category: ExerciseCategory.strength,
+              targetMuscleGroups: [MuscleGroup.fullBody],
+              defaultSets: 3,
+              defaultReps: 10,
+              isDefault: true,
+            ),
+          ];
 
-        final repo = ExerciseRepositoryImpl.production(
-          localDataSource: ExerciseLocalDataSourceImpl(),
-          defaultExercises: customDefaults,
-        );
+          final repo = ExerciseRepositoryImpl.production(
+            localDataSource: ExerciseLocalDataSourceImpl(),
+            defaultExercises: customDefaults,
+          );
 
-        final exercises = await repo.getDefaultExercises();
-        expect(exercises.length, equals(1));
-        expect(exercises.first.id, equals('custom_default'));
-      });
+          final exercises = await repo.getDefaultExercises();
+          expect(exercises.length, equals(1));
+          expect(exercises.first.id, equals('custom_default'));
+        },
+      );
     });
 
     group('Default Exercises', () {
-      test('getDefaultExercises should return all built-in exercises',
-          () async {
-        final exercises = await repository.getDefaultExercises();
+      test(
+        'getDefaultExercises should return all built-in exercises',
+        () async {
+          final exercises = await repository.getDefaultExercises();
 
-        expect(exercises, isNotEmpty);
-        expect(exercises.length, greaterThan(40)); // We have 40+ exercises
-        expect(exercises.every((e) => e.isDefault), isTrue);
-      });
+          expect(exercises, isNotEmpty);
+          expect(exercises.length, greaterThan(40)); // We have 40+ exercises
+          expect(exercises.every((e) => e.isDefault), isTrue);
+        },
+      );
 
       test('default exercises should be immutable', () async {
         final exercises1 = await repository.getDefaultExercises();
@@ -148,28 +154,32 @@ void main() {
         expect(exercises.every((e) => !e.isDefault), isTrue);
       });
 
-      test('updateCustomExercise should modify existing custom exercise',
-          () async {
-        await repository.createCustomExercise(customExercise);
+      test(
+        'updateCustomExercise should modify existing custom exercise',
+        () async {
+          await repository.createCustomExercise(customExercise);
 
-        final updated = customExercise.copyWith(
-          name: 'Updated Custom Exercise',
-          defaultSets: 5,
-        );
-        await repository.updateCustomExercise(updated);
+          final updated = customExercise.copyWith(
+            name: 'Updated Custom Exercise',
+            defaultSets: 5,
+          );
+          await repository.updateCustomExercise(updated);
 
-        final exercises = await repository.getCustomExercises();
-        expect(exercises.first.name, equals('Updated Custom Exercise'));
-        expect(exercises.first.defaultSets, equals(5));
-      });
+          final exercises = await repository.getCustomExercises();
+          expect(exercises.first.name, equals('Updated Custom Exercise'));
+          expect(exercises.first.defaultSets, equals(5));
+        },
+      );
 
-      test('updateCustomExercise should throw for non-existent exercise',
-          () async {
-        expect(
-          () => repository.updateCustomExercise(customExercise),
-          throwsA(isA<ArgumentError>()),
-        );
-      });
+      test(
+        'updateCustomExercise should throw for non-existent exercise',
+        () async {
+          expect(
+            () => repository.updateCustomExercise(customExercise),
+            throwsA(isA<ArgumentError>()),
+          );
+        },
+      );
 
       test('deleteCustomExercise should remove custom exercise', () async {
         await repository.createCustomExercise(customExercise);
@@ -179,31 +189,30 @@ void main() {
         expect((await repository.getCustomExercises()).length, equals(0));
       });
 
-      test('deleteCustomExercise should also remove associated preferences',
-          () async {
-        await repository.createCustomExercise(customExercise);
+      test(
+        'deleteCustomExercise should also remove associated preferences',
+        () async {
+          await repository.createCustomExercise(customExercise);
 
-        final pref = UserExercisePreferences.create(
-          exerciseId: 'custom_1',
-          preferredSets: 5,
-        );
-        await repository.setPreference(pref);
+          final pref = UserExercisePreferences.create(
+            exerciseId: 'custom_1',
+            preferredSets: 5,
+          );
+          await repository.setPreference(pref);
 
-        // Verify preference exists
-        expect(
-          await repository.getPreferenceForExercise('custom_1'),
-          isNotNull,
-        );
+          // Verify preference exists
+          expect(
+            await repository.getPreferenceForExercise('custom_1'),
+            isNotNull,
+          );
 
-        // Delete exercise
-        await repository.deleteCustomExercise('custom_1');
+          // Delete exercise
+          await repository.deleteCustomExercise('custom_1');
 
-        // Preference should be removed
-        expect(
-          await repository.getPreferenceForExercise('custom_1'),
-          isNull,
-        );
-      });
+          // Preference should be removed
+          expect(await repository.getPreferenceForExercise('custom_1'), isNull);
+        },
+      );
     });
 
     group('Combined Exercise Access', () {
@@ -222,42 +231,46 @@ void main() {
         await repository.createCustomExercise(customExercise);
       });
 
-      test('getExercises with ExerciseSource.all should return all exercises',
-          () async {
-        final exercises = await repository.getExercises(
-          source: ExerciseSource.all,
-        );
+      test(
+        'getExercises with ExerciseSource.all should return all exercises',
+        () async {
+          final exercises = await repository.getExercises(
+            source: ExerciseSource.all,
+          );
 
-        final defaultExercises = await repository.getDefaultExercises();
-        final customExercises = await repository.getCustomExercises();
+          final defaultExercises = await repository.getDefaultExercises();
+          final customExercises = await repository.getCustomExercises();
 
-        expect(
-          exercises.length,
-          equals(defaultExercises.length + customExercises.length),
-        );
-      });
+          expect(
+            exercises.length,
+            equals(defaultExercises.length + customExercises.length),
+          );
+        },
+      );
 
       test(
-          'getExercises with ExerciseSource.defaultOnly should return only defaults',
-          () async {
-        final exercises = await repository.getExercises(
-          source: ExerciseSource.defaultOnly,
-        );
+        'getExercises with ExerciseSource.defaultOnly should return only defaults',
+        () async {
+          final exercises = await repository.getExercises(
+            source: ExerciseSource.defaultOnly,
+          );
 
-        expect(exercises.every((e) => e.isDefault), isTrue);
-        expect(exercises.any((e) => e.id == 'custom_combined'), isFalse);
-      });
+          expect(exercises.every((e) => e.isDefault), isTrue);
+          expect(exercises.any((e) => e.id == 'custom_combined'), isFalse);
+        },
+      );
 
       test(
-          'getExercises with ExerciseSource.customOnly should return only custom',
-          () async {
-        final exercises = await repository.getExercises(
-          source: ExerciseSource.customOnly,
-        );
+        'getExercises with ExerciseSource.customOnly should return only custom',
+        () async {
+          final exercises = await repository.getExercises(
+            source: ExerciseSource.customOnly,
+          );
 
-        expect(exercises.every((e) => !e.isDefault), isTrue);
-        expect(exercises.any((e) => e.id == 'custom_combined'), isTrue);
-      });
+          expect(exercises.every((e) => !e.isDefault), isTrue);
+          expect(exercises.any((e) => e.id == 'custom_combined'), isTrue);
+        },
+      );
 
       test('getExercises should default to ExerciseSource.all', () async {
         final allExercises = await repository.getExercises();
@@ -330,12 +343,14 @@ void main() {
         expect(exercise1!.id, equals(exercise2!.id));
       });
 
-      test('getExerciseByName should return null for non-existent name',
-          () async {
-        final exercise = await repository.getExerciseByName('Does Not Exist');
+      test(
+        'getExerciseByName should return null for non-existent name',
+        () async {
+          final exercise = await repository.getExerciseByName('Does Not Exist');
 
-        expect(exercise, isNull);
-      });
+          expect(exercise, isNull);
+        },
+      );
     });
 
     group('Search Exercises', () {
@@ -362,11 +377,14 @@ void main() {
         expect(results, isNotEmpty);
         // All results should match 'cardio' in name, category displayName, or muscle groups
         expect(
-          results.every((e) =>
-              e.category.displayName.toLowerCase().contains('cardio') ||
-              e.name.toLowerCase().contains('cardio') ||
-              e.targetMuscleGroups
-                  .any((m) => m.displayName.toLowerCase().contains('cardio'))),
+          results.every(
+            (e) =>
+                e.category.displayName.toLowerCase().contains('cardio') ||
+                e.name.toLowerCase().contains('cardio') ||
+                e.targetMuscleGroups.any(
+                  (m) => m.displayName.toLowerCase().contains('cardio'),
+                ),
+          ),
           isTrue,
         );
       });
@@ -376,8 +394,11 @@ void main() {
 
         expect(results, isNotEmpty);
         expect(
-          results.every((e) => e.targetMuscleGroups
-              .any((m) => m.displayName.contains('Biceps'))),
+          results.every(
+            (e) => e.targetMuscleGroups.any(
+              (m) => m.displayName.contains('Biceps'),
+            ),
+          ),
           isTrue,
         );
       });
@@ -389,13 +410,15 @@ void main() {
         expect(results1.length, equals(results2.length));
       });
 
-      test('searchExercises with empty query should return all exercises',
-          () async {
-        final results = await repository.searchExercises('');
-        final all = await repository.getExercises();
+      test(
+        'searchExercises with empty query should return all exercises',
+        () async {
+          final results = await repository.searchExercises('');
+          final all = await repository.getExercises();
 
-        expect(results.length, equals(all.length));
-      });
+          expect(results.length, equals(all.length));
+        },
+      );
 
       test('searchExercises should respect ExerciseSource filter', () async {
         await repository.createCustomExercise(
@@ -430,18 +453,20 @@ void main() {
     });
 
     group('Filter by Category', () {
-      test('getExercisesByCategory should return only matching category',
-          () async {
-        final cardio = await repository.getExercisesByCategory(
-          ExerciseCategory.cardio,
-        );
+      test(
+        'getExercisesByCategory should return only matching category',
+        () async {
+          final cardio = await repository.getExercisesByCategory(
+            ExerciseCategory.cardio,
+          );
 
-        expect(cardio, isNotEmpty);
-        expect(
-          cardio.every((e) => e.category == ExerciseCategory.cardio),
-          isTrue,
-        );
-      });
+          expect(cardio, isNotEmpty);
+          expect(
+            cardio.every((e) => e.category == ExerciseCategory.cardio),
+            isTrue,
+          );
+        },
+      );
 
       test('getExercisesByCategory should respect ExerciseSource', () async {
         await repository.createCustomExercise(
@@ -470,49 +495,59 @@ void main() {
         expect(customOnly.first.id, equals('custom_cardio'));
       });
 
-      test('getExercisesByCategory should return empty for no matches',
-          () async {
-        // Clear custom exercises that might be in 'other' category
-        final customOnly = await repository.getExercisesByCategory(
-          ExerciseCategory.other,
-          source: ExerciseSource.customOnly,
-        );
+      test(
+        'getExercisesByCategory should return empty for no matches',
+        () async {
+          // Clear custom exercises that might be in 'other' category
+          final customOnly = await repository.getExercisesByCategory(
+            ExerciseCategory.other,
+            source: ExerciseSource.customOnly,
+          );
 
-        // If there are no custom 'other' exercises, this should be empty
-        expect(customOnly.every((e) => e.category == ExerciseCategory.other),
-            isTrue);
-      });
+          // If there are no custom 'other' exercises, this should be empty
+          expect(
+            customOnly.every((e) => e.category == ExerciseCategory.other),
+            isTrue,
+          );
+        },
+      );
     });
 
     group('Filter by Muscle Group', () {
-      test('getExercisesByMuscleGroup should return matching exercises',
-          () async {
-        final chestExercises = await repository.getExercisesByMuscleGroup(
-          MuscleGroup.chest,
-        );
+      test(
+        'getExercisesByMuscleGroup should return matching exercises',
+        () async {
+          final chestExercises = await repository.getExercisesByMuscleGroup(
+            MuscleGroup.chest,
+          );
 
-        expect(chestExercises, isNotEmpty);
-        expect(
-          chestExercises
-              .every((e) => e.targetMuscleGroups.contains(MuscleGroup.chest)),
-          isTrue,
-        );
-      });
+          expect(chestExercises, isNotEmpty);
+          expect(
+            chestExercises.every(
+              (e) => e.targetMuscleGroups.contains(MuscleGroup.chest),
+            ),
+            isTrue,
+          );
+        },
+      );
 
-      test('getExercisesByMuscleGroup should return exercises with that muscle',
-          () async {
-        final results = await repository.getExercisesByMuscleGroup(
-          MuscleGroup.quadriceps,
-        );
+      test(
+        'getExercisesByMuscleGroup should return exercises with that muscle',
+        () async {
+          final results = await repository.getExercisesByMuscleGroup(
+            MuscleGroup.quadriceps,
+          );
 
-        expect(results, isNotEmpty);
-        // Should match exercises targeting quadriceps
-        expect(
-          results.every(
-              (e) => e.targetMuscleGroups.contains(MuscleGroup.quadriceps)),
-          isTrue,
-        );
-      });
+          expect(results, isNotEmpty);
+          // Should match exercises targeting quadriceps
+          expect(
+            results.every(
+              (e) => e.targetMuscleGroups.contains(MuscleGroup.quadriceps),
+            ),
+            isTrue,
+          );
+        },
+      );
 
       test('getExercisesByMuscleGroup should respect ExerciseSource', () async {
         await repository.createCustomExercise(
@@ -592,10 +627,7 @@ void main() {
       test('getPreferences should return all preferences', () async {
         await repository.setPreference(benchPreference);
         await repository.setPreference(
-          UserExercisePreferences.create(
-            exerciseId: 'squat',
-            preferredSets: 4,
-          ),
+          UserExercisePreferences.create(exerciseId: 'squat', preferredSets: 4),
         );
 
         final prefs = await repository.getPreferences();
@@ -603,12 +635,14 @@ void main() {
         expect(prefs.length, equals(2));
       });
 
-      test('getPreferenceForExercise should return null if none exists',
-          () async {
-        final pref = await repository.getPreferenceForExercise('deadlift');
+      test(
+        'getPreferenceForExercise should return null if none exists',
+        () async {
+          final pref = await repository.getPreferenceForExercise('deadlift');
 
-        expect(pref, isNull);
-      });
+          expect(pref, isNull);
+        },
+      );
 
       test('removePreference should delete preference', () async {
         await repository.setPreference(benchPreference);
@@ -643,17 +677,20 @@ void main() {
         expect(bench.notes, equals('Heavy day'));
       });
 
-      test('getExercises should not modify exercises without preferences',
-          () async {
-        final exercises = await repository.getExercises();
-        final original =
-            await repository.getExerciseByIdWithoutPreferences('squat');
+      test(
+        'getExercises should not modify exercises without preferences',
+        () async {
+          final exercises = await repository.getExercises();
+          final original = await repository.getExerciseByIdWithoutPreferences(
+            'squat',
+          );
 
-        final squat = exercises.firstWhere((e) => e.id == 'squat');
+          final squat = exercises.firstWhere((e) => e.id == 'squat');
 
-        expect(squat.defaultSets, equals(original!.defaultSets));
-        expect(squat.defaultReps, equals(original.defaultReps));
-      });
+          expect(squat.defaultSets, equals(original!.defaultSets));
+          expect(squat.defaultReps, equals(original.defaultReps));
+        },
+      );
 
       test('getExerciseById should apply preference', () async {
         final bench = await repository.getExerciseById('bench');
@@ -665,17 +702,16 @@ void main() {
 
       test('getExerciseById should return original if no preference', () async {
         final squat = await repository.getExerciseById('squat');
-        final original =
-            await repository.getExerciseByIdWithoutPreferences('squat');
+        final original = await repository.getExerciseByIdWithoutPreferences(
+          'squat',
+        );
 
         expect(squat, isNotNull);
         expect(squat!.defaultSets, equals(original!.defaultSets));
       });
 
       test('getExerciseById should return null for non-existent', () async {
-        final result = await repository.getExerciseById(
-          'does_not_exist',
-        );
+        final result = await repository.getExerciseById('does_not_exist');
 
         expect(result, isNull);
       });

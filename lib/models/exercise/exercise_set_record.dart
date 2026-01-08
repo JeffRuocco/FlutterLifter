@@ -122,8 +122,9 @@ class ExerciseSetRecord {
 
   /// Display string for weight × reps format
   String get displayString {
-    final weightStr =
-        weight % 1 == 0 ? weight.toInt().toString() : weight.toStringAsFixed(1);
+    final weightStr = weight % 1 == 0
+        ? weight.toInt().toString()
+        : weight.toStringAsFixed(1);
     return '$weightStr lbs × $reps';
   }
 

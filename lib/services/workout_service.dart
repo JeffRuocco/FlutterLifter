@@ -121,7 +121,8 @@ class WorkoutService {
   Future<void> saveWorkoutImmediate() async {
     if (_currentWorkout != null) {
       LoggingService.debug(
-          'Immediate workout save: ${_currentWorkout!.id} at ${DateTime.now()}');
+        'Immediate workout save: ${_currentWorkout!.id} at ${DateTime.now()}',
+      );
       // Cancel any pending debounced save since we're saving now
       _debounceTimer?.cancel();
       await _saveWorkout();
@@ -139,8 +140,9 @@ class WorkoutService {
     if (_currentWorkout != null) {
       _currentWorkout!.endTime = DateTime.now();
       LoggingService.logWorkoutComplete(
-          _currentWorkout!.programName ?? 'Unknown Program',
-          _currentWorkout!.duration ?? Duration.zero);
+        _currentWorkout!.programName ?? 'Unknown Program',
+        _currentWorkout!.duration ?? Duration.zero,
+      );
       await _saveWorkout();
       _stopAutoSave();
       _currentWorkout = null;
@@ -153,13 +155,16 @@ class WorkoutService {
   Future<void> cancelWorkout() async {
     if (_currentWorkout != null) {
       final startTime = _currentWorkout!.startTime;
-      final duration = _currentWorkout!.duration ??
+      final duration =
+          _currentWorkout!.duration ??
           (startTime != null
               ? DateTime.now().difference(startTime)
               : Duration.zero);
 
       LoggingService.logWorkoutCanceled(
-          _currentWorkout!.programName ?? 'Unknown Program', duration);
+        _currentWorkout!.programName ?? 'Unknown Program',
+        duration,
+      );
       _stopAutoSave();
       await _deleteWorkout(_currentWorkout!.id);
       _currentWorkout = null;
@@ -175,7 +180,8 @@ class WorkoutService {
       _currentWorkout = workout;
       _lastSavedHash = workout.hash; // Set hash to current state
       LoggingService.logWorkoutResumed(
-          workout.programName ?? 'Unknown Program');
+        workout.programName ?? 'Unknown Program',
+      );
       _startAutoSave();
     }
   }
@@ -201,8 +207,9 @@ class WorkoutService {
 
     int count = 0;
     count = _currentWorkout!.exercises
-        .map((exercise) =>
-            exercise.sets.where((set) => set.isCompleted == false))
+        .map(
+          (exercise) => exercise.sets.where((set) => set.isCompleted == false),
+        )
         .length;
 
     return count;
@@ -216,7 +223,7 @@ class WorkoutService {
       for (var set in exercise.sets) {
         final hasRecordedData =
             (set.actualWeight != null && set.actualWeight! >= 0) ||
-                (set.actualReps != null && set.actualReps! >= 0);
+            (set.actualReps != null && set.actualReps! >= 0);
         final isNotComplete = !set.isCompleted;
 
         if (hasRecordedData && isNotComplete) {
@@ -254,7 +261,8 @@ class WorkoutService {
       // Only save if the workout has actually changed
       if (_lastSavedHash != null && _lastSavedHash == currentHash) {
         LoggingService.debug(
-            'Workout unchanged, skipping save: ${_currentWorkout!.id}');
+          'Workout unchanged, skipping save: ${_currentWorkout!.id}',
+        );
         return;
       }
 
@@ -262,7 +270,8 @@ class WorkoutService {
         await _programRepository.saveWorkoutSession(_currentWorkout!);
         _lastSavedHash = currentHash; // Update the saved hash
         LoggingService.debug(
-            'Saving workout: ${_currentWorkout!.id} at ${DateTime.now()}');
+          'Saving workout: ${_currentWorkout!.id} at ${DateTime.now()}',
+        );
       } catch (e) {
         // Log error but don't throw - we don't want to interrupt the workout
         // In a real app, you might want to show a non-intrusive error message

@@ -13,18 +13,7 @@ class AuthConfig {
 }
 
 // Authentication result types
-enum AuthResult {
-  success,
-  failed,
-  cancelled,
-  networkError,
-  invalidCredentials,
-}
+enum AuthResult { success, failed, cancelled, networkError, invalidCredentials }
 
 // User authentication state
-enum AuthState {
-  unknown,
-  authenticated,
-  unauthenticated,
-  loading,
-}
+enum AuthState { unknown, authenticated, unauthenticated, loading }
