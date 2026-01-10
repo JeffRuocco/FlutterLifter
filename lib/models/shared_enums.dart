@@ -37,6 +37,9 @@ enum ProgramSource {
   /// Include only custom user-created programs
   customOnly,
 
+  /// Include custom programs + used default programs (for "My Programs" tab)
+  myPrograms,
+
   /// Include only community-shared programs (future)
   communityOnly,
 }
@@ -49,6 +52,8 @@ extension ProgramSourceExtension on ProgramSource {
       case ProgramSource.defaultOnly:
         return 'Default Programs';
       case ProgramSource.customOnly:
+        return 'Custom Programs';
+      case ProgramSource.myPrograms:
         return 'My Programs';
       case ProgramSource.communityOnly:
         return 'Community Programs';

@@ -47,12 +47,19 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
-    _loadPrograms();
 
     // Initialize all program types as expanded
     for (final type in ProgramType.values) {
       _expandedTypes[type] = true;
     }
+
+    // Set initial source filter for "My Programs" tab and load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(programLibraryFilterProvider.notifier)
+          .setSourceFilter(ProgramSource.myPrograms);
+      _loadPrograms();
+    });
   }
 
   @override
@@ -65,12 +72,13 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
   }
 
   void _onTabChanged() {
-    if (_tabController.indexIsChanging) {
+    // Only respond after animation completes (not during)
+    if (!_tabController.indexIsChanging) {
       // Update source filter based on tab
       final notifier = ref.read(programLibraryFilterProvider.notifier);
       if (_tabController.index == 0) {
-        // My Programs tab - show custom programs
-        notifier.setSourceFilter(ProgramSource.customOnly);
+        // My Programs tab - show custom + used default programs
+        notifier.setSourceFilter(ProgramSource.myPrograms);
       } else {
         // Discover tab - show default programs
         notifier.setSourceFilter(ProgramSource.defaultOnly);
@@ -130,7 +138,7 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
     if (_tabController.index == 0) {
       ref
           .read(programLibraryFilterProvider.notifier)
-          .setSourceFilter(ProgramSource.customOnly);
+          .setSourceFilter(ProgramSource.myPrograms);
     } else {
       ref
           .read(programLibraryFilterProvider.notifier)

@@ -209,19 +209,19 @@ The Program Library mirrors the Exercise Library pattern, supporting:
 
 ### Phase 7: Programs Screen Updates
 
-- [ ] **Update `ProgramsScreen`** in `lib/screens/programs/programs_screen.dart`
-  - [ ] Keep "Recommended Programs" section as-is
-  - [ ] Add "Recent Programs" section (3-5 programs from `recentProgramsProvider`)
-  - [ ] Replace "Custom Programs" section with "Browse Library" card
-  - [ ] Link "Browse Library" to `ProgramLibraryScreen`
+- [x] **Update `ProgramsScreen`** in `lib/screens/programs/programs_screen.dart`
+  - [x] Keep "Recommended Programs" section as-is
+  - [x] Add "Recent Programs" section (3-5 programs from `recentProgramsProvider`)
+  - [x] Replace "Custom Programs" section with "Browse Library" card
+  - [x] Link "Browse Library" to `ProgramLibraryScreen`
 
-- [ ] **Create `_RecentProgramCard`** widget
-  - [ ] Compact card showing program name and last used date
-  - [ ] Navigate to `ProgramDetailScreen` on tap
+- [x] **Create `_RecentProgramCard`** widget
+  - [x] Compact card showing program name and last used date
+  - [x] Navigate to `ProgramDetailScreen` on tap
 
-- [ ] **Create `_BrowseLibraryCard`** widget
-  - [ ] Prominent card with icon and "Browse Program Library" text
-  - [ ] Navigate to `ProgramLibraryScreen` on tap
+- [x] **Create `_BrowseLibraryCard`** widget
+  - [x] Prominent card with icon and "Browse Program Library" text
+  - [x] Navigate to `ProgramLibraryScreen` on tap
 
 ---
 

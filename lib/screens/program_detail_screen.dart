@@ -63,6 +63,25 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
       final repository = ref.read(programRepositoryProvider);
       final program = await repository.getProgramById(widget.programId);
 
+      if (program == null) {
+        setState(() {
+          _errorMessage = 'Program not found';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // If viewing a default program, check if user already has a copy
+      // and redirect to their copy instead
+      if (program.isDefault) {
+        final userCopy = await repository.getUserCopyOfProgram(program.id);
+        if (userCopy != null && mounted) {
+          // Redirect to user's copy
+          context.pushReplacementProgramDetail(userCopy.id);
+          return;
+        }
+      }
+
       setState(() {
         _program = program;
         _isLoading = false;
@@ -92,10 +111,12 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
         final customProgram = await repository.copyProgramAsCustom(_program!);
         programIdToUse = customProgram.id;
 
-        if (mounted) {
+        // Only show message if this is a new copy (not existing)
+        // The copyProgramAsCustom returns existing if found, so check cycles
+        if (customProgram.cycles.isEmpty && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Created "${customProgram.name}" from template'),
+              content: Text('Added "${customProgram.name}" to your programs'),
               backgroundColor: context.primaryColor,
               behavior: SnackBarBehavior.floating,
             ),

@@ -603,6 +603,10 @@ extension AppRouterExtension on BuildContext {
   void pushProgramDetail(String programId) =>
       push('${AppRoutes.programs}/$programId');
 
+  /// Replace current screen with program detail (used when redirecting to user's copy)
+  void pushReplacementProgramDetail(String programId) =>
+      pushReplacement('${AppRoutes.programs}/$programId');
+
   /// Push edit program screen (for back navigation)
   Future<void> pushEditProgram(String programId) async =>
       await push('${AppRoutes.programs}/$programId/edit');

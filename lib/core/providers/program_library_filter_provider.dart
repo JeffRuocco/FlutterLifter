@@ -210,6 +210,12 @@ extension ProgramFilterExtension on List<Program> {
       case ProgramSource.customOnly:
         result = result.where((p) => !p.isDefault).toList();
         break;
+      case ProgramSource.myPrograms:
+        // Custom programs + default programs that have been used
+        result = result
+            .where((p) => !p.isDefault || (p.isDefault && p.lastUsedAt != null))
+            .toList();
+        break;
       case ProgramSource.communityOnly:
         // Future: filter by community flag
         result = [];

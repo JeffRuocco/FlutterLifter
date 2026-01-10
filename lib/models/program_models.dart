@@ -741,6 +741,9 @@ class Program {
   /// When the program was last used (started a cycle)
   final DateTime? lastUsedAt;
 
+  /// The ID of the default program this was copied from (null for default programs and original custom programs)
+  final String? templateId;
+
   /// List of program cycles - each cycle represents a run of this program
   final List<ProgramCycle> cycles;
 
@@ -759,6 +762,7 @@ class Program {
     this.metadata,
     this.isDefault = false,
     this.lastUsedAt,
+    this.templateId,
     this.cycles = const [],
   });
 
@@ -776,6 +780,7 @@ class Program {
     this.metadata,
     this.isDefault = false,
     this.lastUsedAt,
+    this.templateId,
     this.cycles = const [],
   }) : id = Utils.generateId(),
        createdAt = DateTime.now();
@@ -1076,6 +1081,7 @@ class Program {
     Map<String, dynamic>? metadata,
     bool? isDefault,
     DateTime? lastUsedAt,
+    String? templateId,
     List<ProgramCycle>? cycles,
   }) {
     return Program(
@@ -1093,6 +1099,7 @@ class Program {
       metadata: metadata ?? this.metadata,
       isDefault: isDefault ?? this.isDefault,
       lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      templateId: templateId ?? this.templateId,
       cycles: cycles ?? this.cycles,
     );
   }
@@ -1124,6 +1131,7 @@ class Program {
       lastUsedAt: json['lastUsedAt'] != null
           ? DateTime.parse(json['lastUsedAt'])
           : null,
+      templateId: json['templateId'],
       cycles: json['cycles'] != null
           ? (json['cycles'] as List)
                 .map((cycleJson) => ProgramCycle.fromJson(cycleJson))
@@ -1149,6 +1157,7 @@ class Program {
       'metadata': metadata,
       'isDefault': isDefault,
       'lastUsedAt': lastUsedAt?.toIso8601String(),
+      'templateId': templateId,
       'cycles': cycles.map((cycle) => cycle.toJson()).toList(),
     };
   }

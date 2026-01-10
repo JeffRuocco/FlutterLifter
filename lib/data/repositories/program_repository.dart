@@ -63,7 +63,12 @@ abstract class ProgramRepository {
 
   /// Creates a copy of a program as a custom (user-owned) program.
   /// Used when starting a default program to allow user customization.
+  /// Returns existing copy if one already exists for this template.
   Future<Program> copyProgramAsCustom(Program template);
+
+  /// Gets the user's copy of a default program template, if one exists.
+  /// Returns null if the user hasn't started this default program yet.
+  Future<Program?> getUserCopyOfProgram(String templateId);
 
   // ===== Community Sharing (Future) =====
 
@@ -397,6 +402,11 @@ class ProgramRepositoryImpl implements ProgramRepository {
         return allPrograms.where((p) => p.isDefault).toList();
       case ProgramSource.customOnly:
         return allPrograms.where((p) => !p.isDefault).toList();
+      case ProgramSource.myPrograms:
+        // Custom programs + default programs that have been used
+        return allPrograms
+            .where((p) => !p.isDefault || (p.isDefault && p.lastUsedAt != null))
+            .toList();
       case ProgramSource.communityOnly:
         // Future: filter by community flag
         return [];
@@ -469,16 +479,25 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
   @override
   Future<ProgramCycle> startNewCycle(String programId) async {
-    // First, end any active cycle
+    // First, end any active cycle across ALL programs
     await endActiveCycle();
 
-    // Get the program
+    // Get the FRESH program (after endActiveCycle may have updated it)
     final program = await getProgramById(programId);
     if (program == null) {
       throw RepositoryException('Program not found: $programId');
     }
 
-    // Create a new cycle
+    // Ensure all existing cycles in this program are inactive
+    // (in case the same program had an active cycle that was just ended)
+    final deactivatedCycles = program.cycles.map((cycle) {
+      if (cycle.isActive) {
+        return cycle.copyWith(isActive: false);
+      }
+      return cycle;
+    }).toList();
+
+    // Create a new active cycle
     final newCycle = ProgramCycle.create(
       programId: programId,
       cycleNumber: program.nextCycleNumber,
@@ -487,10 +506,11 @@ class ProgramRepositoryImpl implements ProgramRepository {
       periodicity: program.defaultPeriodicity,
     );
 
-    // Update the program with the new cycle and lastUsedAt
-    final updatedProgram = program
-        .addCycle(newCycle)
-        .copyWith(lastUsedAt: DateTime.now());
+    // Update the program with deactivated old cycles + new active cycle
+    final updatedProgram = program.copyWith(
+      cycles: [...deactivatedCycles, newCycle],
+      lastUsedAt: DateTime.now(),
+    );
 
     await updateProgram(updatedProgram);
 
@@ -502,11 +522,29 @@ class ProgramRepositoryImpl implements ProgramRepository {
   // ===== Program Cloning Implementation =====
 
   @override
+  Future<Program?> getUserCopyOfProgram(String templateId) async {
+    final allPrograms = await getPrograms();
+    try {
+      return allPrograms.firstWhere(
+        (p) => p.templateId == templateId && !p.isDefault,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
   Future<Program> copyProgramAsCustom(Program template) async {
-    // Create a deep copy with new ID and isDefault = false
+    // Check if user already has a copy of this program
+    final existingCopy = await getUserCopyOfProgram(template.id);
+    if (existingCopy != null) {
+      return existingCopy;
+    }
+
+    // Create a deep copy with new ID, same name, and templateId reference
     final customProgram = Program(
       id: Utils.generateId(),
-      name: '${template.name} (Copy)',
+      name: template.name, // Keep original name, no "(Copy)" suffix
       description: template.description,
       type: template.type,
       difficulty: template.difficulty,
@@ -519,6 +557,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
       metadata: template.metadata != null ? Map.from(template.metadata!) : null,
       isDefault: false, // Custom copy
       lastUsedAt: null, // Never used yet
+      templateId: template.id, // Reference to original template
       cycles: [], // Start fresh with no cycles
     );
 
