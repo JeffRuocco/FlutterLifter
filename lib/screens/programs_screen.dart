@@ -23,7 +23,8 @@ class ProgramsScreen extends ConsumerStatefulWidget {
 }
 
 class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
-  List<Program> _programs = [];
+  List<Program> _recommendedPrograms = [];
+  List<Program> _recentPrograms = [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -41,10 +42,16 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
       });
 
       final repository = ref.read(programRepositoryProvider);
-      final programs = await repository.getPrograms();
+
+      // Load recommended (default) programs and recent programs in parallel
+      final results = await Future.wait([
+        repository.getDefaultPrograms(),
+        repository.getRecentPrograms(limit: 5),
+      ]);
 
       setState(() {
-        _programs = programs;
+        _recommendedPrograms = results[0];
+        _recentPrograms = results[1];
         _isLoading = false;
       });
     } catch (e) {
@@ -70,101 +77,119 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
         elevation: 0,
         iconTheme: IconThemeData(color: context.onSurface),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Section with slide-in animation
-              SlideInWidget(
-                delay: const Duration(milliseconds: 100),
-                child: Text(
-                  'Choose Your Training Program',
-                  style: AppTextStyles.titleLarge.copyWith(
-                    color: context.textPrimary,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              SlideInWidget(
-                delay: const Duration(milliseconds: 200),
-                child: Text(
-                  'Select a program that matches your goals and schedule',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: context.textSecondary,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.xl),
-
-              // Predefined Programs Section
-              SlideInWidget(
-                delay: const Duration(milliseconds: 300),
-                child: Text(
-                  'Recommended Programs',
-                  style: AppTextStyles.titleMedium.copyWith(
-                    color: context.textPrimary,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              Expanded(child: _buildProgramsList()),
-            ],
-          ),
-        ),
-      ),
+      body: SafeArea(child: _buildBody()),
     );
   }
 
-  Widget _buildProgramsList() {
+  Widget _buildBody() {
     if (_isLoading) {
-      return SkeletonList(
-        itemCount: 3,
-        itemBuilder: (context, index) => const Padding(
-          padding: EdgeInsets.only(bottom: AppSpacing.md),
-          child: SkeletonCard(height: 140),
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.screenPadding),
+        child: SkeletonList(
+          itemCount: 4,
+          itemBuilder: (context, index) => const Padding(
+            padding: EdgeInsets.only(bottom: AppSpacing.md),
+            child: SkeletonCard(height: 120),
+          ),
         ),
       );
     }
 
     if (_errorMessage != null) {
-      return EmptyState.error(message: _errorMessage!, onRetry: _loadPrograms);
-    }
-
-    if (_programs.isEmpty) {
-      return EmptyState.noPrograms(onBrowsePrograms: _createCustomProgram);
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.screenPadding),
+        child: EmptyState.error(
+          message: _errorMessage!,
+          onRetry: _loadPrograms,
+        ),
+      );
     }
 
     return RefreshIndicator(
       onRefresh: _loadPrograms,
       child: ListView(
+        padding: const EdgeInsets.all(AppSpacing.screenPadding),
         children: [
-          // Program cards with staggered animation
-          ...List.generate(_programs.length, (index) {
-            final program = _programs[index];
-            return SlideInWidget(
-              delay: Duration(milliseconds: 400 + (index * 100)),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: _ProgramCard(
-                  program: program,
-                  duration: program.frequencyDescription,
-                  onTap: () => _selectProgram(program.id),
-                ),
+          // Header Section with slide-in animation
+          SlideInWidget(
+            delay: const Duration(milliseconds: 100),
+            child: Text(
+              'Choose Your Training Program',
+              style: AppTextStyles.titleLarge.copyWith(
+                color: context.textPrimary,
               ),
-            );
-          }),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          SlideInWidget(
+            delay: const Duration(milliseconds: 200),
+            child: Text(
+              'Select a program that matches your goals and schedule',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+          ),
 
           const SizedBox(height: AppSpacing.xl),
 
-          // Custom Program Section
+          // Recent Programs Section (only show if user has recent programs)
+          if (_recentPrograms.isNotEmpty) ...[
+            SlideInWidget(
+              delay: const Duration(milliseconds: 300),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Recent Programs',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: context.textPrimary,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => context.pushProgramLibrary(),
+                    child: Text(
+                      'See All',
+                      style: AppTextStyles.labelMedium.copyWith(
+                        color: context.primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Recent programs horizontal scroll
+            SlideInWidget(
+              delay: const Duration(milliseconds: 400),
+              child: SizedBox(
+                height: 100,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _recentPrograms.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: AppSpacing.sm),
+                  itemBuilder: (context, index) {
+                    final program = _recentPrograms[index];
+                    return _RecentProgramCard(
+                      program: program,
+                      onTap: () => context.pushProgramDetail(program.id),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+
+          // Recommended Programs Section
           SlideInWidget(
-            delay: Duration(milliseconds: 400 + (_programs.length * 100)),
+            delay: Duration(
+              milliseconds: _recentPrograms.isNotEmpty ? 500 : 300,
+            ),
             child: Text(
-              'Custom Programs',
+              'Recommended Programs',
               style: AppTextStyles.titleMedium.copyWith(
                 color: context.textPrimary,
               ),
@@ -172,35 +197,69 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
 
+          // Program cards with staggered animation
+          ...List.generate(_recommendedPrograms.length, (index) {
+            final program = _recommendedPrograms[index];
+            final baseDelay = _recentPrograms.isNotEmpty ? 600 : 400;
+            return SlideInWidget(
+              delay: Duration(milliseconds: baseDelay + (index * 100)),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: _ProgramCard(
+                  program: program,
+                  duration: program.frequencyDescription,
+                  onTap: () => context.pushProgramDetail(program.id),
+                ),
+              ),
+            );
+          }),
+
+          const SizedBox(height: AppSpacing.xl),
+
+          // Browse Library Section
+          SlideInWidget(
+            delay: Duration(
+              milliseconds:
+                  (_recentPrograms.isNotEmpty ? 600 : 400) +
+                  (_recommendedPrograms.length * 100),
+            ),
+            child: Text(
+              'Explore More',
+              style: AppTextStyles.titleMedium.copyWith(
+                color: context.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Browse Library Card
+          SlideInWidget(
+            delay: Duration(
+              milliseconds:
+                  (_recentPrograms.isNotEmpty ? 700 : 500) +
+                  (_recommendedPrograms.length * 100),
+            ),
+            child: _BrowseLibraryCard(
+              onTap: () => context.pushProgramLibrary(),
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.md),
+
           // Create Custom Program Card
           SlideInWidget(
-            delay: Duration(milliseconds: 500 + (_programs.length * 100)),
-            child: _CreateProgramCard(onTap: () => _createCustomProgram()),
+            delay: Duration(
+              milliseconds:
+                  (_recentPrograms.isNotEmpty ? 800 : 600) +
+                  (_recommendedPrograms.length * 100),
+            ),
+            child: _CreateProgramCard(onTap: _createCustomProgram),
           ),
 
           const SizedBox(height: AppSpacing.xxl),
         ],
       ),
     );
-  }
-
-  /// Handles the selection of a program by its ID.
-  void _selectProgram(String programId) async {
-    try {
-      final repository = ref.read(programRepositoryProvider);
-      final program = await repository.getProgramById(programId);
-      if (!mounted) return;
-
-      if (program != null) {
-        showSuccessMessage(context, 'Starting program: ${program.name}');
-        // TODO: Navigate to program details or start program
-      } else {
-        showErrorMessage(context, 'Program not found');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      showErrorMessage(context, 'Failed to load program: $e');
-    }
   }
 
   void _createCustomProgram() {
@@ -331,6 +390,156 @@ class _InfoChip extends StatelessWidget {
           color: color,
           fontWeight: FontWeight.w600,
         ),
+      ),
+    );
+  }
+}
+
+/// Compact card for displaying recent programs in horizontal scroll.
+class _RecentProgramCard extends StatelessWidget {
+  final Program program;
+  final VoidCallback onTap;
+
+  const _RecentProgramCard({required this.program, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 160,
+      child: AppCard(
+        onTap: onTap,
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Program icon and name
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: program.getColor(context).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.borderRadiusSmall,
+                    ),
+                  ),
+                  child: HugeIcon(
+                    icon: program.icon,
+                    color: program.getColor(context),
+                    size: AppDimensions.iconSmall,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    program.name,
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: context.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            // Last used date
+            if (program.lastUsedAt != null) ...[
+              Text(
+                _formatLastUsed(program.lastUsedAt!),
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: context.textSecondary,
+                ),
+              ),
+            ] else ...[
+              Text(
+                program.difficulty.displayName,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: context.textSecondary,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatLastUsed(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'Used today';
+    } else if (difference.inDays == 1) {
+      return 'Used yesterday';
+    } else if (difference.inDays < 7) {
+      return 'Used ${difference.inDays} days ago';
+    } else if (difference.inDays < 30) {
+      final weeks = (difference.inDays / 7).floor();
+      return 'Used ${weeks}w ago';
+    } else {
+      final months = (difference.inDays / 30).floor();
+      return 'Used ${months}mo ago';
+    }
+  }
+}
+
+/// Prominent card for browsing the full program library.
+class _BrowseLibraryCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _BrowseLibraryCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard.glass(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: context.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(
+                AppDimensions.borderRadiusMedium,
+              ),
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedLibrary,
+              color: context.primaryColor,
+              size: AppDimensions.iconLarge,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Browse Program Library',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: context.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Explore all programs, filter by type, and find your perfect workout plan',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
+            size: AppDimensions.iconSmall,
+            color: context.primaryColor,
+          ),
+        ],
       ),
     );
   }

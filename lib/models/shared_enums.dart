@@ -26,6 +26,41 @@ extension ExerciseSourceExtension on ExerciseSource {
   }
 }
 
+/// Enum for filtering programs by source (default built-in vs custom user-created)
+enum ProgramSource {
+  /// Include both default and custom programs
+  all,
+
+  /// Include only default built-in programs
+  defaultOnly,
+
+  /// Include only custom user-created programs
+  customOnly,
+
+  /// Include custom programs + used default programs (for "My Programs" tab)
+  myPrograms,
+
+  /// Include only community-shared programs (future)
+  communityOnly,
+}
+
+extension ProgramSourceExtension on ProgramSource {
+  String get displayName {
+    switch (this) {
+      case ProgramSource.all:
+        return 'All Programs';
+      case ProgramSource.defaultOnly:
+        return 'Default Programs';
+      case ProgramSource.customOnly:
+        return 'Custom Programs';
+      case ProgramSource.myPrograms:
+        return 'My Programs';
+      case ProgramSource.communityOnly:
+        return 'Community Programs';
+    }
+  }
+}
+
 /// Enum for exercise categories
 enum ExerciseCategory {
   strength,

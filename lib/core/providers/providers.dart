@@ -11,3 +11,5 @@ export 'settings_provider.dart';
 export 'repository_providers.dart';
 export 'workout_provider.dart';
 export 'accessibility_provider.dart';
+export 'exercise_filter_provider.dart';
+export 'program_library_filter_provider.dart';

@@ -305,3 +305,76 @@ final lastExerciseSessionProvider =
       final sessions = await repository.getRecentSessions(exerciseId, limit: 1);
       return sessions.isNotEmpty ? sessions.first : null;
     });
+
+// ============================================
+// Program Library Providers
+// ============================================
+
+/// FutureProvider for the currently active program cycle.
+///
+/// Returns the single active cycle across all programs, or null if none.
+/// Only one cycle can be active at a time in the app.
+///
+/// **Example:**
+/// ```dart
+/// final activeCycleAsync = ref.watch(activeCycleProvider);
+/// activeCycleAsync.when(
+///   data: (cycle) => cycle != null
+///     ? Text('Active: ${cycle.program?.name}')
+///     : Text('No active program'),
+///   loading: () => CircularProgressIndicator(),
+///   error: (e, _) => Text('Error: $e'),
+/// );
+/// ```
+final activeCycleProvider = FutureProvider<ProgramCycle?>((ref) async {
+  final repository = ref.watch(programRepositoryProvider);
+  return repository.getActiveCycle();
+});
+
+/// FutureProvider for recently used programs.
+///
+/// Returns programs sorted by lastUsedAt, most recent first.
+/// Limited to 5 programs by default.
+///
+/// **Example:**
+/// ```dart
+/// final recentAsync = ref.watch(recentProgramsProvider);
+/// ```
+final recentProgramsProvider = FutureProvider<List<Program>>((ref) async {
+  final repository = ref.watch(programRepositoryProvider);
+  return repository.getRecentPrograms(limit: 5);
+});
+
+/// FutureProvider for default (built-in) programs.
+///
+/// **Example:**
+/// ```dart
+/// final defaultPrograms = ref.watch(defaultProgramsProvider);
+/// ```
+final defaultProgramsProvider = FutureProvider<List<Program>>((ref) async {
+  final repository = ref.watch(programRepositoryProvider);
+  return repository.getDefaultPrograms();
+});
+
+/// FutureProvider for custom (user-created) programs.
+///
+/// **Example:**
+/// ```dart
+/// final customPrograms = ref.watch(customProgramsProvider);
+/// ```
+final customProgramsProvider = FutureProvider<List<Program>>((ref) async {
+  final repository = ref.watch(programRepositoryProvider);
+  return repository.getCustomPrograms();
+});
+
+/// FutureProvider for programs filtered by source.
+///
+/// **Example:**
+/// ```dart
+/// final programs = ref.watch(programsBySourceProvider(ProgramSource.defaultOnly));
+/// ```
+final programsBySourceProvider =
+    FutureProvider.family<List<Program>, ProgramSource>((ref, source) async {
+      final repository = ref.watch(programRepositoryProvider);
+      return repository.getProgramsBySource(source: source);
+    });
