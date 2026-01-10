@@ -52,43 +52,43 @@ The Program Library mirrors the Exercise Library pattern, supporting:
 
 ---
 
-### Phase 2: Repository Updates
+### Phase 2: Repository Updates ✅
 
-- [ ] **Add source-aware methods** to `ProgramRepository` interface
+- [x] **Add source-aware methods** to `ProgramRepository` interface
   ```dart
   Future<List<Program>> getDefaultPrograms();
   Future<List<Program>> getCustomPrograms();
-  Future<List<Program>> getPrograms({ProgramSource source = ProgramSource.all});
+  Future<List<Program>> getProgramsBySource({ProgramSource source = ProgramSource.all});
   Future<List<Program>> getRecentPrograms({int limit = 5});
   ```
 
-- [ ] **Add active cycle management methods**
+- [x] **Add active cycle management methods**
   ```dart
   Future<ProgramCycle?> getActiveCycle();
   Future<void> endActiveCycle();
   Future<ProgramCycle> startNewCycle(String programId);
   ```
 
-- [ ] **Add program cloning method**
+- [x] **Add program cloning method**
   ```dart
   Future<Program> copyProgramAsCustom(Program template);
   ```
 
-- [ ] **Add community sharing methods** (can stub for now)
+- [x] **Add community sharing methods** (stubbed for future)
   ```dart
   Future<void> publishProgram(String programId);
   Future<Program> importProgram(Program program);
   ```
 
-- [ ] **Implement methods** in `InMemoryProgramRepository`
-  - [ ] `getDefaultPrograms()` - filter where `isDefault == true`
-  - [ ] `getCustomPrograms()` - filter where `isDefault == false`
-  - [ ] `getPrograms({ProgramSource})` - unified filter method
-  - [ ] `getRecentPrograms({limit})` - sort by `lastUsedAt` descending
-  - [ ] `getActiveCycle()` - find cycle where `isActive == true`
-  - [ ] `endActiveCycle()` - set `isActive = false`, `endDate = now`
-  - [ ] `startNewCycle()` - auto-end active, create new cycle, update `lastUsedAt`
-  - [ ] `copyProgramAsCustom()` - deep copy with new ID, `isDefault = false`
+- [x] **Implement methods** in `ProgramRepositoryImpl`
+  - [x] `getProgramsBySource({ProgramSource})` - unified filter method
+  - [x] `getDefaultPrograms()` - filter where `isDefault == true`
+  - [x] `getCustomPrograms()` - filter where `isDefault == false`
+  - [x] `getRecentPrograms({limit})` - sort by `lastUsedAt` descending
+  - [x] `getActiveCycle()` - find cycle where `isActive == true`
+  - [x] `endActiveCycle()` - set `isActive = false`, `endDate = now`
+  - [x] `startNewCycle()` - auto-end active, create new cycle, update `lastUsedAt`
+  - [x] `copyProgramAsCustom()` - deep copy with new ID, `isDefault = false`
 
 ---
 

@@ -1,6 +1,7 @@
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/models/workout_session_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
+import 'package:flutter_lifter/utils/utils.dart';
 
 import '../datasources/local/program_local_datasource.dart';
 import '../datasources/remote/program_api_datasource.dart';
@@ -28,6 +29,49 @@ abstract class ProgramRepository {
   Future<WorkoutSession?> getWorkoutSessionById(String sessionId);
   Future<List<WorkoutSession>> getWorkoutHistory();
   Future<void> deleteWorkoutSession(String sessionId);
+
+  // ===== Program Library Methods =====
+
+  /// Gets programs filtered by source (default, custom, or all)
+  Future<List<Program>> getProgramsBySource({
+    ProgramSource source = ProgramSource.all,
+  });
+
+  /// Gets only default (built-in) programs
+  Future<List<Program>> getDefaultPrograms();
+
+  /// Gets only custom (user-created) programs
+  Future<List<Program>> getCustomPrograms();
+
+  /// Gets recent programs sorted by lastUsedAt, most recent first
+  Future<List<Program>> getRecentPrograms({int limit = 5});
+
+  // ===== Active Cycle Management =====
+
+  /// Gets the currently active cycle across all programs (only one allowed)
+  Future<ProgramCycle?> getActiveCycle();
+
+  /// Ends the currently active cycle, setting isActive=false and endDate=now
+  Future<void> endActiveCycle();
+
+  /// Starts a new cycle for the given program.
+  /// Automatically ends any active cycle first.
+  /// Updates the program's lastUsedAt timestamp.
+  Future<ProgramCycle> startNewCycle(String programId);
+
+  // ===== Program Cloning =====
+
+  /// Creates a copy of a program as a custom (user-owned) program.
+  /// Used when starting a default program to allow user customization.
+  Future<Program> copyProgramAsCustom(Program template);
+
+  // ===== Community Sharing (Future) =====
+
+  /// Publishes a program to the community library
+  Future<void> publishProgram(String programId);
+
+  /// Imports a community program as a custom program
+  Future<Program> importProgram(Program program);
 }
 
 /// Implementation of ProgramRepository
@@ -336,6 +380,177 @@ class ProgramRepositoryImpl implements ProgramRepository {
     // if (localDataSource != null) {
     //   await localDataSource!.deleteWorkoutSession(sessionId);
     // }
+  }
+
+  // ===== Program Library Methods Implementation =====
+
+  @override
+  Future<List<Program>> getProgramsBySource({
+    ProgramSource source = ProgramSource.all,
+  }) async {
+    final allPrograms = await getPrograms();
+
+    switch (source) {
+      case ProgramSource.all:
+        return allPrograms;
+      case ProgramSource.defaultOnly:
+        return allPrograms.where((p) => p.isDefault).toList();
+      case ProgramSource.customOnly:
+        return allPrograms.where((p) => !p.isDefault).toList();
+      case ProgramSource.communityOnly:
+        // Future: filter by community flag
+        return [];
+    }
+  }
+
+  @override
+  Future<List<Program>> getDefaultPrograms() async {
+    return getProgramsBySource(source: ProgramSource.defaultOnly);
+  }
+
+  @override
+  Future<List<Program>> getCustomPrograms() async {
+    return getProgramsBySource(source: ProgramSource.customOnly);
+  }
+
+  @override
+  Future<List<Program>> getRecentPrograms({int limit = 5}) async {
+    final allPrograms = await getPrograms();
+
+    // Filter to only programs that have been used (have lastUsedAt)
+    final usedPrograms = allPrograms
+        .where((p) => p.lastUsedAt != null)
+        .toList();
+
+    // Sort by lastUsedAt descending (most recent first)
+    usedPrograms.sort((a, b) => b.lastUsedAt!.compareTo(a.lastUsedAt!));
+
+    // Return up to limit programs
+    return usedPrograms.take(limit).toList();
+  }
+
+  // ===== Active Cycle Management Implementation =====
+
+  @override
+  Future<ProgramCycle?> getActiveCycle() async {
+    final programs = await getPrograms();
+
+    for (final program in programs) {
+      for (final cycle in program.cycles) {
+        if (cycle.isActive) {
+          // Set the program reference on the cycle
+          cycle.setProgram(program);
+          return cycle;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @override
+  Future<void> endActiveCycle() async {
+    final activeCycle = await getActiveCycle();
+    if (activeCycle == null) return;
+
+    final program = await getProgramById(activeCycle.programId);
+    if (program == null) return;
+
+    // End the active cycle
+    final endedCycle = activeCycle.copyWith(
+      isActive: false,
+      endDate: DateTime.now(),
+    );
+
+    // Update the program with the ended cycle
+    final updatedProgram = program.updateCycle(endedCycle);
+    await updateProgram(updatedProgram);
+  }
+
+  @override
+  Future<ProgramCycle> startNewCycle(String programId) async {
+    // First, end any active cycle
+    await endActiveCycle();
+
+    // Get the program
+    final program = await getProgramById(programId);
+    if (program == null) {
+      throw RepositoryException('Program not found: $programId');
+    }
+
+    // Create a new cycle
+    final newCycle = ProgramCycle.create(
+      programId: programId,
+      cycleNumber: program.nextCycleNumber,
+      startDate: DateTime.now(),
+      isActive: true,
+      periodicity: program.defaultPeriodicity,
+    );
+
+    // Update the program with the new cycle and lastUsedAt
+    final updatedProgram = program
+        .addCycle(newCycle)
+        .copyWith(lastUsedAt: DateTime.now());
+
+    await updateProgram(updatedProgram);
+
+    // Return the cycle with program reference set
+    newCycle.setProgram(updatedProgram);
+    return newCycle;
+  }
+
+  // ===== Program Cloning Implementation =====
+
+  @override
+  Future<Program> copyProgramAsCustom(Program template) async {
+    // Create a deep copy with new ID and isDefault = false
+    final customProgram = Program(
+      id: Utils.generateId(),
+      name: '${template.name} (Copy)',
+      description: template.description,
+      type: template.type,
+      difficulty: template.difficulty,
+      defaultPeriodicity: template.defaultPeriodicity,
+      createdAt: DateTime.now(),
+      createdBy: null, // Will be set to current user in future
+      isPublic: false,
+      tags: List.from(template.tags),
+      imageUrl: template.imageUrl,
+      metadata: template.metadata != null ? Map.from(template.metadata!) : null,
+      isDefault: false, // Custom copy
+      lastUsedAt: null, // Never used yet
+      cycles: [], // Start fresh with no cycles
+    );
+
+    // Save the new program
+    await createProgram(customProgram);
+
+    return customProgram;
+  }
+
+  // ===== Community Sharing Implementation (Stubs) =====
+
+  @override
+  Future<void> publishProgram(String programId) async {
+    // TODO: Implement community publishing
+    // This would upload the program to a community API
+    throw UnimplementedError('Community publishing is not yet implemented');
+  }
+
+  @override
+  Future<Program> importProgram(Program program) async {
+    // Import a community program as a custom program
+    final importedProgram = program.copyWith(
+      id: Utils.generateId(),
+      isDefault: false,
+      isPublic: false,
+      createdAt: DateTime.now(),
+      lastUsedAt: null,
+      cycles: [],
+    );
+
+    await createProgram(importedProgram);
+    return importedProgram;
   }
 }
 
