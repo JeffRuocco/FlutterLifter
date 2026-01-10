@@ -735,6 +735,12 @@ class Program {
   final String? imageUrl;
   final Map<String, dynamic>? metadata;
 
+  /// Whether this is a default built-in program (read-only template)
+  final bool isDefault;
+
+  /// When the program was last used (started a cycle)
+  final DateTime? lastUsedAt;
+
   /// List of program cycles - each cycle represents a run of this program
   final List<ProgramCycle> cycles;
 
@@ -751,6 +757,8 @@ class Program {
     this.tags = const [],
     this.imageUrl,
     this.metadata,
+    this.isDefault = false,
+    this.lastUsedAt,
     this.cycles = const [],
   });
 
@@ -766,6 +774,8 @@ class Program {
     this.tags = const [],
     this.imageUrl,
     this.metadata,
+    this.isDefault = false,
+    this.lastUsedAt,
     this.cycles = const [],
   }) : id = Utils.generateId(),
        createdAt = DateTime.now();
@@ -1064,6 +1074,8 @@ class Program {
     List<String>? tags,
     String? imageUrl,
     Map<String, dynamic>? metadata,
+    bool? isDefault,
+    DateTime? lastUsedAt,
     List<ProgramCycle>? cycles,
   }) {
     return Program(
@@ -1079,6 +1091,8 @@ class Program {
       tags: tags ?? this.tags,
       imageUrl: imageUrl ?? this.imageUrl,
       metadata: metadata ?? this.metadata,
+      isDefault: isDefault ?? this.isDefault,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
       cycles: cycles ?? this.cycles,
     );
   }
@@ -1106,6 +1120,10 @@ class Program {
       tags: List<String>.from(json['tags'] ?? []),
       imageUrl: json['imageUrl'],
       metadata: json['metadata'],
+      isDefault: json['isDefault'] ?? false,
+      lastUsedAt: json['lastUsedAt'] != null
+          ? DateTime.parse(json['lastUsedAt'])
+          : null,
       cycles: json['cycles'] != null
           ? (json['cycles'] as List)
                 .map((cycleJson) => ProgramCycle.fromJson(cycleJson))
@@ -1129,6 +1147,8 @@ class Program {
       'tags': tags,
       'imageUrl': imageUrl,
       'metadata': metadata,
+      'isDefault': isDefault,
+      'lastUsedAt': lastUsedAt?.toIso8601String(),
       'cycles': cycles.map((cycle) => cycle.toJson()).toList(),
     };
   }
@@ -1144,7 +1164,8 @@ class Program {
   @override
   String toString() {
     return 'Program{id: $id, name: $name, type: $type, '
-        'difficulty: $difficulty, defaultPeriodicity: ${defaultPeriodicity?.description}, '
+        'difficulty: $difficulty, isDefault: $isDefault, '
+        'defaultPeriodicity: ${defaultPeriodicity?.description}, '
         'cyclesCount: ${cycles.length}, activeCycle: ${activeCycle?.cycleNumber ?? 'None'}}';
   }
 }

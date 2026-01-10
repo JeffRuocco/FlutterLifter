@@ -26,9 +26,9 @@ The Program Library mirrors the Exercise Library pattern, supporting:
 
 ## Implementation Checklist
 
-### Phase 1: Model Updates
+### Phase 1: Model Updates ✅
 
-- [ ] **Add `ProgramSource` enum** in `lib/models/program/program.dart`
+- [x] **Add `ProgramSource` enum** in `lib/models/shared_enums.dart`
   ```dart
   enum ProgramSource {
     all,
@@ -38,17 +38,17 @@ The Program Library mirrors the Exercise Library pattern, supporting:
   }
   ```
 
-- [ ] **Add fields to `Program` model** in `lib/models/program/program.dart`
-  - [ ] Add `isDefault` boolean field (default: `false`)
-  - [ ] Add `lastUsedAt` DateTime? field
-  - [ ] Update `copyWith()` method
-  - [ ] Update `toJson()` method
-  - [ ] Update `fromJson()` factory
+- [x] **Add fields to `Program` model** in `lib/models/program_models.dart`
+  - [x] Add `isDefault` boolean field (default: `false`)
+  - [x] Add `lastUsedAt` DateTime? field
+  - [x] Update `copyWith()` method
+  - [x] Update `toJson()` method
+  - [x] Update `fromJson()` factory
 
-- [ ] **Update `DefaultPrograms`** in `lib/models/program/default_programs.dart`
-  - [ ] Set `isDefault: true` for all default programs
+- [x] **Update mock programs** in `lib/data/datasources/mock/mock_data.dart`
+  - [x] Set `isDefault: true` for all default programs
 
-- [ ] **Export `ProgramSource`** from `lib/models/program/program.dart` barrel file
+- [x] **Export `ProgramSource`** from `lib/models/shared_enums.dart` (already exported via models barrel)
 
 ---
 
