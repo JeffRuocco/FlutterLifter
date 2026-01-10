@@ -92,25 +92,41 @@ The Program Library mirrors the Exercise Library pattern, supporting:
 
 ---
 
-### Phase 3: Provider Updates
+### Phase 3: Provider Updates ✅
 
-- [ ] **Create `ProgramLibraryFilter` class** in `lib/core/providers/program_library_filter_provider.dart`
+- [x] **Create `ProgramLibraryFilterState` class** in `lib/core/providers/program_library_filter_provider.dart`
   ```dart
-  class ProgramLibraryFilter {
+  class ProgramLibraryFilterState {
     final String searchQuery;
     final ProgramType? selectedType;
     final ProgramDifficulty? selectedDifficulty;
     final ProgramSource selectedSource;
-    final ProgramSortOption sortOption; // lastUsed, name, createdAt
+    final ProgramSortOption sortOption; // lastUsed, name, createdAt, difficulty
   }
   ```
 
-- [ ] **Create `ProgramLibraryFilterNotifier`** provider
+- [x] **Create `ProgramLibraryFilterNotifier`** provider with methods:
+  - `setSearchQuery()`, `clearSearchQuery()`
+  - `setTypeFilter()`, `clearTypeFilter()`
+  - `setDifficultyFilter()`, `clearDifficultyFilter()`
+  - `setSourceFilter()`
+  - `setSortOption()`
+  - `clearAllFilters()`, `clearFiltersKeepSort()`
 
-- [ ] **Add program library providers** in `lib/core/providers/program_providers.dart`
-  - [ ] `activeCycleProvider` - watches for active cycle
-  - [ ] `recentProgramsProvider` - fetches recent 5 programs
-  - [ ] `filteredProgramsProvider` - responds to filter changes
+- [x] **Create `ProgramSortOption` enum** with options:
+  - `lastUsed`, `name`, `createdAt`, `difficulty`
+
+- [x] **Create `ProgramFilterExtension`** on `List<Program>`:
+  - `applyFilters(ProgramLibraryFilterState)` - applies all filters and sorting
+
+- [x] **Add program library providers** in `lib/core/providers/repository_providers.dart`
+  - [x] `activeCycleProvider` - watches for active cycle
+  - [x] `recentProgramsProvider` - fetches recent 5 programs
+  - [x] `defaultProgramsProvider` - fetches default programs
+  - [x] `customProgramsProvider` - fetches custom programs
+  - [x] `programsBySourceProvider` - fetches programs by source
+
+- [x] **Update providers barrel file** to export new providers
 
 ---
 
