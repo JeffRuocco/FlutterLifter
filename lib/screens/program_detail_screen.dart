@@ -4,10 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../core/providers/repository_providers.dart';
+import '../core/router/app_router.dart';
+import '../core/theme/app_colors.dart';
+import '../core/theme/app_dimensions.dart';
+import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_extensions.dart';
 import '../models/program_models.dart';
 import '../models/shared_enums.dart';
 import '../widgets/common/app_widgets.dart';
+import '../widgets/skeleton_loader.dart';
+import '../widgets/animations/animate_on_load.dart';
 
 /// Screen for displaying detailed information about a program.
 ///
@@ -16,49 +22,261 @@ import '../widgets/common/app_widgets.dart';
 /// - Workout structure preview
 /// - Cycle history
 /// - Action buttons (Start/Resume cycle)
-class ProgramDetailScreen extends ConsumerWidget {
+class ProgramDetailScreen extends ConsumerStatefulWidget {
   final String programId;
 
-  const ProgramDetailScreen({
-    super.key,
-    required this.programId,
-  });
+  const ProgramDetailScreen({super.key, required this.programId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final programAsync = ref.watch(programByIdProvider(programId));
+  ConsumerState<ProgramDetailScreen> createState() =>
+      _ProgramDetailScreenState();
+}
 
+class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
+  Program? _program;
+  bool _isLoading = true;
+  String? _errorMessage;
+  bool _showAllCycles = false;
+  bool _isStartingCycle = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProgram();
+  }
+
+  @override
+  void didUpdateWidget(ProgramDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.programId != widget.programId) {
+      _loadProgram();
+    }
+  }
+
+  Future<void> _loadProgram() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      final repository = ref.read(programRepositoryProvider);
+      final program = await repository.getProgramById(widget.programId);
+
+      setState(() {
+        _program = program;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to load program: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _startNewCycle() async {
+    if (_program == null || _isStartingCycle) return;
+
+    setState(() {
+      _isStartingCycle = true;
+    });
+
+    try {
+      final repository = ref.read(programRepositoryProvider);
+
+      String programIdToUse = _program!.id;
+
+      // If it's a default program, clone it first
+      if (_program!.isDefault) {
+        final customProgram = await repository.copyProgramAsCustom(_program!);
+        programIdToUse = customProgram.id;
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Created "${customProgram.name}" from template'),
+              backgroundColor: context.primaryColor,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+
+      // Start the new cycle
+      final newCycle = await repository.startNewCycle(programIdToUse);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Started Cycle ${newCycle.cycleNumber}'),
+            backgroundColor: context.successColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        // Navigate to home screen
+        context.goToHome();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to start cycle: $e'),
+            backgroundColor: context.errorColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isStartingCycle = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _resumeCycle() async {
+    // Navigate to workout screen for active cycle
+    context.goToWorkout();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: const Text('Program Details'),
+        title: Text(
+          'Program Details',
+          style: AppTextStyles.headlineMedium.copyWith(
+            color: context.onSurface,
+          ),
+        ),
+        backgroundColor: context.surfaceColor,
+        elevation: 0,
         leading: IconButton(
           icon: HugeIcon(
             icon: HugeIcons.strokeRoundedArrowLeft01,
             color: context.onSurface,
+            size: AppDimensions.iconMedium,
           ),
           onPressed: () => context.pop(),
         ),
         actions: [
-          IconButton(
+          if (_program != null && !_program!.isDefault)
+            IconButton(
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedEdit02,
+                color: context.onSurface,
+                size: AppDimensions.iconMedium,
+              ),
+              onPressed: () async {
+                await context.pushEditProgram(_program!.id);
+                _loadProgram(); // Refresh after editing
+              },
+            ),
+          PopupMenuButton<String>(
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedMoreVertical,
               color: context.onSurface,
+              size: AppDimensions.iconMedium,
             ),
-            onPressed: () {
-              // TODO: Show options menu (edit, delete, share)
+            onSelected: (value) async {
+              switch (value) {
+                case 'edit':
+                  if (_program != null && !_program!.isDefault) {
+                    await context.pushEditProgram(_program!.id);
+                    _loadProgram();
+                  }
+                  break;
+                case 'delete':
+                  _showDeleteConfirmation();
+                  break;
+              }
             },
+            itemBuilder: (context) => [
+              if (_program != null && !_program!.isDefault)
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedEdit02,
+                        color: context.textPrimary,
+                        size: AppDimensions.iconSmall,
+                      ),
+                      const HSpace.sm(),
+                      Text('Edit Program'),
+                    ],
+                  ),
+                ),
+              if (_program != null && !_program!.isDefault)
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedDelete02,
+                        color: context.errorColor,
+                        size: AppDimensions.iconSmall,
+                      ),
+                      const HSpace.sm(),
+                      Text(
+                        'Delete Program',
+                        style: TextStyle(color: context.errorColor),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         ],
       ),
-      body: programAsync.when(
-        data: (program) {
-          if (program == null) {
-            return _buildNotFound(context);
-          }
-          return _buildContent(context, ref, program);
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildError(context, error),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return _buildLoadingSkeleton();
+    }
+
+    if (_errorMessage != null) {
+      return _buildError(context, _errorMessage!);
+    }
+
+    if (_program == null) {
+      return _buildNotFound(context);
+    }
+
+    return _buildContent(context, ref, _program!);
+  }
+
+  Widget _buildLoadingSkeleton() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.screenPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SkeletonText(width: 200, height: 28),
+          const VSpace.sm(),
+          Row(
+            children: [
+              SkeletonCard(width: 100, height: 32),
+              const HSpace.sm(),
+              SkeletonCard(width: 80, height: 32),
+            ],
+          ),
+          const VSpace.md(),
+          const SkeletonText(width: double.infinity),
+          const VSpace.xs(),
+          const SkeletonText(width: 250),
+          const VSpace.lg(),
+          SkeletonCard(height: 150),
+          const VSpace.lg(),
+          SkeletonCard(height: 200),
+        ],
       ),
     );
   }
@@ -66,7 +284,7 @@ class ProgramDetailScreen extends ConsumerWidget {
   Widget _buildNotFound(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppSpacing.screenPadding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -75,20 +293,22 @@ class ProgramDetailScreen extends ConsumerWidget {
               size: 64,
               color: context.textSecondary,
             ),
-            const SizedBox(height: 16),
+            const VSpace.lg(),
             Text(
               'Program Not Found',
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: AppTextStyles.headlineSmall.copyWith(
+                color: context.textPrimary,
+              ),
             ),
-            const SizedBox(height: 8),
+            const VSpace.sm(),
             Text(
               'The program you\'re looking for doesn\'t exist.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.textSecondary,
-                  ),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: context.textSecondary,
+              ),
             ),
-            const SizedBox(height: 24),
+            const VSpace.lg(),
             FilledButton(
               onPressed: () => context.pop(),
               child: const Text('Go Back'),
@@ -99,10 +319,10 @@ class ProgramDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildError(BuildContext context, Object error) {
+  Widget _buildError(BuildContext context, String error) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppSpacing.screenPadding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -111,46 +331,118 @@ class ProgramDetailScreen extends ConsumerWidget {
               size: 64,
               color: context.errorColor,
             ),
-            const SizedBox(height: 16),
+            const VSpace.lg(),
             Text(
               'Error Loading Program',
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: AppTextStyles.headlineSmall.copyWith(
+                color: context.textPrimary,
+              ),
             ),
-            const SizedBox(height: 8),
+            const VSpace.sm(),
             Text(
-              error.toString(),
+              error,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.textSecondary,
-                  ),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: context.textSecondary,
+              ),
             ),
+            const VSpace.lg(),
+            FilledButton(onPressed: _loadProgram, child: const Text('Retry')),
           ],
         ),
       ),
     );
   }
 
+  void _showDeleteConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Program'),
+        content: Text(
+          'Are you sure you want to delete "${_program?.name}"? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _deleteProgram();
+            },
+            style: FilledButton.styleFrom(backgroundColor: context.errorColor),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteProgram() async {
+    if (_program == null) return;
+
+    try {
+      final repository = ref.read(programRepositoryProvider);
+      await repository.deleteProgram(_program!.id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Deleted "${_program!.name}"'),
+            backgroundColor: context.successColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete program: $e'),
+            backgroundColor: context.errorColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildContent(BuildContext context, WidgetRef ref, Program program) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppSpacing.screenPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Program header
-          _buildHeader(context, program),
-          const SizedBox(height: 24),
+          SlideInWidget(
+            delay: const Duration(milliseconds: 100),
+            child: _buildHeader(context, program),
+          ),
+          const VSpace.lg(),
 
           // Program info
-          _buildInfoSection(context, program),
-          const SizedBox(height: 24),
+          SlideInWidget(
+            delay: const Duration(milliseconds: 200),
+            child: _buildInfoSection(context, program),
+          ),
+          const VSpace.lg(),
 
-          // Cycle history placeholder
-          _buildCycleHistorySection(context, program),
-          const SizedBox(height: 24),
+          // Cycle history
+          SlideInWidget(
+            delay: const Duration(milliseconds: 300),
+            child: _buildCycleHistorySection(context, program),
+          ),
+          const VSpace.lg(),
 
           // Action buttons
-          _buildActionButtons(context, ref, program),
-          const SizedBox(height: 32),
+          SlideInWidget(
+            delay: const Duration(milliseconds: 400),
+            child: _buildActionButtons(context, ref, program),
+          ),
+          const VSpace.xxl(),
         ],
       ),
     );
@@ -163,96 +455,121 @@ class ProgramDetailScreen extends ConsumerWidget {
         // Program name
         Text(
           program.name,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: AppTextStyles.headlineMedium.copyWith(
+            color: context.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        const SizedBox(height: 8),
+        const VSpace.sm(),
 
         // Badges row
-        Row(
+        Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
           children: [
             // Type badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: context.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                program.type.displayName,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: context.primaryColor,
-                    ),
-              ),
+            _buildBadge(
+              context,
+              program.type.displayName,
+              _getTypeColor(context, program.type),
             ),
-            const SizedBox(width: 8),
             // Difficulty badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: context.surfaceVariant,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                program.difficulty.displayName,
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
+            _buildBadge(
+              context,
+              program.difficulty.displayName,
+              _getDifficultyColor(context, program.difficulty),
             ),
-            if (program.isDefault) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: context.secondaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  'Default',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: context.secondaryColor,
-                      ),
-                ),
-              ),
-            ],
+            if (program.isDefault)
+              _buildBadge(context, 'Default', context.secondaryColor),
           ],
         ),
-        const SizedBox(height: 16),
+        const VSpace.md(),
 
         // Description
         if (program.description != null && program.description!.isNotEmpty)
           Text(
             program.description!,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: context.textSecondary,
-                ),
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: context.textSecondary,
+            ),
           ),
       ],
     );
   }
 
+  Widget _buildBadge(BuildContext context, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.labelMedium.copyWith(color: color),
+      ),
+    );
+  }
+
+  Color _getTypeColor(BuildContext context, ProgramType type) {
+    switch (type) {
+      case ProgramType.strength:
+        return AppColors.muscleChest;
+      case ProgramType.hypertrophy:
+        return AppColors.muscleBack;
+      case ProgramType.powerlifting:
+        return AppColors.muscleCore;
+      case ProgramType.bodybuilding:
+        return AppColors.muscleLegs;
+      case ProgramType.cardio:
+      case ProgramType.hiit:
+        return AppColors.cardio;
+      case ProgramType.flexibility:
+      case ProgramType.rehabilitation:
+        return context.warningColor;
+      case ProgramType.general:
+      case ProgramType.sport:
+        return context.primaryColor;
+    }
+  }
+
+  Color _getDifficultyColor(
+    BuildContext context,
+    ProgramDifficulty difficulty,
+  ) {
+    switch (difficulty) {
+      case ProgramDifficulty.beginner:
+        return context.successColor;
+      case ProgramDifficulty.intermediate:
+        return context.warningColor;
+      case ProgramDifficulty.advanced:
+      case ProgramDifficulty.expert:
+        return context.errorColor;
+    }
+  }
+
   Widget _buildInfoSection(BuildContext context, Program program) {
     return AppCard(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Program Info',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: AppTextStyles.titleMedium.copyWith(
+                color: context.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 16),
+            const VSpace.md(),
             _buildInfoRow(
               context,
               icon: HugeIcons.strokeRoundedCalendar03,
               label: 'Schedule',
               value: program.frequencyDescription,
             ),
-            const SizedBox(height: 12),
+            const VSpace.sm(),
             _buildInfoRow(
               context,
               icon: HugeIcons.strokeRoundedRepeat,
@@ -260,12 +577,39 @@ class ProgramDetailScreen extends ConsumerWidget {
               value: '${program.completedCycles.length}',
             ),
             if (program.lastUsedAt != null) ...[
-              const SizedBox(height: 12),
+              const VSpace.sm(),
               _buildInfoRow(
                 context,
                 icon: HugeIcons.strokeRoundedClock01,
                 label: 'Last Used',
-                value: _formatDate(program.lastUsedAt!),
+                value: _formatRelativeDate(program.lastUsedAt!),
+              ),
+            ],
+            if (program.tags.isNotEmpty) ...[
+              const VSpace.md(),
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: program.tags.map((tag) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.surfaceVariant,
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.borderRadiusSmall,
+                      ),
+                    ),
+                    child: Text(
+                      tag,
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: context.textSecondary,
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ],
@@ -282,29 +626,37 @@ class ProgramDetailScreen extends ConsumerWidget {
   }) {
     return Row(
       children: [
-        HugeIcon(icon: icon, size: 20, color: context.textSecondary),
-        const SizedBox(width: 12),
+        HugeIcon(
+          icon: icon,
+          size: AppDimensions.iconSmall,
+          color: context.textSecondary,
+        ),
+        const HSpace.sm(),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: context.textSecondary,
-              ),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: context.textSecondary,
+          ),
         ),
         const Spacer(),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: context.textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
   }
 
   Widget _buildCycleHistorySection(BuildContext context, Program program) {
+    final cycles = program.cycles;
+    final displayCycles = _showAllCycles ? cycles : cycles.take(5).toList();
+
     return AppCard(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -313,54 +665,65 @@ class ProgramDetailScreen extends ConsumerWidget {
               children: [
                 Text(
                   'Cycle History',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: context.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                if (program.cycles.length > 5)
+                if (cycles.length > 5)
                   TextButton(
                     onPressed: () {
-                      // TODO: Show all cycles
+                      setState(() {
+                        _showAllCycles = !_showAllCycles;
+                      });
                     },
-                    child: const Text('Show All'),
+                    child: Text(
+                      _showAllCycles
+                          ? 'Show Less'
+                          : 'Show All (${cycles.length})',
+                      style: AppTextStyles.labelMedium.copyWith(
+                        color: context.primaryColor,
+                      ),
+                    ),
                   ),
               ],
             ),
-            const SizedBox(height: 16),
-            if (program.cycles.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
-                  child: Column(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedChart,
-                        size: 48,
-                        color: context.textSecondary,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No cycles yet',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: context.textSecondary,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Start a cycle to begin tracking progress',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: context.textSecondary,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
+            const VSpace.md(),
+            if (cycles.isEmpty)
+              _buildEmptyCycleState(context)
             else
-              ...program.cycles.take(5).map((cycle) => _buildCycleCard(
-                    context,
-                    cycle,
-                  )),
+              ...displayCycles.map((cycle) => _buildCycleCard(context, cycle)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyCycleState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        child: Column(
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedChart,
+              size: 48,
+              color: context.textSecondary,
+            ),
+            const VSpace.sm(),
+            Text(
+              'No cycles yet',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+            const VSpace.xs(),
+            Text(
+              'Start a cycle to begin tracking progress',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
           ],
         ),
       ),
@@ -368,46 +731,65 @@ class ProgramDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildCycleCard(BuildContext context, ProgramCycle cycle) {
+    final completedWorkouts = cycle.scheduledSessions
+        .where((s) => s.isCompleted)
+        .length;
+    final totalWorkouts = cycle.scheduledSessions.length;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: context.surfaceVariant,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
       ),
       child: Row(
         children: [
           // Status indicator
           Container(
-            width: 8,
-            height: 8,
+            width: 10,
+            height: 10,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: cycle.isActive
                   ? context.primaryColor
                   : cycle.isCompleted
-                      ? context.successColor
-                      : context.textSecondary,
+                  ? context.successColor
+                  : context.textSecondary,
             ),
           ),
-          const SizedBox(width: 12),
+          const HSpace.sm(),
           // Cycle info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Cycle ${cycle.cycleNumber}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
+                Row(
+                  children: [
+                    Text(
+                      'Cycle ${cycle.cycleNumber}',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: context.textPrimary,
+                        fontWeight: FontWeight.w600,
                       ),
+                    ),
+                    if (totalWorkouts > 0) ...[
+                      const HSpace.sm(),
+                      Text(
+                        '$completedWorkouts/$totalWorkouts workouts',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: context.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: 2),
+                const VSpace.xs(),
                 Text(
                   '${_formatDate(cycle.startDate)} - ${cycle.endDate != null ? _formatDate(cycle.endDate!) : 'Ongoing'}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: context.textSecondary,
-                      ),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: context.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -419,23 +801,23 @@ class ProgramDetailScreen extends ConsumerWidget {
               color: cycle.isActive
                   ? context.primaryColor.withValues(alpha: 0.1)
                   : cycle.isCompleted
-                      ? context.successColor.withValues(alpha: 0.1)
-                      : context.surfaceVariant,
+                  ? context.successColor.withValues(alpha: 0.1)
+                  : context.surfaceVariant,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               cycle.isActive
                   ? 'Active'
                   : cycle.isCompleted
-                      ? 'Completed'
-                      : 'Ended',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: cycle.isActive
-                        ? context.primaryColor
-                        : cycle.isCompleted
-                            ? context.successColor
-                            : context.textSecondary,
-                  ),
+                  ? 'Completed'
+                  : 'Ended',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: cycle.isActive
+                    ? context.primaryColor
+                    : cycle.isCompleted
+                    ? context.successColor
+                    : context.textSecondary,
+              ),
             ),
           ),
         ],
@@ -444,7 +826,10 @@ class ProgramDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildActionButtons(
-      BuildContext context, WidgetRef ref, Program program) {
+    BuildContext context,
+    WidgetRef ref,
+    Program program,
+  ) {
     final hasActiveCycle = program.activeCycle != null;
 
     return Column(
@@ -452,49 +837,72 @@ class ProgramDetailScreen extends ConsumerWidget {
       children: [
         if (hasActiveCycle) ...[
           FilledButton.icon(
-            onPressed: () {
-              // TODO: Navigate to active workout
-            },
+            onPressed: _isStartingCycle ? null : _resumeCycle,
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedPlay,
               color: context.onPrimary,
+              size: AppDimensions.iconSmall,
             ),
             label: const Text('Resume Cycle'),
           ),
-          const SizedBox(height: 12),
+          const VSpace.sm(),
           OutlinedButton.icon(
-            onPressed: () {
-              // TODO: Start new cycle (will end current)
-            },
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedAdd01,
-              color: context.primaryColor,
-            ),
-            label: const Text('Start New Cycle'),
+            onPressed: _isStartingCycle
+                ? null
+                : () => _showStartNewCycleConfirmation(program),
+            icon: _isStartingCycle
+                ? SizedBox(
+                    width: AppDimensions.iconSmall,
+                    height: AppDimensions.iconSmall,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: context.primaryColor,
+                    ),
+                  )
+                : HugeIcon(
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    color: context.primaryColor,
+                    size: AppDimensions.iconSmall,
+                  ),
+            label: Text(_isStartingCycle ? 'Starting...' : 'Start New Cycle'),
           ),
         ] else ...[
           FilledButton.icon(
-            onPressed: () {
-              // TODO: Start new cycle
-            },
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedPlay,
-              color: context.onPrimary,
+            onPressed: _isStartingCycle ? null : _startNewCycle,
+            icon: _isStartingCycle
+                ? SizedBox(
+                    width: AppDimensions.iconSmall,
+                    height: AppDimensions.iconSmall,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: context.onPrimary,
+                    ),
+                  )
+                : HugeIcon(
+                    icon: HugeIcons.strokeRoundedPlay,
+                    color: context.onPrimary,
+                    size: AppDimensions.iconSmall,
+                  ),
+            label: Text(
+              _isStartingCycle
+                  ? 'Starting...'
+                  : program.isDefault
+                  ? 'Use This Program'
+                  : 'Start New Cycle',
             ),
-            label: Text(program.isDefault
-                ? 'Use This Program'
-                : 'Start New Cycle'),
           ),
         ],
         if (!program.isDefault) ...[
-          const SizedBox(height: 12),
+          const VSpace.sm(),
           OutlinedButton.icon(
-            onPressed: () {
-              // TODO: Navigate to edit program
+            onPressed: () async {
+              await context.pushEditProgram(program.id);
+              _loadProgram();
             },
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedEdit02,
               color: context.primaryColor,
+              size: AppDimensions.iconSmall,
             ),
             label: const Text('Edit Program'),
           ),
@@ -503,7 +911,67 @@ class ProgramDetailScreen extends ConsumerWidget {
     );
   }
 
+  void _showStartNewCycleConfirmation(Program program) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Start New Cycle?'),
+        content: const Text(
+          'This will end your current active cycle and start a new one. Are you sure?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _startNewCycle();
+            },
+            child: const Text('Start New Cycle'),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _formatDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  String _formatRelativeDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'Today';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inDays < 30) {
+      final weeks = (difference.inDays / 7).floor();
+      return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return months == 1 ? '1 month ago' : '$months months ago';
+    } else {
+      return _formatDate(date);
+    }
   }
 }

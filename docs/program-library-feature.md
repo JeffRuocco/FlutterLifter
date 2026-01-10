@@ -182,28 +182,28 @@ The Program Library mirrors the Exercise Library pattern, supporting:
 
 ### Phase 6: Program Detail Screen
 
-- [ ] **Create `ProgramDetailScreen`** in `lib/screens/programs/program_detail_screen.dart`
-  - [ ] Display program header (name, description, type badge, difficulty badge)
-  - [ ] Display workout structure preview (list of workout templates)
-  - [ ] Display cycle history section
+- [x] **Create `ProgramDetailScreen`** in `lib/screens/programs/program_detail_screen.dart`
+  - [x] Display program header (name, description, type badge, difficulty badge)
+  - [x] Display workout structure preview (list of workout templates)
+  - [x] Display cycle history section
 
-- [ ] **Implement cycle history section**
-  - [ ] Show last 5 cycles by default
-  - [ ] Add "Show All" expansion button when > 5 cycles
-  - [ ] Display cycle cards with:
+- [x] **Implement cycle history section**
+  - [x] Show last 5 cycles by default
+  - [x] Add "Show All" expansion button when > 5 cycles
+  - [x] Display cycle cards with:
     - Start date / End date
     - Completion status (active, completed, abandoned)
     - Number of workouts completed
 
-- [ ] **Implement action buttons**
-  - [ ] "Resume Cycle" - shown if this program has an unfinished cycle
-  - [ ] "Start New Cycle" - always shown for custom programs
-  - [ ] "Use This Program" - shown for default programs (clones then starts)
+- [x] **Implement action buttons**
+  - [x] "Resume Cycle" - shown if this program has an unfinished cycle
+  - [x] "Start New Cycle" - always shown for custom programs
+  - [x] "Use This Program" - shown for default programs (clones then starts)
 
-- [ ] **Implement start cycle logic**
-  - [ ] Call `repository.startNewCycle(programId)` (auto-ends any active)
-  - [ ] Navigate to home or workout screen
-  - [ ] Show success snackbar
+- [x] **Implement start cycle logic**
+  - [x] Call `repository.startNewCycle(programId)` (auto-ends any active)
+  - [x] Navigate to home or workout screen
+  - [x] Show success snackbar
 
 ---
 
