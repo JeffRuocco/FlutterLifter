@@ -132,19 +132,19 @@ The Program Library mirrors the Exercise Library pattern, supporting:
 
 ### Phase 4: Route Updates
 
-- [ ] **Add routes** in `lib/core/router/app_router.dart`
+- [x] **Add routes** in `lib/core/router/app_router.dart`
   ```dart
   static const String programLibrary = '/programs/library';
   static const String programDetail = '/programs/:id';
   static const String editProgram = '/programs/:id/edit';
   ```
 
-- [ ] **Add GoRoute definitions** under programs shell route
-  - [ ] `/programs/library` → `ProgramLibraryScreen`
-  - [ ] `/programs/:id` → `ProgramDetailScreen`
-  - [ ] `/programs/:id/edit` → `CreateProgramScreen` (edit mode)
+- [x] **Add GoRoute definitions** under programs shell route
+  - [x] `/programs/library` → `ProgramLibraryScreen`
+  - [x] `/programs/:id` → `ProgramDetailScreen`
+  - [x] `/programs/:id/edit` → `CreateProgramScreen` (edit mode)
 
-- [ ] **Add navigation extensions**
+- [x] **Add navigation extensions**
   ```dart
   void pushProgramLibrary();
   void pushProgramDetail(String programId);
@@ -155,28 +155,28 @@ The Program Library mirrors the Exercise Library pattern, supporting:
 
 ### Phase 5: Program Library Screen
 
-- [ ] **Create `ProgramLibraryScreen`** in `lib/screens/programs/program_library_screen.dart`
-  - [ ] Implement `ConsumerStatefulWidget` with `TabController`
-  - [ ] Add "My Programs" tab (custom + used default programs)
-  - [ ] Add "Discover" tab (all default programs, community programs)
-  - [ ] Add search bar with real-time filtering
-  - [ ] Add filter button opening `_ProgramFilterBottomSheet`
-  - [ ] Display active filter chips with "Clear all"
-  - [ ] Group programs by `ProgramType` with collapsible sections
-  - [ ] Add sort dropdown (Last Used, Name, Created Date)
-  - [ ] Add FAB linking to `CreateProgramScreen`
+- [x] **Create `ProgramLibraryScreen`** in `lib/screens/programs/program_library_screen.dart`
+  - [x] Implement `ConsumerStatefulWidget` with `TabController`
+  - [x] Add "My Programs" tab (custom + used default programs)
+  - [x] Add "Discover" tab (all default programs, community programs)
+  - [x] Add search bar with real-time filtering
+  - [x] Add filter button opening `_ProgramFilterBottomSheet`
+  - [x] Display active filter chips with "Clear all"
+  - [x] Group programs by `ProgramType` with collapsible sections
+  - [x] Add sort dropdown (Last Used, Name, Created Date)
+  - [x] Add FAB linking to `CreateProgramScreen`
 
-- [ ] **Create `_ProgramFilterBottomSheet`** widget
-  - [ ] Program type filter chips
-  - [ ] Difficulty filter chips
-  - [ ] Source filter (if on Discover tab)
-  - [ ] Apply/Reset buttons
+- [x] **Create `_ProgramFilterBottomSheet`** widget
+  - [x] Program type filter chips
+  - [x] Difficulty filter chips
+  - [x] Source filter (if on Discover tab)
+  - [x] Apply/Reset buttons
 
-- [ ] **Create `_ProgramLibraryCard`** widget
-  - [ ] Display program name, type, difficulty
-  - [ ] Show active cycle indicator if applicable
-  - [ ] Show last used date
-  - [ ] Navigate to `ProgramDetailScreen` on tap
+- [x] **Create `_ProgramLibraryCard`** widget
+  - [x] Display program name, type, difficulty
+  - [x] Show active cycle indicator if applicable
+  - [x] Show last used date
+  - [x] Navigate to `ProgramDetailScreen` on tap
 
 ---
 
