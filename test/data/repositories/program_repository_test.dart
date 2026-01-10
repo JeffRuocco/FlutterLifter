@@ -857,8 +857,8 @@ void main() {
         final allPrograms = await repository.getPrograms();
         final searchResults = await repository.searchPrograms('');
 
-        // Empty search still works
-        expect(searchResults, isNotEmpty);
+        // Empty search should return all programs
+        expect(searchResults.length, equals(allPrograms.length));
       });
 
       test('getRecentPrograms with zero limit should return empty', () async {
