@@ -28,8 +28,8 @@
 - [x] **Add exercise library pages** (see `exercise-library-feature.md`)
   - [x] Normalize exercise name capitilization
 - [x] **Remove sets from workout**
-- [ ] **Create program library page**
-  - [ ] Start new program from library
+- [x] **Create program library page**
+  - [x] Start new program from library
 - [ ] **Determine best option for location storage (Hive?)**
 - [ ] **Add Hive for local storage (all platforms)**
   - [ ] Add hive dependencies to pubspec.yaml
