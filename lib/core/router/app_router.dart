@@ -6,6 +6,8 @@ import '../../screens/home_screen.dart';
 import '../../screens/login_screen.dart';
 import '../../screens/programs_screen.dart';
 import '../../screens/create_program_screen.dart';
+import '../../screens/program_library_screen.dart';
+import '../../screens/program_detail_screen.dart';
 import '../../screens/workout_screen.dart';
 import '../../screens/progress_screen.dart';
 import '../../screens/exercise_library_screen.dart';
@@ -33,6 +35,9 @@ class AppRoutes {
 
   // Nested routes (outside bottom nav)
   static const String createProgram = '/programs/create';
+  static const String programLibrary = '/programs/library';
+  static const String programDetail = '/programs/:id';
+  static const String editProgram = '/programs/:id/edit';
   static const String exerciseDetail = '/exercises/:id';
   static const String exerciseHistory = '/exercises/:id/history';
   static const String createExercise = '/exercises/create';
@@ -133,6 +138,95 @@ final routerProvider = Provider<GoRouter>((ref) {
                       },
                   transitionDuration: AppDurations.medium,
                 ),
+              ),
+              // Program library (nested, but uses root navigator)
+              GoRoute(
+                path: 'library',
+                name: 'programLibrary',
+                parentNavigatorKey: _rootNavigatorKey,
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const ProgramLibraryScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                        return SlideTransition(
+                          position:
+                              Tween<Offset>(
+                                begin: const Offset(1, 0),
+                                end: Offset.zero,
+                              ).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: AppCurves.standard,
+                                ),
+                              ),
+                          child: child,
+                        );
+                      },
+                  transitionDuration: AppDurations.medium,
+                ),
+              ),
+              // Program detail (nested, but uses root navigator)
+              GoRoute(
+                path: ':id',
+                name: 'programDetail',
+                parentNavigatorKey: _rootNavigatorKey,
+                pageBuilder: (context, state) {
+                  final programId = state.pathParameters['id']!;
+                  return CustomTransitionPage(
+                    key: state.pageKey,
+                    child: ProgramDetailScreen(programId: programId),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                          return SlideTransition(
+                            position:
+                                Tween<Offset>(
+                                  begin: const Offset(1, 0),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: AppCurves.standard,
+                                  ),
+                                ),
+                            child: child,
+                          );
+                        },
+                    transitionDuration: AppDurations.medium,
+                  );
+                },
+                routes: [
+                  // Edit program (nested, but uses root navigator)
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editProgram',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    pageBuilder: (context, state) {
+                      final programId = state.pathParameters['id']!;
+                      return CustomTransitionPage(
+                        key: state.pageKey,
+                        child: CreateProgramScreen(programId: programId),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                              return SlideTransition(
+                                position:
+                                    Tween<Offset>(
+                                      begin: const Offset(1, 0),
+                                      end: Offset.zero,
+                                    ).animate(
+                                      CurvedAnimation(
+                                        parent: animation,
+                                        curve: AppCurves.standard,
+                                      ),
+                                    ),
+                                child: child,
+                              );
+                            },
+                        transitionDuration: AppDurations.medium,
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -501,6 +595,17 @@ extension AppRouterExtension on BuildContext {
   /// Push exercise history screen (for back navigation)
   Future<void> pushExerciseHistory(String exerciseId) async =>
       await push('${AppRoutes.exercises}/$exerciseId/history');
+
+  /// Push program library screen (for back navigation)
+  void pushProgramLibrary() => push(AppRoutes.programLibrary);
+
+  /// Push program detail screen (for back navigation)
+  void pushProgramDetail(String programId) =>
+      push('${AppRoutes.programs}/$programId');
+
+  /// Push edit program screen (for back navigation)
+  Future<void> pushEditProgram(String programId) async =>
+      await push('${AppRoutes.programs}/$programId/edit');
 
   /// Navigate to theme editor screen
   Future<void> goToThemeEditor({String? editThemeId}) async {

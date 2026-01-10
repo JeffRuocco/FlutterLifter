@@ -7,9 +7,18 @@ import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_extensions.dart';
 import '../widgets/common/app_widgets.dart';
 
-/// The main screen for creating a new workout program.
+/// The main screen for creating or editing a workout program.
+///
+/// Pass [programId] to edit an existing program.
 class CreateProgramScreen extends StatefulWidget {
-  const CreateProgramScreen({super.key});
+  /// Optional program ID for editing an existing program.
+  /// If null, creates a new program.
+  final String? programId;
+
+  const CreateProgramScreen({super.key, this.programId});
+
+  /// Whether this screen is in edit mode
+  bool get isEditMode => programId != null;
 
   @override
   State<CreateProgramScreen> createState() => _CreateProgramScreenState();
