@@ -11,6 +11,7 @@ import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_extensions.dart';
 import '../models/models.dart';
+import '../utils/date_utils.dart';
 import '../widgets/common/app_widgets.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/skeleton_loader.dart';
@@ -820,7 +821,9 @@ class _ProgramLibraryCard extends StatelessWidget {
                       // Last used
                       if (program.lastUsedAt != null)
                         Text(
-                          _formatLastUsed(program.lastUsedAt!),
+                          DateFormatUtils.formatRelativeDate(
+                            program.lastUsedAt!,
+                          ),
                           style: AppTextStyles.labelSmall.copyWith(
                             color: context.textSecondary,
                             fontSize: 10,
@@ -921,28 +924,6 @@ class _ProgramLibraryCard extends StatelessWidget {
       case ProgramDifficulty.advanced:
       case ProgramDifficulty.expert:
         return context.errorColor;
-    }
-  }
-
-  String _formatLastUsed(DateTime lastUsed) {
-    final now = DateTime.now();
-    final difference = now.difference(lastUsed);
-
-    if (difference.inDays == 0) {
-      return 'Today';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else if (difference.inDays < 30) {
-      final weeks = (difference.inDays / 7).floor();
-      return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
-    } else if (difference.inDays < 365) {
-      final months = (difference.inDays / 30).floor();
-      return months == 1 ? '1 month ago' : '$months months ago';
-    } else {
-      final years = (difference.inDays / 365).floor();
-      return years == 1 ? '1 year ago' : '$years years ago';
     }
   }
 }

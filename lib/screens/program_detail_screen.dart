@@ -11,6 +11,7 @@ import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_extensions.dart';
 import '../models/program_models.dart';
 import '../models/shared_enums.dart';
+import '../utils/date_utils.dart';
 import '../widgets/common/app_widgets.dart';
 import '../widgets/skeleton_loader.dart';
 import '../widgets/animations/animate_on_load.dart';
@@ -603,7 +604,7 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
                 context,
                 icon: HugeIcons.strokeRoundedClock01,
                 label: 'Last Used',
-                value: _formatRelativeDate(program.lastUsedAt!),
+                value: DateFormatUtils.formatRelativeDate(program.lastUsedAt!),
               ),
             ],
             if (program.tags.isNotEmpty) ...[
@@ -807,7 +808,7 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
                 ),
                 const VSpace.xs(),
                 Text(
-                  '${_formatDate(cycle.startDate)} - ${cycle.endDate != null ? _formatDate(cycle.endDate!) : 'Ongoing'}',
+                  '${DateFormatUtils.formatDate(cycle.startDate)} - ${cycle.endDate != null ? DateFormatUtils.formatDate(cycle.endDate!) : 'Ongoing'}',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: context.textSecondary,
                   ),
@@ -955,44 +956,5 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
-  }
-
-  String _formatRelativeDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      return 'Today';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else if (difference.inDays < 30) {
-      final weeks = (difference.inDays / 7).floor();
-      return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
-    } else if (difference.inDays < 365) {
-      final months = (difference.inDays / 30).floor();
-      return months == 1 ? '1 month ago' : '$months months ago';
-    } else {
-      return _formatDate(date);
-    }
   }
 }
