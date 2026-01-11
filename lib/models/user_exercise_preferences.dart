@@ -3,6 +3,12 @@ import 'package:flutter_lifter/utils/utils.dart';
 
 /// Stores user-specific preferences/overrides for an exercise.
 /// Used to customize default exercises without modifying the immutable originals.
+///
+/// Supports user notes and photos with cloud sync preparation:
+/// - [userNotes]: Rich personal notes (separate from quick tips in [notes])
+/// - [localPhotoPaths]: Paths to locally stored photos
+/// - [cloudPhotoUrls]: URLs of photos synced to cloud storage
+/// - [pendingPhotoUploads]: Local paths awaiting cloud upload
 class UserExercisePreferences {
   final String id;
 
@@ -21,8 +27,21 @@ class UserExercisePreferences {
   /// User's preferred rest time in seconds (overrides exercise.defaultRestTimeSeconds)
   final int? preferredRestTimeSeconds;
 
-  /// User's personal notes for this exercise
+  /// User's personal notes for this exercise (quick tips)
   final String? notes;
+
+  /// User's detailed personal notes for this exercise (form cues, tips, etc.)
+  final String? userNotes;
+
+  /// Paths to locally stored photos for this exercise
+  final List<String> localPhotoPaths;
+
+  /// URLs of photos synced to cloud storage (Firebase Storage, etc.)
+  final List<String> cloudPhotoUrls;
+
+  /// Local paths of photos pending upload to cloud
+  /// Used for offline-first sync when cloud storage is implemented
+  final List<String> pendingPhotoUploads;
 
   /// When these preferences were created
   final DateTime createdAt;
@@ -38,9 +57,15 @@ class UserExercisePreferences {
     this.preferredWeight,
     this.preferredRestTimeSeconds,
     this.notes,
+    this.userNotes,
+    List<String>? localPhotoPaths,
+    List<String>? cloudPhotoUrls,
+    List<String>? pendingPhotoUploads,
     required this.createdAt,
     required this.updatedAt,
-  });
+  }) : localPhotoPaths = localPhotoPaths ?? const [],
+       cloudPhotoUrls = cloudPhotoUrls ?? const [],
+       pendingPhotoUploads = pendingPhotoUploads ?? const [];
 
   /// Creates a new preference with auto-generated ID and timestamps
   factory UserExercisePreferences.create({
@@ -50,6 +75,10 @@ class UserExercisePreferences {
     double? preferredWeight,
     int? preferredRestTimeSeconds,
     String? notes,
+    String? userNotes,
+    List<String>? localPhotoPaths,
+    List<String>? cloudPhotoUrls,
+    List<String>? pendingPhotoUploads,
   }) {
     final now = DateTime.now();
     return UserExercisePreferences(
@@ -60,6 +89,10 @@ class UserExercisePreferences {
       preferredWeight: preferredWeight,
       preferredRestTimeSeconds: preferredRestTimeSeconds,
       notes: notes,
+      userNotes: userNotes,
+      localPhotoPaths: localPhotoPaths,
+      cloudPhotoUrls: cloudPhotoUrls,
+      pendingPhotoUploads: pendingPhotoUploads,
       createdAt: now,
       updatedAt: now,
     );
@@ -71,7 +104,19 @@ class UserExercisePreferences {
       preferredReps != null ||
       preferredWeight != null ||
       preferredRestTimeSeconds != null ||
-      notes != null;
+      notes != null ||
+      userNotes != null ||
+      localPhotoPaths.isNotEmpty ||
+      cloudPhotoUrls.isNotEmpty;
+
+  /// Returns whether user has added any photos
+  bool get hasPhotos => localPhotoPaths.isNotEmpty || cloudPhotoUrls.isNotEmpty;
+
+  /// Returns total count of all photos (local + cloud)
+  int get totalPhotoCount => localPhotoPaths.length + cloudPhotoUrls.length;
+
+  /// Returns whether there are photos pending upload
+  bool get hasPendingUploads => pendingPhotoUploads.isNotEmpty;
 
   /// Applies these preferences to an exercise, returning a new Exercise with overridden defaults
   Exercise applyToExercise(Exercise exercise) {
@@ -95,6 +140,9 @@ class UserExercisePreferences {
   ///
   /// This is a pure data operation - timestamps are preserved unless explicitly
   /// changed. If you want to mark this as an update, pass `updatedAt: DateTime.now()`.
+  ///
+  /// For list fields (localPhotoPaths, cloudPhotoUrls, pendingPhotoUploads),
+  /// pass null to keep existing values, or pass an empty list to clear them.
   UserExercisePreferences copyWith({
     String? id,
     String? exerciseId,
@@ -103,6 +151,10 @@ class UserExercisePreferences {
     double? preferredWeight,
     int? preferredRestTimeSeconds,
     String? notes,
+    String? userNotes,
+    List<String>? localPhotoPaths,
+    List<String>? cloudPhotoUrls,
+    List<String>? pendingPhotoUploads,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -115,8 +167,45 @@ class UserExercisePreferences {
       preferredRestTimeSeconds:
           preferredRestTimeSeconds ?? this.preferredRestTimeSeconds,
       notes: notes ?? this.notes,
+      userNotes: userNotes ?? this.userNotes,
+      localPhotoPaths: localPhotoPaths ?? this.localPhotoPaths,
+      cloudPhotoUrls: cloudPhotoUrls ?? this.cloudPhotoUrls,
+      pendingPhotoUploads: pendingPhotoUploads ?? this.pendingPhotoUploads,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  /// Creates a copy with the userNotes field updated (convenience method)
+  UserExercisePreferences withUserNotes(String? newNotes) {
+    return copyWith(userNotes: newNotes, updatedAt: DateTime.now());
+  }
+
+  /// Creates a copy with a photo added to localPhotoPaths
+  UserExercisePreferences withAddedPhoto(String photoPath) {
+    return copyWith(
+      localPhotoPaths: [...localPhotoPaths, photoPath],
+      pendingPhotoUploads: [...pendingPhotoUploads, photoPath],
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Creates a copy with a photo removed from localPhotoPaths
+  UserExercisePreferences withRemovedPhoto(String photoPath) {
+    return copyWith(
+      localPhotoPaths: localPhotoPaths.where((p) => p != photoPath).toList(),
+      pendingPhotoUploads: pendingPhotoUploads
+          .where((p) => p != photoPath)
+          .toList(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Creates a copy with a cloud photo URL removed
+  UserExercisePreferences withRemovedCloudPhoto(String photoUrl) {
+    return copyWith(
+      cloudPhotoUrls: cloudPhotoUrls.where((u) => u != photoUrl).toList(),
+      updatedAt: DateTime.now(),
     );
   }
 
@@ -130,6 +219,22 @@ class UserExercisePreferences {
       preferredWeight: json['preferredWeight']?.toDouble(),
       preferredRestTimeSeconds: json['preferredRestTimeSeconds'],
       notes: json['notes'],
+      userNotes: json['userNotes'],
+      localPhotoPaths:
+          (json['localPhotoPaths'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      cloudPhotoUrls:
+          (json['cloudPhotoUrls'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      pendingPhotoUploads:
+          (json['pendingPhotoUploads'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
@@ -149,6 +254,10 @@ class UserExercisePreferences {
       'preferredWeight': preferredWeight,
       'preferredRestTimeSeconds': preferredRestTimeSeconds,
       'notes': notes,
+      'userNotes': userNotes,
+      'localPhotoPaths': localPhotoPaths,
+      'cloudPhotoUrls': cloudPhotoUrls,
+      'pendingPhotoUploads': pendingPhotoUploads,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };

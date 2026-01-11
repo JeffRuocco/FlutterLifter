@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:hugeicons/styles/stroke_rounded.dart';
 import 'package:intl/intl.dart';
 
 import '../core/providers/repository_providers.dart';
@@ -11,7 +15,9 @@ import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_extensions.dart';
 import '../models/exercise/exercise_history.dart';
 import '../models/models.dart';
+import '../services/photo_storage_service.dart';
 import 'common/app_widgets.dart';
+import 'full_screen_photo_viewer.dart';
 import 'skeleton_loader.dart';
 
 /// Shared content widget for displaying exercise details.
@@ -31,7 +37,7 @@ class ExerciseDetailContent extends ConsumerStatefulWidget {
   const ExerciseDetailContent({
     super.key,
     required this.exercise,
-    this.showMediaSection = false,
+    this.showMediaSection = true,
     this.onViewAllHistory,
   });
 
@@ -44,10 +50,27 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
   ExerciseHistory? _history;
   bool _isLoadingHistory = true;
 
+  // User notes and photos
+  UserExercisePreferences? _preferences;
+  bool _isLoadingPreferences = true;
+  final TextEditingController _userNotesController = TextEditingController();
+  bool _isEditingNotes = false;
+  bool _isSavingNotes = false;
+  final FocusNode _notesFocusNode = FocusNode();
+
+  // Photo service
+  PhotoStorageService? _photoService;
+  bool _isAddingPhoto = false;
+
   @override
   void initState() {
     super.initState();
     _loadHistory();
+    _loadPreferences();
+    _initPhotoService();
+
+    // Auto-save notes on focus loss
+    _notesFocusNode.addListener(_handleNotesFocusChange);
   }
 
   @override
@@ -55,6 +78,65 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.exercise.id != widget.exercise.id) {
       _loadHistory();
+      _loadPreferences();
+    }
+  }
+
+  @override
+  void dispose() {
+    _userNotesController.dispose();
+    _notesFocusNode.removeListener(_handleNotesFocusChange);
+    _notesFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _handleNotesFocusChange() {
+    if (!_notesFocusNode.hasFocus && _isEditingNotes) {
+      _saveUserNotes();
+    }
+  }
+
+  Future<void> _initPhotoService() async {
+    try {
+      final service = PhotoStorageService();
+      await service.init();
+      if (!mounted) return;
+      setState(() {
+        _photoService = service;
+      });
+    } catch (e, stackTrace) {
+      // Ensure the photo service is not left in a partially initialized state.
+      debugPrint('Failed to initialize PhotoStorageService: $e\n$stackTrace');
+      if (!mounted) return;
+      setState(() {
+        _photoService = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Failed to initialize photo features. Photos will be disabled for this session.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadPreferences() async {
+    setState(() => _isLoadingPreferences = true);
+    try {
+      final repo = ref.read(exerciseRepositoryProvider);
+      final prefs = await repo.getPreferenceForExercise(widget.exercise.id);
+      if (mounted) {
+        setState(() {
+          _preferences = prefs;
+          _userNotesController.text = prefs?.userNotes ?? '';
+          _isLoadingPreferences = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingPreferences = false);
+      }
     }
   }
 
@@ -74,6 +156,166 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
         setState(() => _isLoadingHistory = false);
       }
     }
+  }
+
+  Future<void> _saveUserNotes() async {
+    if (_isSavingNotes) return;
+
+    final newNotes = _userNotesController.text.trim();
+    final currentNotes = _preferences?.userNotes ?? '';
+
+    // Only save if notes actually changed
+    if (newNotes == currentNotes) {
+      setState(() => _isEditingNotes = false);
+      return;
+    }
+
+    setState(() => _isSavingNotes = true);
+
+    try {
+      final repo = ref.read(exerciseRepositoryProvider);
+      await repo.updateExerciseUserNotes(
+        widget.exercise.id,
+        newNotes.isEmpty ? null : newNotes,
+      );
+      await _loadPreferences();
+      if (mounted) {
+        setState(() => _isEditingNotes = false);
+        showSuccessMessage(context, 'Notes saved');
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorMessage(context, 'Failed to save notes');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingNotes = false);
+      }
+    }
+  }
+
+  Future<void> _addPhotoFromCamera() async {
+    if (_photoService == null || _isAddingPhoto) return;
+
+    setState(() => _isAddingPhoto = true);
+
+    try {
+      final photoPath = await _photoService!.pickAndSaveFromCamera(
+        widget.exercise.id,
+      );
+
+      if (photoPath != null && mounted) {
+        final repo = ref.read(exerciseRepositoryProvider);
+        await repo.addExercisePhoto(widget.exercise.id, photoPath);
+        await _loadPreferences();
+        if (mounted) showSuccessMessage(context, 'Photo added');
+      }
+    } catch (e) {
+      debugPrint('Failed to add photo from camera: $e');
+      if (mounted) {
+        showErrorMessage(context, 'Failed to add photo: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAddingPhoto = false);
+      }
+    }
+  }
+
+  Future<void> _addPhotoFromGallery() async {
+    if (_photoService == null || _isAddingPhoto) return;
+
+    setState(() => _isAddingPhoto = true);
+
+    try {
+      final photoPath = await _photoService!.pickAndSaveFromGallery(
+        widget.exercise.id,
+      );
+
+      if (photoPath != null && mounted) {
+        final repo = ref.read(exerciseRepositoryProvider);
+        await repo.addExercisePhoto(widget.exercise.id, photoPath);
+        await _loadPreferences();
+        if (mounted) showSuccessMessage(context, 'Photo added');
+      }
+    } catch (e) {
+      debugPrint('Failed to add photo from gallery: $e');
+      if (mounted) {
+        showErrorMessage(context, 'Failed to add photo: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAddingPhoto = false);
+      }
+    }
+  }
+
+  Future<bool> _deletePhoto(String photoPath) async {
+    try {
+      // Delete from storage
+      if (_photoService != null) {
+        await _photoService!.deletePhoto(photoPath);
+      }
+
+      // Remove from preferences
+      final repo = ref.read(exerciseRepositoryProvider);
+      await repo.removeExercisePhoto(widget.exercise.id, photoPath);
+      await _loadPreferences();
+
+      return true;
+    } catch (e) {
+      debugPrint('Failed to delete photo: $e');
+      if (mounted) {
+        showErrorMessage(context, 'Failed to delete photo');
+      }
+      return false;
+    }
+  }
+
+  void _showAddPhotoSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: HugeIcon(
+                icon: HugeIcons.strokeRoundedCamera01,
+                color: context.primaryColor,
+                size: AppDimensions.iconMedium,
+              ),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _addPhotoFromCamera();
+              },
+            ),
+            ListTile(
+              leading: HugeIcon(
+                icon: HugeIcons.strokeRoundedImage01,
+                color: context.infoColor,
+                size: AppDimensions.iconMedium,
+              ),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _addPhotoFromGallery();
+              },
+            ),
+            ListTile(
+              leading: HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                color: context.textSecondary,
+                size: AppDimensions.iconMedium,
+              ),
+              title: const Text('Cancel'),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -99,14 +341,18 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
         // Instructions Section
         _buildInstructionsSection(),
 
-        // Notes Section
+        // Notes Section (quick tips from exercise)
         if (widget.exercise.notes != null &&
             widget.exercise.notes!.isNotEmpty) ...[
           const VSpace.xl(),
           _buildNotesSection(),
         ],
 
-        // Media Section (optional)
+        // User Notes Section (always shown for editing)
+        const VSpace.xl(),
+        _buildUserNotesSection(),
+
+        // Media/Photos Section
         if (widget.showMediaSection) ...[
           const VSpace.xl(),
           _buildMediaSection(),
@@ -708,7 +954,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
               ),
               const HSpace.sm(),
               Text(
-                'Notes',
+                'Exercise Tips',
                 style: AppTextStyles.titleSmall.copyWith(
                   color: context.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -729,7 +975,9 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
     );
   }
 
-  Widget _buildMediaSection() {
+  Widget _buildUserNotesSection() {
+    final hasNotes = _preferences?.userNotes?.isNotEmpty ?? false;
+
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -737,54 +985,435 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
           Row(
             children: [
               HugeIcon(
-                icon: HugeIcons.strokeRoundedVideo01,
-                color: context.errorColor,
+                icon: HugeIcons.strokeRoundedEdit01,
+                color: context.warningColor,
                 size: AppDimensions.iconMedium,
               ),
               const HSpace.sm(),
+              Expanded(
+                child: Text(
+                  'My Notes',
+                  style: AppTextStyles.titleSmall.copyWith(
+                    color: context.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (!_isEditingNotes && hasNotes)
+                IconButton(
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedPencilEdit01,
+                    color: context.primaryColor,
+                    size: AppDimensions.iconSmall,
+                  ),
+                  onPressed: () {
+                    setState(() => _isEditingNotes = true);
+                    _notesFocusNode.requestFocus();
+                  },
+                ),
+            ],
+          ),
+          const VSpace.md(),
+          if (_isLoadingPreferences)
+            const SkeletonText(width: double.infinity)
+          else if (_isEditingNotes || !hasNotes)
+            _buildNotesEditor()
+          else
+            _buildNotesDisplay(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotesEditor() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppTextFormField(
+          controller: _userNotesController,
+          focusNode: _notesFocusNode,
+          hintText: 'Add personal notes, form cues, tips...',
+          maxLines: 4,
+          onChanged: (_) {
+            if (!_isEditingNotes) {
+              setState(() => _isEditingNotes = true);
+            }
+          },
+        ),
+        const VSpace.sm(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (_isEditingNotes) ...[
+              TextButton(
+                onPressed: () {
+                  _userNotesController.text = _preferences?.userNotes ?? '';
+                  setState(() => _isEditingNotes = false);
+                  _notesFocusNode.unfocus();
+                },
+                child: Text(
+                  'Cancel',
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
+              ),
+              const HSpace.sm(),
+              AppButton.elevated(
+                text: 'Save',
+                onPressed: _saveUserNotes,
+                isLoading: _isSavingNotes,
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotesDisplay() {
+    return GestureDetector(
+      onTap: () {
+        setState(() => _isEditingNotes = true);
+        _notesFocusNode.requestFocus();
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: context.surfaceVariant.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+        ),
+        child: Text(
+          _preferences?.userNotes ?? '',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: context.textSecondary,
+            height: 1.6,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMediaSection() {
+    final localPhotos = _preferences?.localPhotoPaths ?? [];
+    final cloudPhotos = _preferences?.cloudPhotoUrls ?? [];
+    final allPhotos = [...localPhotos, ...cloudPhotos];
+    final hasPhotos = allPhotos.isNotEmpty;
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedImage01,
+                color: context.successColor,
+                size: AppDimensions.iconMedium,
+              ),
+              const HSpace.sm(),
+              Expanded(
+                child: Text(
+                  'My Photos',
+                  style: AppTextStyles.titleSmall.copyWith(
+                    color: context.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              // Add photo button
+              IconButton(
+                icon: _isAddingPhoto
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: context.primaryColor,
+                        ),
+                      )
+                    : HugeIcon(
+                        icon: HugeIcons.strokeRoundedAdd01,
+                        color: context.primaryColor,
+                        size: AppDimensions.iconMedium,
+                      ),
+                onPressed: _isAddingPhoto ? null : _showAddPhotoSheet,
+              ),
+            ],
+          ),
+          const VSpace.md(),
+          if (_isLoadingPreferences)
+            const SkeletonCard(height: 120)
+          else if (!hasPhotos)
+            _buildEmptyPhotosState()
+          else
+            _buildPhotoGrid(allPhotos),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyPhotosState() {
+    return GestureDetector(
+      onTap: _showAddPhotoSheet,
+      child: Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: context.surfaceVariant.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+          border: Border.all(
+            color: context.outlineVariant,
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedCamera01,
+                color: context.textSecondary,
+                size: AppDimensions.iconLarge,
+              ),
+              const VSpace.sm(),
               Text(
-                'Media',
-                style: AppTextStyles.titleSmall.copyWith(
-                  color: context.textPrimary,
+                'Add photos of your form or progress',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: context.textSecondary,
+                ),
+              ),
+              const VSpace.xs(),
+              Text(
+                'Tap to add',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: context.primaryColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-          const VSpace.md(),
-
-          // Placeholder for media content
-          Container(
-            height: 160,
-            decoration: BoxDecoration(
-              color: context.surfaceVariant,
-              borderRadius: BorderRadius.circular(
-                AppDimensions.borderRadiusMedium,
-              ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedImage01,
-                    color: context.textSecondary,
-                    size: AppDimensions.iconXLarge,
-                  ),
-                  const VSpace.sm(),
-                  Text(
-                    'Instructional videos and images\ncoming soon',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: context.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
+  }
+
+  Widget _buildPhotoGrid(List<String> photos) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: AppSpacing.sm,
+        mainAxisSpacing: AppSpacing.sm,
+        childAspectRatio: 1,
+      ),
+      itemCount: photos.length,
+      itemBuilder: (context, index) {
+        final photoPath = photos[index];
+        return _buildPhotoThumbnail(photoPath, index, photos);
+      },
+    );
+  }
+
+  Widget _buildPhotoThumbnail(
+    String photoPath,
+    int index,
+    List<String> allPhotos,
+  ) {
+    final isCloudPhoto =
+        photoPath.startsWith('http://') || photoPath.startsWith('https://');
+
+    return GestureDetector(
+      onTap: () {
+        FullScreenPhotoViewer.show(
+          context,
+          photos: allPhotos,
+          initialIndex: index,
+          onDelete: (deleteIndex) async {
+            final pathToDelete = allPhotos[deleteIndex];
+            return await _deletePhoto(pathToDelete);
+          },
+          showDeleteButton: true,
+        );
+      },
+      onLongPress: () => _showPhotoContextMenu(photoPath, isCloudPhoto),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
+          border: Border.all(color: context.outlineVariant),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _buildPhotoImage(photoPath, isCloudPhoto),
+              // Cloud indicator
+              if (isCloudPhoto)
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const HugeIcon(
+                      icon: HugeIconsStrokeRounded.cloudSavingDone02,
+                      size: AppDimensions.iconSmall,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoImage(String photoPath, bool isCloudPhoto) {
+    // On web, always use Image.network (local files are blob URLs)
+    // On native, use Image.network for cloud photos, Image.file for local
+    final useNetworkImage = isCloudPhoto || kIsWeb;
+
+    if (useNetworkImage) {
+      return Image.network(
+        photoPath,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: context.surfaceVariant,
+            child: Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: context.surfaceVariant,
+            child: HugeIcon(
+              icon: HugeIconsStrokeRounded.imageNotFound01,
+              color: context.textSecondary,
+            ),
+          );
+        },
+      );
+    } else {
+      return Image.file(
+        File(photoPath),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: context.surfaceVariant,
+            child: HugeIcon(
+              icon: HugeIconsStrokeRounded.imageNotFound01,
+              color: context.textSecondary,
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  void _showPhotoContextMenu(String photoPath, bool isCloudPhoto) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: HugeIcon(
+                icon: HugeIcons.strokeRoundedMaximize01,
+                color: context.primaryColor,
+                size: AppDimensions.iconMedium,
+              ),
+              title: const Text('View Full Screen'),
+              onTap: () {
+                Navigator.of(context).pop();
+                final allPhotos = <String>[
+                  ...(_preferences?.localPhotoPaths ?? []),
+                  ...(_preferences?.cloudPhotoUrls ?? []),
+                ];
+                final index = allPhotos.indexOf(photoPath);
+                FullScreenPhotoViewer.show(
+                  this.context,
+                  photos: allPhotos,
+                  initialIndex: index >= 0 ? index : 0,
+                  onDelete: (deleteIndex) async {
+                    final pathToDelete = allPhotos[deleteIndex];
+                    return await _deletePhoto(pathToDelete);
+                  },
+                );
+              },
+            ),
+            ListTile(
+              leading: HugeIcon(
+                icon: HugeIcons.strokeRoundedDelete01,
+                color: context.errorColor,
+                size: AppDimensions.iconMedium,
+              ),
+              title: Text(
+                'Delete Photo',
+                style: TextStyle(color: context.errorColor),
+              ),
+              onTap: () async {
+                Navigator.of(context).pop();
+                final confirmed = await _showDeleteConfirmation();
+                if (confirmed) {
+                  await _deletePhoto(photoPath);
+                }
+              },
+            ),
+            ListTile(
+              leading: HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                color: context.textSecondary,
+                size: AppDimensions.iconMedium,
+              ),
+              title: const Text('Cancel'),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _showDeleteConfirmation() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete Photo?'),
+            content: const Text(
+              'This photo will be permanently deleted. This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 }

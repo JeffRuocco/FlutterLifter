@@ -307,6 +307,60 @@ final lastExerciseSessionProvider =
     });
 
 // ============================================
+// Exercise User Preferences Providers
+// ============================================
+
+/// FutureProvider for user exercise preferences.
+///
+/// Returns the user's custom preferences for an exercise, including
+/// custom notes, photos, and preferred settings.
+///
+/// **Example:**
+/// ```dart
+/// final prefsAsync = ref.watch(exercisePreferencesProvider('bench-press'));
+/// ```
+final exercisePreferencesProvider =
+    FutureProvider.family<UserExercisePreferences?, String>((
+      ref,
+      exerciseId,
+    ) async {
+      final repository = ref.watch(exerciseRepositoryProvider);
+      return repository.getPreferenceForExercise(exerciseId);
+    });
+
+/// FutureProvider for exercise photos.
+///
+/// Returns all photos (local and cloud) for an exercise.
+///
+/// **Example:**
+/// ```dart
+/// final photosAsync = ref.watch(exercisePhotosProvider('bench-press'));
+/// ```
+final exercisePhotosProvider = FutureProvider.family<List<String>, String>((
+  ref,
+  exerciseId,
+) async {
+  final repository = ref.watch(exerciseRepositoryProvider);
+  return repository.getExercisePhotos(exerciseId);
+});
+
+/// FutureProvider for exercise user notes.
+///
+/// Returns the user's personal notes for an exercise.
+///
+/// **Example:**
+/// ```dart
+/// final notesAsync = ref.watch(exerciseUserNotesProvider('bench-press'));
+/// ```
+final exerciseUserNotesProvider = FutureProvider.family<String?, String>((
+  ref,
+  exerciseId,
+) async {
+  final repository = ref.watch(exerciseRepositoryProvider);
+  return repository.getExerciseUserNotes(exerciseId);
+});
+
+// ============================================
 // Program Library Providers
 // ============================================
 

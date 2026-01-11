@@ -760,6 +760,364 @@ void main() {
       });
     });
 
+    group('User Notes', () {
+      test(
+        'updateExerciseUserNotes should create preferences if none exist',
+        () async {
+          // Verify no preferences exist initially
+          expect(await repository.getPreferenceForExercise('bench'), isNull);
+
+          await repository.updateExerciseUserNotes(
+            'bench',
+            'Focus on chest squeeze at top',
+          );
+
+          final pref = await repository.getPreferenceForExercise('bench');
+          expect(pref, isNotNull);
+          expect(pref!.userNotes, equals('Focus on chest squeeze at top'));
+        },
+      );
+
+      test(
+        'updateExerciseUserNotes should update existing preferences',
+        () async {
+          // Create initial preferences
+          await repository.setPreference(
+            UserExercisePreferences.create(
+              exerciseId: 'bench',
+              preferredSets: 5,
+              userNotes: 'Initial notes',
+            ),
+          );
+
+          await repository.updateExerciseUserNotes('bench', 'Updated notes');
+
+          final pref = await repository.getPreferenceForExercise('bench');
+          expect(pref!.userNotes, equals('Updated notes'));
+          // Should preserve other preferences
+          expect(pref.preferredSets, equals(5));
+        },
+      );
+
+      test(
+        'updateExerciseUserNotes with empty string should effectively clear notes',
+        () async {
+          await repository.updateExerciseUserNotes('bench', 'Some notes');
+          expect(
+            (await repository.getPreferenceForExercise('bench'))!.userNotes,
+            equals('Some notes'),
+          );
+
+          // Note: Due to Dart's copyWith pattern, passing null preserves existing value
+          // Use empty string to effectively clear notes
+          await repository.updateExerciseUserNotes('bench', '');
+
+          final pref = await repository.getPreferenceForExercise('bench');
+          expect(pref!.userNotes, equals(''));
+        },
+      );
+
+      test(
+        'updateExerciseUserNotes should throw for non-existent exercise',
+        () async {
+          expect(
+            () => repository.updateExerciseUserNotes(
+              'does_not_exist',
+              'Some notes',
+            ),
+            throwsA(isA<ArgumentError>()),
+          );
+        },
+      );
+
+      test(
+        'getExerciseUserNotes should return notes when they exist',
+        () async {
+          await repository.updateExerciseUserNotes('bench', 'My bench notes');
+
+          final notes = await repository.getExerciseUserNotes('bench');
+          expect(notes, equals('My bench notes'));
+        },
+      );
+
+      test(
+        'getExerciseUserNotes should return null when no preferences exist',
+        () async {
+          final notes = await repository.getExerciseUserNotes('bench');
+          expect(notes, isNull);
+        },
+      );
+
+      test(
+        'getExerciseUserNotes should return null when preferences exist but no notes',
+        () async {
+          await repository.setPreference(
+            UserExercisePreferences.create(
+              exerciseId: 'bench',
+              preferredSets: 5,
+            ),
+          );
+
+          final notes = await repository.getExerciseUserNotes('bench');
+          expect(notes, isNull);
+        },
+      );
+    });
+
+    group('Exercise Photos', () {
+      test(
+        'addExercisePhoto should create preferences if none exist',
+        () async {
+          expect(await repository.getPreferenceForExercise('bench'), isNull);
+
+          final prefs = await repository.addExercisePhoto(
+            'bench',
+            '/path/to/photo1.jpg',
+          );
+
+          expect(prefs.localPhotoPaths, contains('/path/to/photo1.jpg'));
+          expect(prefs.pendingPhotoUploads, contains('/path/to/photo1.jpg'));
+
+          // Verify persisted
+          final savedPrefs = await repository.getPreferenceForExercise('bench');
+          expect(savedPrefs!.localPhotoPaths, contains('/path/to/photo1.jpg'));
+        },
+      );
+
+      test('addExercisePhoto should add to existing preferences', () async {
+        await repository.setPreference(
+          UserExercisePreferences.create(
+            exerciseId: 'bench',
+            preferredSets: 5,
+            localPhotoPaths: ['/path/to/existing.jpg'],
+          ),
+        );
+
+        final prefs = await repository.addExercisePhoto(
+          'bench',
+          '/path/to/new.jpg',
+        );
+
+        expect(prefs.localPhotoPaths.length, equals(2));
+        expect(prefs.localPhotoPaths, contains('/path/to/existing.jpg'));
+        expect(prefs.localPhotoPaths, contains('/path/to/new.jpg'));
+        expect(prefs.preferredSets, equals(5)); // Preserved
+      });
+
+      test('addExercisePhoto should throw for non-existent exercise', () async {
+        expect(
+          () => repository.addExercisePhoto(
+            'does_not_exist',
+            '/path/to/photo.jpg',
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test(
+        'removeExercisePhoto should remove photo from preferences',
+        () async {
+          await repository.setPreference(
+            UserExercisePreferences.create(
+              exerciseId: 'bench',
+              localPhotoPaths: ['/path/to/photo1.jpg', '/path/to/photo2.jpg'],
+              pendingPhotoUploads: [
+                '/path/to/photo1.jpg',
+                '/path/to/photo2.jpg',
+              ],
+            ),
+          );
+
+          final prefs = await repository.removeExercisePhoto(
+            'bench',
+            '/path/to/photo1.jpg',
+          );
+
+          expect(prefs, isNotNull);
+          expect(prefs!.localPhotoPaths.length, equals(1));
+          expect(prefs.localPhotoPaths, contains('/path/to/photo2.jpg'));
+          expect(prefs.localPhotoPaths, isNot(contains('/path/to/photo1.jpg')));
+          expect(
+            prefs.pendingPhotoUploads,
+            isNot(contains('/path/to/photo1.jpg')),
+          );
+        },
+      );
+
+      test(
+        'removeExercisePhoto should return null if no preferences exist',
+        () async {
+          final result = await repository.removeExercisePhoto(
+            'bench',
+            '/path/to/photo.jpg',
+          );
+          expect(result, isNull);
+        },
+      );
+
+      test(
+        'removeExerciseCloudPhoto should remove cloud URL from preferences',
+        () async {
+          await repository.setPreference(
+            UserExercisePreferences.create(
+              exerciseId: 'bench',
+              cloudPhotoUrls: [
+                'https://storage.example.com/photo1.jpg',
+                'https://storage.example.com/photo2.jpg',
+              ],
+            ),
+          );
+
+          final prefs = await repository.removeExerciseCloudPhoto(
+            'bench',
+            'https://storage.example.com/photo1.jpg',
+          );
+
+          expect(prefs, isNotNull);
+          expect(prefs!.cloudPhotoUrls.length, equals(1));
+          expect(
+            prefs.cloudPhotoUrls,
+            contains('https://storage.example.com/photo2.jpg'),
+          );
+          expect(
+            prefs.cloudPhotoUrls,
+            isNot(contains('https://storage.example.com/photo1.jpg')),
+          );
+        },
+      );
+
+      test(
+        'removeExerciseCloudPhoto should return null if no preferences exist',
+        () async {
+          final result = await repository.removeExerciseCloudPhoto(
+            'bench',
+            'https://storage.example.com/photo.jpg',
+          );
+          expect(result, isNull);
+        },
+      );
+
+      test(
+        'getExercisePhotos should return all photos (local and cloud)',
+        () async {
+          await repository.setPreference(
+            UserExercisePreferences.create(
+              exerciseId: 'bench',
+              localPhotoPaths: ['/local/photo1.jpg', '/local/photo2.jpg'],
+              cloudPhotoUrls: ['https://cloud.com/photo3.jpg'],
+            ),
+          );
+
+          final photos = await repository.getExercisePhotos('bench');
+
+          expect(photos.length, equals(3));
+          expect(photos, contains('/local/photo1.jpg'));
+          expect(photos, contains('/local/photo2.jpg'));
+          expect(photos, contains('https://cloud.com/photo3.jpg'));
+        },
+      );
+
+      test(
+        'getExercisePhotos should return empty list if no preferences',
+        () async {
+          final photos = await repository.getExercisePhotos('bench');
+          expect(photos, isEmpty);
+        },
+      );
+
+      test('getExercisePhotos should return empty list if no photos', () async {
+        await repository.setPreference(
+          UserExercisePreferences.create(exerciseId: 'bench', preferredSets: 5),
+        );
+
+        final photos = await repository.getExercisePhotos('bench');
+        expect(photos, isEmpty);
+      });
+
+      test('photos should work with custom exercises', () async {
+        await repository.createCustomExercise(
+          Exercise(
+            id: 'custom_exercise',
+            name: 'Custom Exercise',
+            category: ExerciseCategory.strength,
+            targetMuscleGroups: [MuscleGroup.fullBody],
+            defaultSets: 3,
+            defaultReps: 10,
+            isDefault: false,
+          ),
+        );
+
+        await repository.addExercisePhoto(
+          'custom_exercise',
+          '/path/to/custom_photo.jpg',
+        );
+
+        final photos = await repository.getExercisePhotos('custom_exercise');
+        expect(photos, contains('/path/to/custom_photo.jpg'));
+      });
+    });
+
+    group('Notes and Photos Integration', () {
+      test('should preserve notes when adding photos', () async {
+        await repository.updateExerciseUserNotes('bench', 'My notes');
+        await repository.addExercisePhoto('bench', '/path/to/photo.jpg');
+
+        final pref = await repository.getPreferenceForExercise('bench');
+        expect(pref!.userNotes, equals('My notes'));
+        expect(pref.localPhotoPaths, contains('/path/to/photo.jpg'));
+      });
+
+      test('should preserve photos when updating notes', () async {
+        await repository.addExercisePhoto('bench', '/path/to/photo.jpg');
+        await repository.updateExerciseUserNotes('bench', 'New notes');
+
+        final pref = await repository.getPreferenceForExercise('bench');
+        expect(pref!.userNotes, equals('New notes'));
+        expect(pref.localPhotoPaths, contains('/path/to/photo.jpg'));
+      });
+
+      test(
+        'deleting custom exercise should remove photos preferences',
+        () async {
+          await repository.createCustomExercise(
+            Exercise(
+              id: 'custom_with_photos',
+              name: 'Custom With Photos',
+              category: ExerciseCategory.strength,
+              targetMuscleGroups: [MuscleGroup.fullBody],
+              defaultSets: 3,
+              defaultReps: 10,
+              isDefault: false,
+            ),
+          );
+
+          await repository.addExercisePhoto(
+            'custom_with_photos',
+            '/path/to/photo.jpg',
+          );
+          await repository.updateExerciseUserNotes(
+            'custom_with_photos',
+            'Some notes',
+          );
+
+          // Verify preferences exist
+          expect(
+            await repository.getPreferenceForExercise('custom_with_photos'),
+            isNotNull,
+          );
+
+          // Delete exercise
+          await repository.deleteCustomExercise('custom_with_photos');
+
+          // Preferences should be removed
+          expect(
+            await repository.getPreferenceForExercise('custom_with_photos'),
+            isNull,
+          );
+        },
+      );
+    });
+
     group('Cache Management', () {
       test('refreshCache should complete without error', () async {
         expect(() => repository.refreshCache(), returnsNormally);

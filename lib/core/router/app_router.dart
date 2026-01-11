@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:hugeicons/styles/stroke_rounded.dart';
 
 import '../../screens/home_screen.dart';
 import '../../screens/login_screen.dart';
@@ -518,7 +520,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64),
+              const HugeIcon(
+                icon: HugeIconsStrokeRounded.alertCircle,
+                size: AppDimensions.iconXLarge,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Page not found',
