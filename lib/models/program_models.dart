@@ -921,13 +921,15 @@ class Program {
     );
   }
 
-  /// Updates a cycle in this program and refreshes activation based on dates
+  /// Updates a cycle in this program.
+  /// Note: This does NOT automatically re-evaluate activation status,
+  /// as explicit updates (like ending a cycle) should be respected.
   Program updateCycle(ProgramCycle updatedCycle) {
     final updatedCycles = cycles.map((cycle) {
       return cycle.id == updatedCycle.id ? updatedCycle : cycle;
     }).toList();
 
-    return copyWith(cycles: updatedCycles)._updateCycleActivationByDate();
+    return copyWith(cycles: updatedCycles);
   }
 
   /// Forces activation of a specific cycle if it's within valid date range
