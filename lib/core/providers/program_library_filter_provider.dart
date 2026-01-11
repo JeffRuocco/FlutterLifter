@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
+import 'repository_providers.dart';
 
 /// Sort options for program library list
 enum ProgramSortOption {
@@ -278,3 +279,45 @@ extension ProgramFilterExtension on List<Program> {
     }
   }
 }
+
+// ============================================
+// Filtered Programs Provider
+// ============================================
+// This provider combines repository data with filter state,
+// providing a single source of truth for filtered program lists.
+// The screen should watch this instead of managing filtering locally.
+// ============================================
+
+/// Provider that combines all programs with the current filter state.
+///
+/// This is a derived provider that automatically re-computes when either:
+/// - The underlying programs data changes (via programRepositoryProvider)
+/// - The filter state changes (via programLibraryFilterProvider)
+///
+/// **Usage in screens:**
+/// ```dart
+/// final filteredProgramsAsync = ref.watch(filteredProgramsProvider);
+/// filteredProgramsAsync.when(
+///   data: (programs) => ListView(...),
+///   loading: () => SkeletonLoader(),
+///   error: (e, _) => ErrorWidget(e),
+/// );
+/// ```
+///
+/// **To refresh data:**
+/// ```dart
+/// ref.invalidate(filteredProgramsProvider);
+/// ```
+final filteredProgramsProvider = FutureProvider<List<Program>>((ref) async {
+  // Watch filter state - this causes re-computation when filters change
+  final filterState = ref.watch(programLibraryFilterProvider);
+
+  // Watch repository provider to get fresh data
+  final repository = ref.watch(programRepositoryProvider);
+
+  // Fetch all programs from repository
+  final allPrograms = await repository.getPrograms();
+
+  // Apply filters and return
+  return allPrograms.applyFilters(filterState);
+});

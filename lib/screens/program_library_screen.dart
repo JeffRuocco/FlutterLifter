@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../core/providers/program_library_filter_provider.dart';
-import '../core/providers/repository_providers.dart';
 import '../core/router/app_router.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
@@ -36,10 +35,6 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
-  List<Program> _programs = [];
-  bool _isLoading = true;
-  String? _errorMessage;
-
   // Track expanded sections for collapsible program type groups
   final Map<ProgramType, bool> _expandedTypes = {};
 
@@ -54,12 +49,12 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
       _expandedTypes[type] = true;
     }
 
-    // Set initial source filter for "My Programs" tab and load
+    // Set initial source filter for "My Programs" tab
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(programLibraryFilterProvider.notifier)
           .setSourceFilter(ProgramSource.myPrograms);
-      _loadPrograms();
+      // Provider will load automatically when watched
     });
   }
 
@@ -84,38 +79,19 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
         // Discover tab - show default programs
         notifier.setSourceFilter(ProgramSource.defaultOnly);
       }
-      _loadPrograms();
+      // Provider will auto-refresh due to filter state change
     }
   }
 
-  Future<void> _loadPrograms() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      final repository = ref.read(programRepositoryProvider);
-      final filterState = ref.read(programLibraryFilterProvider);
-
-      // Get all programs and apply filters
-      final allPrograms = await repository.getPrograms();
-      final filteredPrograms = allPrograms.applyFilters(filterState);
-
-      setState(() {
-        _programs = filteredPrograms;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to load programs: $e';
-        _isLoading = false;
-      });
-    }
+  /// Refresh programs by invalidating the provider.
+  /// The provider will re-fetch and re-filter automatically.
+  Future<void> _refreshPrograms() async {
+    ref.invalidate(filteredProgramsProvider);
   }
 
   void _updateFilter(ProgramLibraryFilterState newState) {
-    // Update provider state atomically, preserving source filter (tab-controlled)
+    // Update provider state atomically, preserving source filter (tab-controlled).
+    // The filteredProgramsProvider will automatically re-compute.
     ref
         .read(programLibraryFilterProvider.notifier)
         .updateFilters(
@@ -126,13 +102,13 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
           clearSelectedDifficulty: newState.selectedDifficulty == null,
           sortOption: newState.sortOption,
         );
-    _loadPrograms();
   }
 
   void _clearFilters() {
     _searchController.clear();
     ref.read(programLibraryFilterProvider.notifier).clearFiltersKeepSort();
-    // Re-set source filter based on current tab
+    // Re-set source filter based on current tab.
+    // The filteredProgramsProvider will automatically re-compute.
     if (_tabController.index == 0) {
       ref
           .read(programLibraryFilterProvider.notifier)
@@ -142,7 +118,6 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
           .read(programLibraryFilterProvider.notifier)
           .setSourceFilter(ProgramSource.defaultOnly);
     }
-    _loadPrograms();
   }
 
   @override
@@ -178,10 +153,10 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
             ),
             tooltip: 'Sort by',
             onSelected: (option) {
+              // Update sort option - provider will auto-refresh
               ref
                   .read(programLibraryFilterProvider.notifier)
                   .setSortOption(option);
-              _loadPrograms();
             },
             itemBuilder: (context) => ProgramSortOption.values.map((option) {
               final isSelected = filterState.sortOption == option;
@@ -323,7 +298,7 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
                           ref
                               .read(programLibraryFilterProvider.notifier)
                               .clearSearchQuery();
-                          _loadPrograms();
+                          // Provider will auto-refresh
                         },
                       )
                     : null,
@@ -344,10 +319,10 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
                 color: context.textPrimary,
               ),
               onChanged: (value) {
+                // Update search query - provider will auto-refresh
                 ref
                     .read(programLibraryFilterProvider.notifier)
                     .setSearchQuery(value);
-                _loadPrograms();
               },
             ),
           ),
@@ -407,7 +382,7 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
                         ref
                             .read(programLibraryFilterProvider.notifier)
                             .clearTypeFilter();
-                        _loadPrograms();
+                        // Provider will auto-refresh
                       },
                     ),
                   if (filterState.selectedDifficulty != null)
@@ -417,7 +392,7 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
                         ref
                             .read(programLibraryFilterProvider.notifier)
                             .clearDifficultyFilter();
-                        _loadPrograms();
+                        // Provider will auto-refresh
                       },
                     ),
                 ],
@@ -460,8 +435,13 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
   }
 
   Widget _buildProgramList() {
-    if (_isLoading) {
-      return SkeletonList(
+    // Watch the filtered programs provider - single source of truth
+    final programsAsync = ref.watch(filteredProgramsProvider);
+    final filterState = ref.watch(programLibraryFilterProvider);
+    final isMyPrograms = _tabController.index == 0;
+
+    return programsAsync.when(
+      loading: () => SkeletonList(
         itemCount: 6,
         itemBuilder: (context, index) => Padding(
           padding: const EdgeInsets.symmetric(
@@ -470,84 +450,82 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
           ),
           child: SkeletonCard(height: 100),
         ),
-      );
-    }
-
-    if (_errorMessage != null) {
-      return EmptyState.error(message: _errorMessage!, onRetry: _loadPrograms);
-    }
-
-    if (_programs.isEmpty) {
-      final filterState = ref.watch(programLibraryFilterProvider);
-      final isMyPrograms = _tabController.index == 0;
-
-      return EmptyState(
-        icon: isMyPrograms
-            ? HugeIcons.strokeRoundedFolder01
-            : HugeIcons.strokeRoundedSearch01,
-        title: isMyPrograms ? 'No custom programs yet' : 'No programs found',
-        description: filterState.hasActiveFilters
-            ? 'Try adjusting your filters or search term'
-            : isMyPrograms
-            ? 'Create your first custom program to get started'
-            : 'Browse our default programs to find one that fits your goals',
-        actionLabel: filterState.hasActiveFilters
-            ? 'Clear Filters'
-            : isMyPrograms
-            ? 'Create Program'
-            : null,
-        onAction: filterState.hasActiveFilters
-            ? _clearFilters
-            : isMyPrograms
-            ? () {
-                context.pushCreateProgram();
-              }
-            : null,
-      );
-    }
-
-    final filterState = ref.watch(programLibraryFilterProvider);
-
-    // Show grouped list when only source filter is active (or no filters at all).
-    // Show flat list when search, type, or difficulty filters are active,
-    // as grouping by type doesn't make sense with those filters.
-    final hasContentFilters =
-        filterState.searchQuery.isNotEmpty ||
-        filterState.selectedType != null ||
-        filterState.selectedDifficulty != null;
-
-    if (!hasContentFilters) {
-      return _buildGroupedProgramList();
-    }
-
-    // Flat list for search/filtered results
-    return RefreshIndicator(
-      onRefresh: _loadPrograms,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(AppSpacing.screenPadding),
-        itemCount: _programs.length,
-        itemBuilder: (context, index) {
-          final program = _programs[index];
-          return SlideInWidget(
-            delay: Duration(milliseconds: 50 * (index % 10)),
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _ProgramLibraryCard(
-                program: program,
-                onTap: () => _navigateToProgramDetail(program),
-              ),
-            ),
-          );
-        },
       ),
+      error: (error, _) => EmptyState.error(
+        message: 'Failed to load programs: $error',
+        onRetry: _refreshPrograms,
+      ),
+      data: (programs) {
+        if (programs.isEmpty) {
+          return EmptyState(
+            icon: isMyPrograms
+                ? HugeIcons.strokeRoundedFolder01
+                : HugeIcons.strokeRoundedSearch01,
+            title: isMyPrograms
+                ? 'No custom programs yet'
+                : 'No programs found',
+            description: filterState.hasActiveFilters
+                ? 'Try adjusting your filters or search term'
+                : isMyPrograms
+                ? 'Create your first custom program to get started'
+                : 'Browse our default programs to find one that fits your goals',
+            actionLabel: filterState.hasActiveFilters
+                ? 'Clear Filters'
+                : isMyPrograms
+                ? 'Create Program'
+                : null,
+            onAction: filterState.hasActiveFilters
+                ? _clearFilters
+                : isMyPrograms
+                ? () {
+                    context.pushCreateProgram();
+                  }
+                : null,
+          );
+        }
+
+        // Show grouped list when only source filter is active (or no filters at all).
+        // Show flat list when search, type, or difficulty filters are active,
+        // as grouping by type doesn't make sense with those filters.
+        final hasContentFilters =
+            filterState.searchQuery.isNotEmpty ||
+            filterState.selectedType != null ||
+            filterState.selectedDifficulty != null;
+
+        if (!hasContentFilters) {
+          return _buildGroupedProgramList(programs);
+        }
+
+        // Flat list for search/filtered results
+        return RefreshIndicator(
+          onRefresh: _refreshPrograms,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(AppSpacing.screenPadding),
+            itemCount: programs.length,
+            itemBuilder: (context, index) {
+              final program = programs[index];
+              return SlideInWidget(
+                delay: Duration(milliseconds: 50 * (index % 10)),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: _ProgramLibraryCard(
+                    program: program,
+                    onTap: () => _navigateToProgramDetail(program),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildGroupedProgramList() {
+  Widget _buildGroupedProgramList(List<Program> programs) {
     // Group programs by type
     final Map<ProgramType, List<Program>> groupedPrograms = {};
 
-    for (final program in _programs) {
+    for (final program in programs) {
       groupedPrograms.putIfAbsent(program.type, () => []).add(program);
     }
 
@@ -557,17 +535,17 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
         .toList();
 
     return RefreshIndicator(
-      onRefresh: _loadPrograms,
+      onRefresh: _refreshPrograms,
       child: ListView.builder(
         padding: const EdgeInsets.all(AppSpacing.screenPadding),
         itemCount: nonEmptyTypes.length,
         itemBuilder: (context, index) {
           final type = nonEmptyTypes[index];
-          final programs = groupedPrograms[type] ?? [];
+          final typePrograms = groupedPrograms[type] ?? [];
 
           return SlideInWidget(
             delay: Duration(milliseconds: 100 * index),
-            child: _buildTypeSection(type, programs),
+            child: _buildTypeSection(type, typePrograms),
           );
         },
       ),
