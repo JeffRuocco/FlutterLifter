@@ -53,6 +53,10 @@ dependencies:
   # App settings and storage
   shared_preferences: ^2.3.2
   
+  # Local storage (offline-first persistence)
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  
   # Image handling
   image_picker: ^1.0.7
   path_provider: ^2.1.2

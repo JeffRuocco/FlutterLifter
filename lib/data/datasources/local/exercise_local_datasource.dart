@@ -1,5 +1,6 @@
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/user_exercise_preferences.dart';
+import 'package:flutter_lifter/services/storage_service.dart';
 
 /// Local data source for exercise-related operations.
 ///
@@ -44,16 +45,179 @@ abstract class ExerciseLocalDataSource {
   });
 }
 
+/// Hive-backed implementation of ExerciseLocalDataSource
+///
+/// Provides persistent local storage using Hive boxes.
+/// This is the primary implementation for production use.
+class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
+  /// Cache timestamp keys
+  static const String _customExercisesCacheKey = 'custom_exercises';
+  static const String _preferencesCacheKey = 'preferences';
+
+  // Custom exercises operations
+  @override
+  Future<List<Exercise>> getCachedCustomExercises() async {
+    final exercisesJson = HiveStorageService.getAllCustomExercises();
+    return exercisesJson.values.map((json) => Exercise.fromJson(json)).toList();
+  }
+
+  @override
+  Future<Exercise?> getCachedCustomExerciseById(String id) async {
+    final json = HiveStorageService.getCustomExercise(id);
+    if (json == null) return null;
+    return Exercise.fromJson(json);
+  }
+
+  @override
+  Future<void> cacheCustomExercise(Exercise exercise) async {
+    await HiveStorageService.storeCustomExercise(
+      exercise.id,
+      exercise.toJson(),
+    );
+    await HiveStorageService.setCacheTimestamp(
+      _customExercisesCacheKey,
+      DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> cacheCustomExercises(List<Exercise> exercises) async {
+    await HiveStorageService.clearCustomExercises();
+    for (final exercise in exercises) {
+      await HiveStorageService.storeCustomExercise(
+        exercise.id,
+        exercise.toJson(),
+      );
+    }
+    await HiveStorageService.setCacheTimestamp(
+      _customExercisesCacheKey,
+      DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> removeCustomExercise(String id) async {
+    await HiveStorageService.deleteCustomExercise(id);
+    await HiveStorageService.setCacheTimestamp(
+      _customExercisesCacheKey,
+      DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> clearCustomExercisesCache() async {
+    await HiveStorageService.clearCustomExercises();
+    await HiveStorageService.clearCacheTimestamp(_customExercisesCacheKey);
+  }
+
+  // User preferences operations
+  @override
+  Future<List<UserExercisePreferences>> getCachedPreferences() async {
+    final prefsJson = HiveStorageService.getAllUserPreferences();
+    return prefsJson.values
+        .map((json) => UserExercisePreferences.fromJson(json))
+        .toList();
+  }
+
+  @override
+  Future<UserExercisePreferences?> getCachedPreferenceForExercise(
+    String exerciseId,
+  ) async {
+    final json = HiveStorageService.getUserPreference(exerciseId);
+    if (json == null) return null;
+    return UserExercisePreferences.fromJson(json);
+  }
+
+  @override
+  Future<void> cachePreference(UserExercisePreferences preferences) async {
+    await HiveStorageService.storeUserPreference(
+      preferences.exerciseId,
+      preferences.toJson(),
+    );
+    await HiveStorageService.setCacheTimestamp(
+      _preferencesCacheKey,
+      DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> cachePreferences(
+    List<UserExercisePreferences> preferences,
+  ) async {
+    await HiveStorageService.clearUserPreferences();
+    // TODO: Consider implementing a batch operation in HiveStorageService or using Future.wait to parallelize the storage operations.
+    for (final pref in preferences) {
+      await HiveStorageService.storeUserPreference(
+        pref.exerciseId,
+        pref.toJson(),
+      );
+    }
+    await HiveStorageService.setCacheTimestamp(
+      _preferencesCacheKey,
+      DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> removePreference(String exerciseId) async {
+    await HiveStorageService.deleteUserPreference(exerciseId);
+    await HiveStorageService.setCacheTimestamp(
+      _preferencesCacheKey,
+      DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> clearPreferencesCache() async {
+    await HiveStorageService.clearUserPreferences();
+    await HiveStorageService.clearCacheTimestamp(_preferencesCacheKey);
+  }
+
+  // Cache metadata
+  @override
+  Future<DateTime?> getLastCustomExercisesCacheUpdate() async {
+    return HiveStorageService.getCacheTimestamp(_customExercisesCacheKey);
+  }
+
+  @override
+  Future<DateTime?> getLastPreferencesCacheUpdate() async {
+    return HiveStorageService.getCacheTimestamp(_preferencesCacheKey);
+  }
+
+  @override
+  Future<bool> isCustomExercisesCacheExpired({
+    Duration maxAge = ExerciseLocalDataSource.defaultCacheMaxAge,
+  }) async {
+    final lastUpdate = HiveStorageService.getCacheTimestamp(
+      _customExercisesCacheKey,
+    );
+    if (lastUpdate == null) return true;
+    return DateTime.now().difference(lastUpdate) > maxAge;
+  }
+
+  @override
+  Future<bool> isPreferencesCacheExpired({
+    Duration maxAge = ExerciseLocalDataSource.defaultCacheMaxAge,
+  }) async {
+    final lastUpdate = HiveStorageService.getCacheTimestamp(
+      _preferencesCacheKey,
+    );
+    if (lastUpdate == null) return true;
+    return DateTime.now().difference(lastUpdate) > maxAge;
+  }
+}
+
 /// In-memory implementation of ExerciseLocalDataSource
 ///
-/// Used for development and testing. Will be replaced by Hive implementation.
+/// Used for development and testing. Provides instance-level caches for
+/// proper test isolation - each instance maintains its own independent cache.
 ///
 /// **Design Note**: This implementation uses instance-level caches, meaning each
 /// instance maintains its own independent cache state. For production use where
 /// singleton behavior is desired, register a single instance with your DI container.
 /// This design ensures clean test isolation without requiring explicit cache clearing
 /// between tests - simply create a new instance for each test.
-class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
+class InMemoryExerciseLocalDataSource implements ExerciseLocalDataSource {
   // Instance-level caches for proper test isolation
   final Map<String, Exercise> _customExercisesCache = {};
   final Map<String, UserExercisePreferences> _preferencesCache = {};
@@ -80,6 +244,7 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
   @override
   Future<void> cacheCustomExercises(List<Exercise> exercises) async {
     _customExercisesCache.clear();
+    // TODO: Consider implementing a batch operation in HiveStorageService or using Future.wait to parallelize the storage operations.
     for (final exercise in exercises) {
       _customExercisesCache[exercise.id.toLowerCase()] = exercise;
     }
@@ -176,96 +341,5 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
     _preferencesCache.clear();
     _lastCustomExercisesUpdate = null;
     _lastPreferencesUpdate = null;
-  }
-}
-
-/// Hive implementation placeholder for persistent storage
-class HiveExerciseLocalDataSource implements ExerciseLocalDataSource {
-  @override
-  Future<List<Exercise>> getCachedCustomExercises() async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<Exercise?> getCachedCustomExerciseById(String id) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> cacheCustomExercise(Exercise exercise) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> cacheCustomExercises(List<Exercise> exercises) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> removeCustomExercise(String id) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> clearCustomExercisesCache() async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<List<UserExercisePreferences>> getCachedPreferences() async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<UserExercisePreferences?> getCachedPreferenceForExercise(
-    String exerciseId,
-  ) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> cachePreference(UserExercisePreferences preferences) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> cachePreferences(
-    List<UserExercisePreferences> preferences,
-  ) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> removePreference(String exerciseId) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<void> clearPreferencesCache() async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<DateTime?> getLastCustomExercisesCacheUpdate() async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<DateTime?> getLastPreferencesCacheUpdate() async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<bool> isCustomExercisesCacheExpired({
-    Duration maxAge = ExerciseLocalDataSource.defaultCacheMaxAge,
-  }) async {
-    throw UnimplementedError('Hive implementation pending');
-  }
-
-  @override
-  Future<bool> isPreferencesCacheExpired({
-    Duration maxAge = ExerciseLocalDataSource.defaultCacheMaxAge,
-  }) async {
-    throw UnimplementedError('Hive implementation pending');
   }
 }

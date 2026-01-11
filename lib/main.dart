@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'core/providers/custom_theme_provider.dart';
@@ -11,6 +12,7 @@ import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'services/logging_service.dart';
 import 'services/app_settings_service.dart';
+import 'services/storage_service.dart';
 import 'utils/utils.dart';
 // Conditional import for web-specific functionality
 import 'utils/web_theme_helper.dart'
@@ -18,6 +20,12 @@ import 'utils/web_theme_helper.dart'
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Hive for local storage (uses IndexedDB on web)
+  await Hive.initFlutter();
+
+  // Open Hive boxes for data persistence
+  await HiveStorageService.initializeBoxes();
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

@@ -5,15 +5,16 @@ import '../../services/storage_service.dart';
 
 /// Provider for StorageService
 ///
-/// Currently uses InMemoryStorageService for development.
-/// In production, this would be replaced with SharedPreferencesStorageService or HiveStorageService.
+/// Uses HiveStorageService for persistent local storage.
+/// Hive is initialized in main.dart before the app starts.
 final storageServiceProvider = Provider<StorageService>((ref) {
-  return InMemoryStorageService();
+  return HiveStorageService();
 });
 
 /// FutureProvider for initializing storage
 ///
-/// Use this to ensure storage is initialized before use.
+/// Note: Hive boxes are initialized in main.dart, so this provider
+/// simply ensures the HiveStorageService is ready for use.
 final storageInitProvider = FutureProvider<void>((ref) async {
   final storage = ref.watch(storageServiceProvider);
   await storage.init();

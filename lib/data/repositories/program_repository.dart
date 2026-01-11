@@ -96,10 +96,14 @@ class ProgramRepositoryImpl implements ProgramRepository {
   });
 
   /// Factory constructor for development with mock data
+  ///
+  /// Uses [InMemoryProgramLocalDataSource] by default for testing purposes.
+  /// For production, use [ProgramRepositoryImpl.production] with
+  /// [ProgramLocalDataSourceImpl] which persists data using Hive.
   factory ProgramRepositoryImpl.development() {
     return ProgramRepositoryImpl(
       mockDataSource: MockProgramDataSource(),
-      localDataSource: ProgramLocalDataSourceImpl(),
+      localDataSource: InMemoryProgramLocalDataSource(),
       useMockData: true,
       useRemoteApi: false,
     );

@@ -195,11 +195,15 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   }
 
   /// Creates a development instance with mock default exercises.
+  ///
+  /// Uses [InMemoryExerciseLocalDataSource] by default for testing purposes.
+  /// For production, use [ExerciseRepositoryImpl.production] with
+  /// [ExerciseLocalDataSourceImpl] which persists data using Hive.
   factory ExerciseRepositoryImpl.development({
     ExerciseLocalDataSource? localDataSource,
   }) {
     return ExerciseRepositoryImpl._(
-      localDataSource: localDataSource ?? ExerciseLocalDataSourceImpl(),
+      localDataSource: localDataSource ?? InMemoryExerciseLocalDataSource(),
       defaultExercises: DefaultExercises.exercises,
     );
   }
