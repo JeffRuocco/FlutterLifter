@@ -483,6 +483,7 @@ class HiveStorageService implements StorageService {
         e,
         stackTrace: stackTrace,
       );
+      return null;
     }
   }
 
