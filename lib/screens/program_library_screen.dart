@@ -115,20 +115,17 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
   }
 
   void _updateFilter(ProgramLibraryFilterState newState) {
-    // Update via provider
-    final notifier = ref.read(programLibraryFilterProvider.notifier);
-    notifier.setSearchQuery(newState.searchQuery);
-    if (newState.selectedType != null) {
-      notifier.setTypeFilter(newState.selectedType);
-    } else {
-      notifier.clearTypeFilter();
-    }
-    if (newState.selectedDifficulty != null) {
-      notifier.setDifficultyFilter(newState.selectedDifficulty);
-    } else {
-      notifier.clearDifficultyFilter();
-    }
-    notifier.setSortOption(newState.sortOption);
+    // Update provider state atomically, preserving source filter (tab-controlled)
+    ref
+        .read(programLibraryFilterProvider.notifier)
+        .updateFilters(
+          searchQuery: newState.searchQuery,
+          selectedType: newState.selectedType,
+          clearSelectedType: newState.selectedType == null,
+          selectedDifficulty: newState.selectedDifficulty,
+          clearSelectedDifficulty: newState.selectedDifficulty == null,
+          sortOption: newState.sortOption,
+        );
     _loadPrograms();
   }
 
@@ -453,7 +450,7 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
         deleteIcon: HugeIcon(
           icon: HugeIcons.strokeRoundedCancel01,
           color: context.primaryColor,
-          size: 16,
+          size: AppDimensions.iconSmall,
         ),
         onDeleted: onRemove,
         side: BorderSide.none,
@@ -511,11 +508,15 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
 
     final filterState = ref.watch(programLibraryFilterProvider);
 
-    // Group programs by type if no search/filter
-    if (!filterState.hasActiveFilters ||
-        filterState.searchQuery.isEmpty &&
-            filterState.selectedType == null &&
-            filterState.selectedDifficulty == null) {
+    // Show grouped list when only source filter is active (or no filters at all).
+    // Show flat list when search, type, or difficulty filters are active,
+    // as grouping by type doesn't make sense with those filters.
+    final hasContentFilters =
+        filterState.searchQuery.isNotEmpty ||
+        filterState.selectedType != null ||
+        filterState.selectedDifficulty != null;
+
+    if (!hasContentFilters) {
       return _buildGroupedProgramList();
     }
 

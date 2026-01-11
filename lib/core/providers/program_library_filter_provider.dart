@@ -162,6 +162,27 @@ class ProgramLibraryFilterNotifier extends Notifier<ProgramLibraryFilterState> {
   void clearFiltersKeepSort() {
     state = ProgramLibraryFilterState(sortOption: state.sortOption);
   }
+
+  /// Update multiple filter fields at once, preserving source filter.
+  /// Used by filter bottom sheet to apply all changes atomically.
+  void updateFilters({
+    String? searchQuery,
+    ProgramType? selectedType,
+    bool clearSelectedType = false,
+    ProgramDifficulty? selectedDifficulty,
+    bool clearSelectedDifficulty = false,
+    ProgramSortOption? sortOption,
+  }) {
+    state = state.copyWith(
+      searchQuery: searchQuery,
+      selectedType: selectedType,
+      clearSelectedType: clearSelectedType,
+      selectedDifficulty: selectedDifficulty,
+      clearSelectedDifficulty: clearSelectedDifficulty,
+      sortOption: sortOption,
+      // Note: source filter is preserved, not modified here
+    );
+  }
 }
 
 /// Provider for program library filter state
