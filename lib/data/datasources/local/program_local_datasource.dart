@@ -1,4 +1,5 @@
 import 'package:flutter_lifter/models/program_models.dart';
+import 'package:flutter_lifter/services/storage_service.dart';
 
 /// Local data source for program-related operations (SQLite, Hive, etc.)
 abstract class ProgramLocalDataSource {
@@ -14,13 +15,78 @@ abstract class ProgramLocalDataSource {
   Future<bool> isCacheExpired({Duration maxAge = _defaultCacheMaxAge});
 }
 
-/// Implementation of ProgramLocalDataSource using SharedPreferences/Hive
+/// Implementation of ProgramLocalDataSource using Hive for persistent storage
 class ProgramLocalDataSourceImpl implements ProgramLocalDataSource {
-  // This would typically use a local database like SQLite or Hive
-  // For now, we'll implement a simple in-memory cache
+  /// Cache timestamp key for programs
+  static const String _cacheTimestampKey = 'programs';
 
-  static final Map<String, Program> _cache = {};
-  static DateTime? _lastUpdate;
+  @override
+  Future<List<Program>> getCachedPrograms() async {
+    final programsJson = HiveStorageService.getAllPrograms();
+    return programsJson.values.map((json) => Program.fromJson(json)).toList();
+  }
+
+  @override
+  Future<Program?> getCachedProgramById(String id) async {
+    final json = HiveStorageService.getProgram(id);
+    if (json == null) return null;
+    return Program.fromJson(json);
+  }
+
+  @override
+  Future<void> cachePrograms(List<Program> programs) async {
+    await HiveStorageService.clearPrograms();
+    for (final program in programs) {
+      await HiveStorageService.storeProgram(program.id, program.toJson());
+    }
+    await HiveStorageService.setCacheTimestamp(
+      _cacheTimestampKey,
+      DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> cacheProgram(Program program) async {
+    await HiveStorageService.storeProgram(program.id, program.toJson());
+    await HiveStorageService.setCacheTimestamp(
+      _cacheTimestampKey,
+      DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> removeCachedProgram(String id) async {
+    await HiveStorageService.deleteProgram(id);
+  }
+
+  @override
+  Future<void> clearCache() async {
+    await HiveStorageService.clearPrograms();
+    await HiveStorageService.clearCacheTimestamp(_cacheTimestampKey);
+  }
+
+  @override
+  Future<DateTime?> getLastCacheUpdate() async {
+    return HiveStorageService.getCacheTimestamp(_cacheTimestampKey);
+  }
+
+  @override
+  Future<bool> isCacheExpired({
+    Duration maxAge = ProgramLocalDataSource._defaultCacheMaxAge,
+  }) async {
+    final lastUpdate = HiveStorageService.getCacheTimestamp(_cacheTimestampKey);
+    if (lastUpdate == null) return true;
+    return DateTime.now().difference(lastUpdate).compareTo(maxAge) > 0;
+  }
+}
+
+/// In-memory implementation of ProgramLocalDataSource
+///
+/// Used for development and testing. Provides instance-level caches for
+/// proper test isolation - each instance maintains its own independent cache.
+class InMemoryProgramLocalDataSource implements ProgramLocalDataSource {
+  final Map<String, Program> _cache = {};
+  DateTime? _lastUpdate;
 
   @override
   Future<List<Program>> getCachedPrograms() async {
@@ -69,50 +135,5 @@ class ProgramLocalDataSourceImpl implements ProgramLocalDataSource {
   }) async {
     if (_lastUpdate == null) return true;
     return DateTime.now().difference(_lastUpdate!).compareTo(maxAge) > 0;
-  }
-}
-
-/// SQLite implementation (future enhancement)
-class SqliteProgramLocalDataSource implements ProgramLocalDataSource {
-  @override
-  Future<List<Program>> getCachedPrograms() async {
-    throw UnimplementedError('SQLite implementation pending');
-  }
-
-  @override
-  Future<Program?> getCachedProgramById(String id) async {
-    throw UnimplementedError('SQLite implementation pending');
-  }
-
-  @override
-  Future<void> cachePrograms(List<Program> programs) async {
-    throw UnimplementedError('SQLite implementation pending');
-  }
-
-  @override
-  Future<void> cacheProgram(Program program) async {
-    throw UnimplementedError('SQLite implementation pending');
-  }
-
-  @override
-  Future<void> removeCachedProgram(String id) async {
-    throw UnimplementedError('SQLite implementation pending');
-  }
-
-  @override
-  Future<void> clearCache() async {
-    throw UnimplementedError('SQLite implementation pending');
-  }
-
-  @override
-  Future<DateTime?> getLastCacheUpdate() async {
-    throw UnimplementedError('SQLite implementation pending');
-  }
-
-  @override
-  Future<bool> isCacheExpired({
-    Duration maxAge = ProgramLocalDataSource._defaultCacheMaxAge,
-  }) async {
-    throw UnimplementedError('SQLite implementation pending');
   }
 }

@@ -30,7 +30,8 @@ void main() {
       test(
         'production factory should create repository with provided datasource',
         () async {
-          final datasource = ExerciseLocalDataSourceImpl();
+          // Use InMemoryExerciseLocalDataSource for testing
+          final datasource = InMemoryExerciseLocalDataSource();
           final repo = ExerciseRepositoryImpl.production(
             localDataSource: datasource,
           );
@@ -56,7 +57,7 @@ void main() {
           ];
 
           final repo = ExerciseRepositoryImpl.production(
-            localDataSource: ExerciseLocalDataSourceImpl(),
+            localDataSource: InMemoryExerciseLocalDataSource(),
             defaultExercises: customDefaults,
           );
 

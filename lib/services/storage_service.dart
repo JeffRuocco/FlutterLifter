@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:hive_flutter/hive_flutter.dart';
+
 /// Abstract storage service for local data persistence
 abstract class StorageService {
   Future<void> init();
@@ -73,51 +76,402 @@ class SharedPreferencesStorageService implements StorageService {
 }
 
 /// Hive implementation of StorageService
+///
+/// Uses Hive boxes for persistent local storage across all platforms.
+/// On web, Hive uses IndexedDB for storage.
 class HiveStorageService implements StorageService {
-  // static late Box _box;
+  /// Box names for different data types
+  static const String programsBoxName = 'programs';
+  static const String customExercisesBoxName = 'custom_exercises';
+  static const String userPreferencesBoxName = 'user_preferences';
+  static const String exerciseHistoryBoxName = 'exercise_history';
+  static const String syncMetadataBoxName = 'sync_metadata';
+  static const String generalBoxName = 'general_storage';
+
+  /// Opened boxes for quick access
+  static late Box<String> _programsBox;
+  static late Box<String> _customExercisesBox;
+  static late Box<String> _userPreferencesBox;
+  static late Box<String> _exerciseHistoryBox;
+  static late Box<String> _syncMetadataBox;
+  static late Box<dynamic> _generalBox;
+
+  static bool _isInitialized = false;
+
+  /// Initialize all Hive boxes - call this once at app startup
+  static Future<void> initializeBoxes() async {
+    if (_isInitialized) return;
+
+    _programsBox = await Hive.openBox<String>(programsBoxName);
+    _customExercisesBox = await Hive.openBox<String>(customExercisesBoxName);
+    _userPreferencesBox = await Hive.openBox<String>(userPreferencesBoxName);
+    _exerciseHistoryBox = await Hive.openBox<String>(exerciseHistoryBoxName);
+    _syncMetadataBox = await Hive.openBox<String>(syncMetadataBoxName);
+    _generalBox = await Hive.openBox(generalBoxName);
+
+    _isInitialized = true;
+  }
+
+  /// Check if boxes have been initialized
+  static bool get isInitialized => _isInitialized;
 
   @override
   Future<void> init() async {
-    // TODO: Initialize Hive
-    // await Hive.initFlutter();
-    // _box = await Hive.openBox('flutterlifter_storage');
-    throw UnimplementedError('Hive implementation pending');
+    await initializeBoxes();
   }
 
   @override
   Future<void> store<T>(String key, T value) async {
-    // await _box.put(key, value);
-    throw UnimplementedError('Hive implementation pending');
+    if (value is String) {
+      await _generalBox.put(key, value);
+    } else if (value is int ||
+        value is double ||
+        value is bool ||
+        value is List) {
+      await _generalBox.put(key, value);
+    } else {
+      // For complex objects, serialize to JSON
+      await _generalBox.put(key, jsonEncode(value));
+    }
   }
 
   @override
   Future<T?> retrieve<T>(String key) async {
-    // return _box.get(key) as T?;
-    throw UnimplementedError('Hive implementation pending');
+    final value = _generalBox.get(key);
+    if (value == null) return null;
+
+    if (T == String || T == int || T == double || T == bool) {
+      return value as T;
+    }
+
+    // Try to decode JSON for complex types
+    if (value is String) {
+      try {
+        return jsonDecode(value) as T;
+      } catch (_) {
+        return value as T;
+      }
+    }
+
+    return value as T?;
   }
 
   @override
   Future<void> remove(String key) async {
-    // await _box.delete(key);
-    throw UnimplementedError('Hive implementation pending');
+    await _generalBox.delete(key);
   }
 
   @override
   Future<void> clear() async {
-    // await _box.clear();
-    throw UnimplementedError('Hive implementation pending');
+    await _generalBox.clear();
   }
 
   @override
   Future<bool> containsKey(String key) async {
-    // return _box.containsKey(key);
-    throw UnimplementedError('Hive implementation pending');
+    return _generalBox.containsKey(key);
   }
 
   @override
   Future<List<String>> getAllKeys() async {
-    // return _box.keys.cast<String>().toList();
-    throw UnimplementedError('Hive implementation pending');
+    return _generalBox.keys.cast<String>().toList();
+  }
+
+  // ===== Programs Box Operations =====
+
+  /// Get the programs box for direct access
+  static Box<String> get programsBox {
+    _ensureInitialized();
+    return _programsBox;
+  }
+
+  /// Store a program as JSON
+  static Future<void> storeProgram(String id, Map<String, dynamic> json) async {
+    _ensureInitialized();
+    await _programsBox.put(id, jsonEncode(json));
+  }
+
+  /// Retrieve a program by ID
+  static Map<String, dynamic>? getProgram(String id) {
+    _ensureInitialized();
+    final value = _programsBox.get(id);
+    if (value == null) return null;
+    return jsonDecode(value) as Map<String, dynamic>;
+  }
+
+  /// Get all programs as JSON maps
+  static Map<String, Map<String, dynamic>> getAllPrograms() {
+    _ensureInitialized();
+    final result = <String, Map<String, dynamic>>{};
+    for (final key in _programsBox.keys) {
+      final value = _programsBox.get(key);
+      if (value != null) {
+        result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+      }
+    }
+    return result;
+  }
+
+  /// Delete a program
+  static Future<void> deleteProgram(String id) async {
+    _ensureInitialized();
+    await _programsBox.delete(id);
+  }
+
+  /// Clear all programs
+  static Future<void> clearPrograms() async {
+    _ensureInitialized();
+    await _programsBox.clear();
+  }
+
+  // ===== Custom Exercises Box Operations =====
+
+  /// Get the custom exercises box for direct access
+  static Box<String> get customExercisesBox {
+    _ensureInitialized();
+    return _customExercisesBox;
+  }
+
+  /// Store a custom exercise as JSON
+  static Future<void> storeCustomExercise(
+    String id,
+    Map<String, dynamic> json,
+  ) async {
+    _ensureInitialized();
+    await _customExercisesBox.put(id.toLowerCase(), jsonEncode(json));
+  }
+
+  /// Retrieve a custom exercise by ID
+  static Map<String, dynamic>? getCustomExercise(String id) {
+    _ensureInitialized();
+    final value = _customExercisesBox.get(id.toLowerCase());
+    if (value == null) return null;
+    return jsonDecode(value) as Map<String, dynamic>;
+  }
+
+  /// Get all custom exercises
+  static Map<String, Map<String, dynamic>> getAllCustomExercises() {
+    _ensureInitialized();
+    final result = <String, Map<String, dynamic>>{};
+    for (final key in _customExercisesBox.keys) {
+      final value = _customExercisesBox.get(key);
+      if (value != null) {
+        result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+      }
+    }
+    return result;
+  }
+
+  /// Delete a custom exercise
+  static Future<void> deleteCustomExercise(String id) async {
+    _ensureInitialized();
+    await _customExercisesBox.delete(id.toLowerCase());
+  }
+
+  /// Clear all custom exercises
+  static Future<void> clearCustomExercises() async {
+    _ensureInitialized();
+    await _customExercisesBox.clear();
+  }
+
+  // ===== User Preferences Box Operations =====
+
+  /// Get the user preferences box for direct access
+  static Box<String> get userPreferencesBox {
+    _ensureInitialized();
+    return _userPreferencesBox;
+  }
+
+  /// Store user exercise preferences as JSON
+  static Future<void> storeUserPreference(
+    String exerciseId,
+    Map<String, dynamic> json,
+  ) async {
+    _ensureInitialized();
+    await _userPreferencesBox.put(exerciseId.toLowerCase(), jsonEncode(json));
+  }
+
+  /// Retrieve user preferences for an exercise
+  static Map<String, dynamic>? getUserPreference(String exerciseId) {
+    _ensureInitialized();
+    final value = _userPreferencesBox.get(exerciseId.toLowerCase());
+    if (value == null) return null;
+    return jsonDecode(value) as Map<String, dynamic>;
+  }
+
+  /// Get all user preferences
+  static Map<String, Map<String, dynamic>> getAllUserPreferences() {
+    _ensureInitialized();
+    final result = <String, Map<String, dynamic>>{};
+    for (final key in _userPreferencesBox.keys) {
+      final value = _userPreferencesBox.get(key);
+      if (value != null) {
+        result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+      }
+    }
+    return result;
+  }
+
+  /// Delete user preferences for an exercise
+  static Future<void> deleteUserPreference(String exerciseId) async {
+    _ensureInitialized();
+    await _userPreferencesBox.delete(exerciseId.toLowerCase());
+  }
+
+  /// Clear all user preferences
+  static Future<void> clearUserPreferences() async {
+    _ensureInitialized();
+    await _userPreferencesBox.clear();
+  }
+
+  // ===== Sync Metadata Box Operations =====
+
+  /// Get the sync metadata box for direct access
+  static Box<String> get syncMetadataBox {
+    _ensureInitialized();
+    return _syncMetadataBox;
+  }
+
+  /// Store sync metadata
+  static Future<void> storeSyncMetadata(
+    String id,
+    Map<String, dynamic> json,
+  ) async {
+    _ensureInitialized();
+    await _syncMetadataBox.put(id, jsonEncode(json));
+  }
+
+  /// Retrieve sync metadata by ID
+  static Map<String, dynamic>? getSyncMetadata(String id) {
+    _ensureInitialized();
+    final value = _syncMetadataBox.get(id);
+    if (value == null) return null;
+    return jsonDecode(value) as Map<String, dynamic>;
+  }
+
+  /// Get all sync metadata
+  static List<Map<String, dynamic>> getAllSyncMetadata() {
+    _ensureInitialized();
+    final result = <Map<String, dynamic>>[];
+    for (final key in _syncMetadataBox.keys) {
+      final value = _syncMetadataBox.get(key);
+      if (value != null) {
+        result.add(jsonDecode(value) as Map<String, dynamic>);
+      }
+    }
+    return result;
+  }
+
+  /// Delete sync metadata
+  static Future<void> deleteSyncMetadata(String id) async {
+    _ensureInitialized();
+    await _syncMetadataBox.delete(id);
+  }
+
+  /// Clear all sync metadata
+  static Future<void> clearSyncMetadata() async {
+    _ensureInitialized();
+    await _syncMetadataBox.clear();
+  }
+
+  // ===== Cache Metadata Operations =====
+
+  /// Key for storing cache timestamps
+  static const String _cacheTimestampPrefix = '_cache_timestamp_';
+
+  /// Store cache update timestamp for a specific cache type
+  static Future<void> setCacheTimestamp(
+    String cacheType,
+    DateTime timestamp,
+  ) async {
+    _ensureInitialized();
+    await _generalBox.put(
+      '$_cacheTimestampPrefix$cacheType',
+      timestamp.toIso8601String(),
+    );
+  }
+
+  /// Get cache update timestamp for a specific cache type
+  static DateTime? getCacheTimestamp(String cacheType) {
+    _ensureInitialized();
+    final value = _generalBox.get('$_cacheTimestampPrefix$cacheType');
+    if (value == null) return null;
+    return DateTime.parse(value as String);
+  }
+
+  /// Clear cache timestamp for a specific cache type
+  static Future<void> clearCacheTimestamp(String cacheType) async {
+    _ensureInitialized();
+    await _generalBox.delete('$_cacheTimestampPrefix$cacheType');
+  }
+
+  // ===== Utility Methods =====
+
+  static void _ensureInitialized() {
+    if (!_isInitialized) {
+      throw StateError(
+        'HiveStorageService not initialized. '
+        'Call HiveStorageService.initializeBoxes() first.',
+      );
+    }
+  }
+
+  /// Check if a box contains a key
+  static bool boxContainsKey(String boxName, String key) {
+    _ensureInitialized();
+    switch (boxName) {
+      case programsBoxName:
+        return _programsBox.containsKey(key);
+      case customExercisesBoxName:
+        return _customExercisesBox.containsKey(key.toLowerCase());
+      case userPreferencesBoxName:
+        return _userPreferencesBox.containsKey(key.toLowerCase());
+      case syncMetadataBoxName:
+        return _syncMetadataBox.containsKey(key);
+      default:
+        return _generalBox.containsKey(key);
+    }
+  }
+
+  /// Get the count of items in a box
+  static int boxLength(String boxName) {
+    _ensureInitialized();
+    switch (boxName) {
+      case programsBoxName:
+        return _programsBox.length;
+      case customExercisesBoxName:
+        return _customExercisesBox.length;
+      case userPreferencesBoxName:
+        return _userPreferencesBox.length;
+      case syncMetadataBoxName:
+        return _syncMetadataBox.length;
+      default:
+        return _generalBox.length;
+    }
+  }
+
+  /// Close all boxes - typically called on app shutdown
+  static Future<void> closeBoxes() async {
+    if (!_isInitialized) return;
+
+    await _programsBox.close();
+    await _customExercisesBox.close();
+    await _userPreferencesBox.close();
+    await _exerciseHistoryBox.close();
+    await _syncMetadataBox.close();
+    await _generalBox.close();
+
+    _isInitialized = false;
+  }
+
+  /// Clear all data from all boxes
+  static Future<void> clearAllData() async {
+    _ensureInitialized();
+    await _programsBox.clear();
+    await _customExercisesBox.clear();
+    await _userPreferencesBox.clear();
+    await _exerciseHistoryBox.clear();
+    await _syncMetadataBox.clear();
+    await _generalBox.clear();
   }
 }
 

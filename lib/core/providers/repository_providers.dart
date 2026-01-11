@@ -18,12 +18,12 @@ final mockProgramDataSourceProvider = Provider<MockProgramDataSource>((ref) {
   return MockProgramDataSource();
 });
 
-/// Provider for ProgramLocalDataSource
+/// Provider for ProgramLocalDataSource (Hive-backed for production)
 final programLocalDataSourceProvider = Provider<ProgramLocalDataSource>((ref) {
   return ProgramLocalDataSourceImpl();
 });
 
-/// Provider for ExerciseLocalDataSource
+/// Provider for ExerciseLocalDataSource (Hive-backed for production)
 final exerciseLocalDataSourceProvider = Provider<ExerciseLocalDataSource>((
   ref,
 ) {

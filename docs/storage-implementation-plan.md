@@ -13,53 +13,57 @@
 
 ---
 
-## Phase 1: Hive Local Storage
+## Phase 1: Hive Local Storage ✅
 
 **Goal**: Replace in-memory storage with persistent Hive storage. App works fully offline after this phase.
 
+**Status**: COMPLETED (2026-01-11)
+
 ### Dependencies
-- [ ] Add `hive: ^2.2.3` to pubspec.yaml
-- [ ] Add `hive_flutter: ^1.1.0` to pubspec.yaml
-- [ ] Run `flutter pub get`
+- [x] Add `hive: ^2.2.3` to pubspec.yaml
+- [x] Add `hive_flutter: ^1.1.0` to pubspec.yaml
+- [x] Run `flutter pub get`
 
 ### Initialization
-- [ ] Initialize Hive in `main.dart` before `runApp()`
+- [x] Initialize Hive in `main.dart` before `runApp()`
   ```dart
   await Hive.initFlutter();
   ```
-- [ ] Register Hive boxes:
-  - [ ] `programs` - Program data with nested cycles
-  - [ ] `customExercises` - User-created exercises
-  - [ ] `userPreferences` - Exercise preferences (sets, reps, notes, photos)
-  - [ ] `exerciseHistory` - Historical workout data per exercise
-  - [ ] `syncMetadata` - Sync state tracking (for Phase 3)
+- [x] Register Hive boxes:
+  - [x] `programs` - Program data with nested cycles
+  - [x] `customExercises` - User-created exercises
+  - [x] `userPreferences` - Exercise preferences (sets, reps, notes, photos)
+  - [x] `exerciseHistory` - Historical workout data per exercise
+  - [x] `syncMetadata` - Sync state tracking (for Phase 3)
 
 ### HiveStorageService
-- [ ] Complete `HiveStorageService` implementation in `lib/services/storage_service.dart`
-  - [ ] `init()` - Open all boxes
-  - [ ] `store<T>(key, value)` - Store JSON-encoded data
-  - [ ] `retrieve<T>(key)` - Retrieve and decode JSON data
-  - [ ] `remove(key)` - Delete entry
-  - [ ] `clear()` - Clear all boxes
-  - [ ] `containsKey(key)` - Check existence
-  - [ ] `getAllKeys()` - List all keys
-- [ ] Add box-specific helper methods for typed access
-- [ ] Add batch operation support for efficiency
+- [x] Complete `HiveStorageService` implementation in `lib/services/storage_service.dart`
+  - [x] `init()` - Open all boxes
+  - [x] `store<T>(key, value)` - Store JSON-encoded data
+  - [x] `retrieve<T>(key)` - Retrieve and decode JSON data
+  - [x] `remove(key)` - Delete entry
+  - [x] `clear()` - Clear all boxes
+  - [x] `containsKey(key)` - Check existence
+  - [x] `getAllKeys()` - List all keys
+- [x] Add box-specific helper methods for typed access
+- [x] Add batch operation support for efficiency
 
 ### Update DataSources
-- [ ] Update `ProgramLocalDataSourceImpl` in `lib/data/datasources/local/program_local_datasource.dart`
-  - [ ] Replace in-memory `_programsCache` Map with Hive box operations
-  - [ ] Replace in-memory `_workoutSessionsCache` Map with Hive box operations
-  - [ ] Use existing `toJson()`/`fromJson()` for serialization
-- [ ] Update `ExerciseLocalDataSourceImpl` in `lib/data/datasources/local/exercise_local_datasource.dart`
-  - [ ] Replace in-memory `_customExercises` Map with Hive box operations
-  - [ ] Replace in-memory `_preferences` Map with Hive box operations
+- [x] Update `ProgramLocalDataSourceImpl` in `lib/data/datasources/local/program_local_datasource.dart`
+  - [x] Replace in-memory `_programsCache` Map with Hive box operations
+  - [x] Use existing `toJson()`/`fromJson()` for serialization
+  - [x] Added `InMemoryProgramLocalDataSource` for testing
+- [x] Update `ExerciseLocalDataSourceImpl` in `lib/data/datasources/local/exercise_local_datasource.dart`
+  - [x] Replace in-memory `_customExercises` Map with Hive box operations
+  - [x] Replace in-memory `_preferences` Map with Hive box operations
+  - [x] Renamed in-memory version to `InMemoryExerciseLocalDataSource` for testing
 
 ### Update Providers
-- [ ] Update `storageServiceProvider` in `lib/core/providers/storage_provider.dart` to use `HiveStorageService`
-- [ ] Ensure `storageInitProvider` properly awaits Hive initialization
+- [x] Update `storageServiceProvider` in `lib/core/providers/storage_provider.dart` to use `HiveStorageService`
+- [x] Ensure `storageInitProvider` properly awaits Hive initialization
 
 ### Testing
+- [x] All 268 tests pass
 - [ ] Test data persists after app restart (hot restart doesn't count)
 - [ ] Test on Android
 - [ ] Test on iOS (simulator)

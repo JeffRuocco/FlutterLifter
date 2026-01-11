@@ -11,7 +11,8 @@ void main() {
     setUp(() {
       // Each instance has its own cache, so simply creating a new instance
       // provides test isolation without needing explicit cache clearing
-      datasource = ExerciseLocalDataSourceImpl();
+      // Use InMemoryExerciseLocalDataSource for tests to avoid Hive dependency
+      datasource = InMemoryExerciseLocalDataSource();
     });
 
     group('Custom Exercises Cache', () {
@@ -407,7 +408,7 @@ void main() {
         );
 
         // Create a new instance - it should have empty caches (instance isolation)
-        final newDatasource = ExerciseLocalDataSourceImpl();
+        final newDatasource = InMemoryExerciseLocalDataSource();
         expect(
           (await newDatasource.getCachedCustomExercises()).length,
           equals(0),
@@ -420,7 +421,7 @@ void main() {
       });
 
       test('clearAllCaches should reset caches for the instance', () async {
-        final impl = datasource as ExerciseLocalDataSourceImpl;
+        final impl = datasource as InMemoryExerciseLocalDataSource;
         await impl.cacheCustomExercise(
           Exercise(
             id: 'test',
