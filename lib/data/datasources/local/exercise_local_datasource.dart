@@ -145,6 +145,7 @@ class ExerciseLocalDataSourceImpl implements ExerciseLocalDataSource {
     List<UserExercisePreferences> preferences,
   ) async {
     await HiveStorageService.clearUserPreferences();
+    // TODO: Consider implementing a batch operation in HiveStorageService or using Future.wait to parallelize the storage operations.
     for (final pref in preferences) {
       await HiveStorageService.storeUserPreference(
         pref.exerciseId,
@@ -243,6 +244,7 @@ class InMemoryExerciseLocalDataSource implements ExerciseLocalDataSource {
   @override
   Future<void> cacheCustomExercises(List<Exercise> exercises) async {
     _customExercisesCache.clear();
+    // TODO: Consider implementing a batch operation in HiveStorageService or using Future.wait to parallelize the storage operations.
     for (final exercise in exercises) {
       _customExercisesCache[exercise.id.toLowerCase()] = exercise;
     }

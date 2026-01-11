@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'logging_service.dart';
+
 /// Abstract storage service for local data persistence
 abstract class StorageService {
   Future<void> init();
@@ -195,7 +197,17 @@ class HiveStorageService implements StorageService {
     _ensureInitialized();
     final value = _programsBox.get(id);
     if (value == null) return null;
-    return jsonDecode(value) as Map<String, dynamic>;
+    try {
+      return jsonDecode(value) as Map<String, dynamic>;
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'decode',
+        'program:$id',
+        e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 
   /// Get all programs as JSON maps
@@ -205,7 +217,17 @@ class HiveStorageService implements StorageService {
     for (final key in _programsBox.keys) {
       final value = _programsBox.get(key);
       if (value != null) {
-        result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+        try {
+          result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+        } catch (e, stackTrace) {
+          // Skip corrupted entries
+          LoggingService.logDataError(
+            'decode',
+            'program:$key',
+            e,
+            stackTrace: stackTrace,
+          );
+        }
       }
     }
     return result;
@@ -245,7 +267,17 @@ class HiveStorageService implements StorageService {
     _ensureInitialized();
     final value = _customExercisesBox.get(id.toLowerCase());
     if (value == null) return null;
-    return jsonDecode(value) as Map<String, dynamic>;
+    try {
+      return jsonDecode(value) as Map<String, dynamic>;
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'decode',
+        'custom_exercise:$id',
+        e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 
   /// Get all custom exercises
@@ -255,7 +287,16 @@ class HiveStorageService implements StorageService {
     for (final key in _customExercisesBox.keys) {
       final value = _customExercisesBox.get(key);
       if (value != null) {
-        result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+        try {
+          result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+        } catch (e, stackTrace) {
+          LoggingService.logDataError(
+            'decode',
+            'custom_exercise:$key',
+            e,
+            stackTrace: stackTrace,
+          );
+        }
       }
     }
     return result;
@@ -295,7 +336,17 @@ class HiveStorageService implements StorageService {
     _ensureInitialized();
     final value = _userPreferencesBox.get(exerciseId.toLowerCase());
     if (value == null) return null;
-    return jsonDecode(value) as Map<String, dynamic>;
+    try {
+      return jsonDecode(value) as Map<String, dynamic>;
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'decode',
+        'user_preference:$exerciseId',
+        e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 
   /// Get all user preferences
@@ -305,7 +356,16 @@ class HiveStorageService implements StorageService {
     for (final key in _userPreferencesBox.keys) {
       final value = _userPreferencesBox.get(key);
       if (value != null) {
-        result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+        try {
+          result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+        } catch (e, stackTrace) {
+          LoggingService.logDataError(
+            'decode',
+            'user_preference:$key',
+            e,
+            stackTrace: stackTrace,
+          );
+        }
       }
     }
     return result;
@@ -345,7 +405,17 @@ class HiveStorageService implements StorageService {
     _ensureInitialized();
     final value = _syncMetadataBox.get(id);
     if (value == null) return null;
-    return jsonDecode(value) as Map<String, dynamic>;
+    try {
+      return jsonDecode(value) as Map<String, dynamic>;
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'decode',
+        'sync_metadata:$id',
+        e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 
   /// Get all sync metadata
@@ -355,7 +425,16 @@ class HiveStorageService implements StorageService {
     for (final key in _syncMetadataBox.keys) {
       final value = _syncMetadataBox.get(key);
       if (value != null) {
-        result.add(jsonDecode(value) as Map<String, dynamic>);
+        try {
+          result.add(jsonDecode(value) as Map<String, dynamic>);
+        } catch (e, stackTrace) {
+          LoggingService.logDataError(
+            'decode',
+            'sync_metadata:$key',
+            e,
+            stackTrace: stackTrace,
+          );
+        }
       }
     }
     return result;
@@ -395,7 +474,16 @@ class HiveStorageService implements StorageService {
     _ensureInitialized();
     final value = _generalBox.get('$_cacheTimestampPrefix$cacheType');
     if (value == null) return null;
-    return DateTime.parse(value as String);
+    try {
+      return DateTime.parse(value as String);
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'parse',
+        'cache_timestamp:$cacheType',
+        e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// Clear cache timestamp for a specific cache type

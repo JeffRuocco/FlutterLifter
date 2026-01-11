@@ -36,6 +36,7 @@ class ProgramLocalDataSourceImpl implements ProgramLocalDataSource {
   @override
   Future<void> cachePrograms(List<Program> programs) async {
     await HiveStorageService.clearPrograms();
+    // TODO: Consider implementing a batch operation in HiveStorageService or using Future.wait to parallelize the storage operations.
     for (final program in programs) {
       await HiveStorageService.storeProgram(program.id, program.toJson());
     }
