@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../config/app_config.dart';
 import '../../data/repositories/program_repository.dart';
 import '../../data/repositories/exercise_repository.dart';
 import '../../data/repositories/exercise_history_repository.dart';
@@ -12,22 +13,38 @@ import '../../models/exercise/exercise_session_record.dart';
 // ============================================
 // Data Source Providers
 // ============================================
+// These providers respect [AppConfig.storageMode] to determine
+// whether to use persistent (Hive) or in-memory storage.
+//
+// Change [AppConfig.storageMode] in lib/config/app_config.dart
+// to switch between storage backends during development.
+// ============================================
 
 /// Provider for MockProgramDataSource
 final mockProgramDataSourceProvider = Provider<MockProgramDataSource>((ref) {
   return MockProgramDataSource();
 });
 
-/// Provider for ProgramLocalDataSource (Hive-backed for production)
+/// Provider for ProgramLocalDataSource
+///
+/// Returns Hive-backed or in-memory implementation based on [AppConfig.storageMode].
 final programLocalDataSourceProvider = Provider<ProgramLocalDataSource>((ref) {
-  return ProgramLocalDataSourceImpl();
+  return switch (AppConfig.storageMode) {
+    StorageMode.hive => ProgramLocalDataSourceImpl(),
+    StorageMode.inMemory => InMemoryProgramLocalDataSource(),
+  };
 });
 
-/// Provider for ExerciseLocalDataSource (Hive-backed for production)
+/// Provider for ExerciseLocalDataSource
+///
+/// Returns Hive-backed or in-memory implementation based on [AppConfig.storageMode].
 final exerciseLocalDataSourceProvider = Provider<ExerciseLocalDataSource>((
   ref,
 ) {
-  return ExerciseLocalDataSourceImpl();
+  return switch (AppConfig.storageMode) {
+    StorageMode.hive => ExerciseLocalDataSourceImpl(),
+    StorageMode.inMemory => InMemoryExerciseLocalDataSource(),
+  };
 });
 
 // ============================================
@@ -59,9 +76,16 @@ final exerciseLocalDataSourceProvider = Provider<ExerciseLocalDataSource>((
 /// - Fetching by ID (use [programByIdProvider])
 /// - Filtering by difficulty (use [programsByDifficultyProvider])
 ///
-/// Currently configured for development with mock data.
+/// Storage backend controlled by [AppConfig.storageMode].
 final programRepositoryProvider = Provider<ProgramRepository>((ref) {
-  return ProgramRepositoryImpl.development();
+  final localDataSource = ref.watch(programLocalDataSourceProvider);
+  final mockDataSource = ref.watch(mockProgramDataSourceProvider);
+  return ProgramRepositoryImpl(
+    mockDataSource: mockDataSource,
+    localDataSource: localDataSource,
+    useMockData: true,
+    useRemoteApi: false,
+  );
 });
 
 /// Provider for production ProgramRepository
@@ -96,10 +120,10 @@ final programRepositoryProvider = Provider<ProgramRepository>((ref) {
 /// - Filtering by category (use [exercisesByCategoryProvider])
 /// - Searching exercises (use [searchExercisesProvider])
 ///
-/// Currently configured for development with mock data.
+/// Storage backend controlled by [AppConfig.storageMode].
 final exerciseRepositoryProvider = Provider<ExerciseRepository>((ref) {
   final localDataSource = ref.watch(exerciseLocalDataSourceProvider);
-  return ExerciseRepositoryImpl.development(localDataSource: localDataSource);
+  return ExerciseRepositoryImpl.production(localDataSource: localDataSource);
 });
 
 /// Provider for [ExerciseHistoryRepository] - direct repository access.
