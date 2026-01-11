@@ -840,6 +840,7 @@ class AppTextFormField extends StatelessWidget {
   final bool isDense;
   final List<TextInputFormatter>? inputFormatters;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
   final TextAlign textAlign;
@@ -861,6 +862,7 @@ class AppTextFormField extends StatelessWidget {
     this.isDense = false,
     this.inputFormatters,
     this.controller,
+    this.focusNode,
     this.validator,
     this.keyboardType,
     this.textAlign = TextAlign.start,
@@ -880,6 +882,7 @@ class AppTextFormField extends StatelessWidget {
     return TextFormField(
       inputFormatters: inputFormatters,
       controller: controller,
+      focusNode: focusNode,
       validator: validator,
       keyboardType: keyboardType,
       textAlign: textAlign,

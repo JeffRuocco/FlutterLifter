@@ -114,6 +114,51 @@ abstract class ExerciseRepository {
   Future<void> removePreference(String exerciseId);
 
   // ============================================
+  // User Notes and Photos
+  // ============================================
+
+  /// Updates user notes for an exercise.
+  ///
+  /// Creates preferences if they don't exist, or updates existing preferences.
+  /// Pass null to clear the notes.
+  Future<void> updateExerciseUserNotes(String exerciseId, String? notes);
+
+  /// Adds a photo to an exercise.
+  ///
+  /// Creates preferences if they don't exist.
+  /// Returns the updated preferences.
+  Future<UserExercisePreferences> addExercisePhoto(
+    String exerciseId,
+    String photoPath,
+  );
+
+  /// Removes a photo from an exercise.
+  ///
+  /// Returns the updated preferences, or null if no preferences exist.
+  Future<UserExercisePreferences?> removeExercisePhoto(
+    String exerciseId,
+    String photoPath,
+  );
+
+  /// Removes a cloud photo URL from an exercise.
+  ///
+  /// Returns the updated preferences, or null if no preferences exist.
+  Future<UserExercisePreferences?> removeExerciseCloudPhoto(
+    String exerciseId,
+    String photoUrl,
+  );
+
+  /// Gets all photo paths (local and cloud) for an exercise.
+  ///
+  /// Returns empty list if no photos exist.
+  Future<List<String>> getExercisePhotos(String exerciseId);
+
+  /// Gets user notes for an exercise.
+  ///
+  /// Returns null if no user notes exist.
+  Future<String?> getExerciseUserNotes(String exerciseId);
+
+  // ============================================
   // Future: Exercise Library Integration
   // ============================================
 
@@ -409,6 +454,125 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   @override
   Future<void> removePreference(String exerciseId) async {
     await localDataSource.removePreference(exerciseId);
+  }
+
+  // ============================================
+  // User Notes and Photos
+  // ============================================
+
+  @override
+  Future<void> updateExerciseUserNotes(String exerciseId, String? notes) async {
+    // Verify the exercise exists
+    final exercise = await getExerciseByIdWithoutPreferences(exerciseId);
+    if (exercise == null) {
+      throw ArgumentError(
+        'Cannot update notes for non-existent exercise: $exerciseId',
+      );
+    }
+
+    // Get existing preferences or create new ones
+    var prefs = await localDataSource.getCachedPreferenceForExercise(
+      exerciseId,
+    );
+
+    if (prefs == null) {
+      // Create new preferences with just the notes
+      prefs = UserExercisePreferences.create(
+        exerciseId: exerciseId,
+        userNotes: notes,
+      );
+    } else {
+      // Update existing preferences
+      prefs = prefs.withUserNotes(notes);
+    }
+
+    await localDataSource.cachePreference(prefs);
+  }
+
+  @override
+  Future<UserExercisePreferences> addExercisePhoto(
+    String exerciseId,
+    String photoPath,
+  ) async {
+    // Verify the exercise exists
+    final exercise = await getExerciseByIdWithoutPreferences(exerciseId);
+    if (exercise == null) {
+      throw ArgumentError(
+        'Cannot add photo for non-existent exercise: $exerciseId',
+      );
+    }
+
+    // Get existing preferences or create new ones
+    var prefs = await localDataSource.getCachedPreferenceForExercise(
+      exerciseId,
+    );
+
+    if (prefs == null) {
+      // Create new preferences with just the photo
+      prefs = UserExercisePreferences.create(
+        exerciseId: exerciseId,
+        localPhotoPaths: [photoPath],
+        pendingPhotoUploads: [photoPath],
+      );
+    } else {
+      // Add photo to existing preferences
+      prefs = prefs.withAddedPhoto(photoPath);
+    }
+
+    await localDataSource.cachePreference(prefs);
+    return prefs;
+  }
+
+  @override
+  Future<UserExercisePreferences?> removeExercisePhoto(
+    String exerciseId,
+    String photoPath,
+  ) async {
+    var prefs = await localDataSource.getCachedPreferenceForExercise(
+      exerciseId,
+    );
+
+    if (prefs == null) return null;
+
+    prefs = prefs.withRemovedPhoto(photoPath);
+    await localDataSource.cachePreference(prefs);
+    return prefs;
+  }
+
+  @override
+  Future<UserExercisePreferences?> removeExerciseCloudPhoto(
+    String exerciseId,
+    String photoUrl,
+  ) async {
+    var prefs = await localDataSource.getCachedPreferenceForExercise(
+      exerciseId,
+    );
+
+    if (prefs == null) return null;
+
+    prefs = prefs.withRemovedCloudPhoto(photoUrl);
+    await localDataSource.cachePreference(prefs);
+    return prefs;
+  }
+
+  @override
+  Future<List<String>> getExercisePhotos(String exerciseId) async {
+    final prefs = await localDataSource.getCachedPreferenceForExercise(
+      exerciseId,
+    );
+
+    if (prefs == null) return [];
+
+    // Return both local paths and cloud URLs
+    return [...prefs.localPhotoPaths, ...prefs.cloudPhotoUrls];
+  }
+
+  @override
+  Future<String?> getExerciseUserNotes(String exerciseId) async {
+    final prefs = await localDataSource.getCachedPreferenceForExercise(
+      exerciseId,
+    );
+    return prefs?.userNotes;
   }
 
   // ============================================
