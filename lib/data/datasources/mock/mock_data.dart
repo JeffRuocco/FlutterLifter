@@ -55,6 +55,8 @@ class MockPrograms {
       ]), // Mon, Tue, Thu, Fri - 4 days/week
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
+      isDefault: true,
+      lastUsedAt: DateTime.now().subtract(const Duration(days: 2)),
       metadata: {
         'color': Colors.blue,
         'icon': HugeIcons.strokeRoundedDumbbell01,
@@ -119,6 +121,7 @@ class MockPrograms {
       ]), // Mon, Wed, Fri - 3 days/week
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
+      isDefault: true,
       metadata: {
         'color': Colors.green,
         'icon': HugeIcons.strokeRoundedBodyPartMuscle,
@@ -139,6 +142,7 @@ class MockPrograms {
       ), // 3 days on, 1 day rest
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime.now(),
+      isDefault: true,
       metadata: {'color': Colors.orange, 'icon': HugeIcons.strokeRoundedFire},
     ),
   ];

@@ -735,6 +735,15 @@ class Program {
   final String? imageUrl;
   final Map<String, dynamic>? metadata;
 
+  /// Whether this is a default built-in program (read-only template)
+  final bool isDefault;
+
+  /// When the program was last used (started a cycle)
+  final DateTime? lastUsedAt;
+
+  /// The ID of the default program this was copied from (null for default programs and original custom programs)
+  final String? templateId;
+
   /// List of program cycles - each cycle represents a run of this program
   final List<ProgramCycle> cycles;
 
@@ -751,6 +760,9 @@ class Program {
     this.tags = const [],
     this.imageUrl,
     this.metadata,
+    this.isDefault = false,
+    this.lastUsedAt,
+    this.templateId,
     this.cycles = const [],
   });
 
@@ -766,6 +778,9 @@ class Program {
     this.tags = const [],
     this.imageUrl,
     this.metadata,
+    this.isDefault = false,
+    this.lastUsedAt,
+    this.templateId,
     this.cycles = const [],
   }) : id = Utils.generateId(),
        createdAt = DateTime.now();
@@ -906,13 +921,15 @@ class Program {
     );
   }
 
-  /// Updates a cycle in this program and refreshes activation based on dates
+  /// Updates a cycle in this program.
+  /// Note: This does NOT automatically re-evaluate activation status,
+  /// as explicit updates (like ending a cycle) should be respected.
   Program updateCycle(ProgramCycle updatedCycle) {
     final updatedCycles = cycles.map((cycle) {
       return cycle.id == updatedCycle.id ? updatedCycle : cycle;
     }).toList();
 
-    return copyWith(cycles: updatedCycles)._updateCycleActivationByDate();
+    return copyWith(cycles: updatedCycles);
   }
 
   /// Forces activation of a specific cycle if it's within valid date range
@@ -1064,6 +1081,9 @@ class Program {
     List<String>? tags,
     String? imageUrl,
     Map<String, dynamic>? metadata,
+    bool? isDefault,
+    DateTime? lastUsedAt,
+    String? templateId,
     List<ProgramCycle>? cycles,
   }) {
     return Program(
@@ -1079,6 +1099,9 @@ class Program {
       tags: tags ?? this.tags,
       imageUrl: imageUrl ?? this.imageUrl,
       metadata: metadata ?? this.metadata,
+      isDefault: isDefault ?? this.isDefault,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      templateId: templateId ?? this.templateId,
       cycles: cycles ?? this.cycles,
     );
   }
@@ -1106,6 +1129,11 @@ class Program {
       tags: List<String>.from(json['tags'] ?? []),
       imageUrl: json['imageUrl'],
       metadata: json['metadata'],
+      isDefault: json['isDefault'] ?? false,
+      lastUsedAt: json['lastUsedAt'] != null
+          ? DateTime.parse(json['lastUsedAt'])
+          : null,
+      templateId: json['templateId'],
       cycles: json['cycles'] != null
           ? (json['cycles'] as List)
                 .map((cycleJson) => ProgramCycle.fromJson(cycleJson))
@@ -1129,6 +1157,9 @@ class Program {
       'tags': tags,
       'imageUrl': imageUrl,
       'metadata': metadata,
+      'isDefault': isDefault,
+      'lastUsedAt': lastUsedAt?.toIso8601String(),
+      'templateId': templateId,
       'cycles': cycles.map((cycle) => cycle.toJson()).toList(),
     };
   }
@@ -1144,7 +1175,8 @@ class Program {
   @override
   String toString() {
     return 'Program{id: $id, name: $name, type: $type, '
-        'difficulty: $difficulty, defaultPeriodicity: ${defaultPeriodicity?.description}, '
+        'difficulty: $difficulty, isDefault: $isDefault, '
+        'defaultPeriodicity: ${defaultPeriodicity?.description}, '
         'cyclesCount: ${cycles.length}, activeCycle: ${activeCycle?.cycleNumber ?? 'None'}}';
   }
 }

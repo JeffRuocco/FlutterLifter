@@ -15,7 +15,27 @@ abstract class ProgramDataSource {
 
 /// Mock implementation of ProgramDataSource
 class MockProgramDataSource implements ProgramDataSource {
-  static final List<Program> _programs = List.from(MockPrograms.programs);
+  /// Instance-level list initialized from mock data.
+  /// Deep copies all programs and cycles to avoid state pollution across tests.
+  final List<Program> _programs;
+
+  MockProgramDataSource()
+    : _programs = _deepCopyPrograms(MockPrograms.programs);
+
+  /// Creates deep copies of all programs and their nested cycles
+  static List<Program> _deepCopyPrograms(List<Program> source) {
+    return source.map((program) {
+      // Deep copy each cycle within the program
+      final copiedCycles = program.cycles.map((cycle) {
+        return cycle.copyWith(
+          scheduledSessions: List.from(cycle.scheduledSessions),
+        );
+      }).toList();
+
+      // Create a copy of the program with the copied cycles
+      return program.copyWith(cycles: copiedCycles);
+    }).toList();
+  }
 
   /// Gets a list of all programs, order by most recent session first.
   @override
