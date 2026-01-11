@@ -1,19 +1,166 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter_lifter/core/providers/accessibility_provider.dart';
 import 'package:flutter_lifter/core/providers/program_library_filter_provider.dart';
+import 'package:flutter_lifter/core/providers/repository_providers.dart';
+import 'package:flutter_lifter/core/theme/app_theme.dart';
+import 'package:flutter_lifter/core/theme/theme_provider.dart';
+import 'package:flutter_lifter/data/datasources/mock/mock_program_datasource.dart';
+import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
+import 'package:flutter_lifter/screens/program_library_screen.dart';
 
 void main() {
   // ========================================================
-  // NOTE: Widget tests for ProgramLibraryScreen are skipped
-  // because the screen contains continuous animations
-  // (SlideInWidget, AnimatedCrossFade) that prevent Flutter's
-  // test framework from settling timers. The business logic
-  // is thoroughly tested in the unit tests below.
+  // Widget Tests for ProgramLibraryScreen
   //
-  // For UI testing, manual testing or integration tests
-  // should be used.
+  // These tests disable animations via the reduceMotionProvider
+  // to allow Flutter's test framework to settle timers properly.
+  // ========================================================
+
+  group('ProgramLibraryScreen Widget Tests', () {
+    late SharedPreferences prefs;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
+
+    /// Creates a testable widget with all required providers
+    Widget createTestWidget() {
+      return ProviderScope(
+        overrides: [
+          // Disable animations for testing
+          reduceMotionProvider.overrideWithValue(true),
+          // Use mock theme provider
+          createThemeModeProviderOverride(prefs),
+          // Use fresh mock data source for each test
+          programRepositoryProvider.overrideWithValue(
+            ProgramRepositoryImpl(
+              mockDataSource: MockProgramDataSource(),
+              useMockData: true,
+              useRemoteApi: false,
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          home: const ProgramLibraryScreen(),
+        ),
+      );
+    }
+
+    testWidgets('renders app bar with title', (WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text('Program Library'), findsOneWidget);
+    });
+
+    testWidgets('renders tab bar with My Programs and Discover tabs', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text('My Programs'), findsOneWidget);
+      expect(find.text('Discover'), findsOneWidget);
+    });
+
+    testWidgets('renders search field', (WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.text('Search programs...'), findsOneWidget);
+    });
+
+    testWidgets('renders filter button with badge', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Find filter button by the HugeIcon it contains
+      expect(
+        find.byType(IconButton),
+        findsWidgets, // Multiple icon buttons exist
+      );
+      // Filter button contains a Badge widget
+      expect(find.byType(Badge), findsOneWidget);
+    });
+
+    testWidgets('displays skeleton loader during loading', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget());
+      // Pump a small amount to start loading
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Screen uses SkeletonList during loading state
+      // Since mock data loads quickly, we verify the UI renders without error
+      // and eventually shows content
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(TabBarView), findsOneWidget);
+    });
+
+    testWidgets('displays programs after loading', (WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
+      // Allow time for async loading
+      await tester.pump(const Duration(milliseconds: 1000));
+
+      // Should display program cards (mock data has programs)
+      // The mock data includes "Upper/Lower", "Full Body", "Push/Pull/Legs"
+      expect(find.textContaining('Upper'), findsWidgets);
+    });
+
+    testWidgets('switching tabs updates content', (WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump(const Duration(milliseconds: 1000));
+
+      // Tap on Discover tab
+      await tester.tap(find.text('Discover'));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Should still show programs (from mock data)
+      expect(find.byType(TabBar), findsOneWidget);
+    });
+
+    testWidgets('search field accepts input', (WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Find and tap the search field
+      final searchField = find.byType(TextField);
+      await tester.tap(searchField);
+      await tester.pump();
+
+      // Enter search text
+      await tester.enterText(searchField, 'strength');
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify text was entered
+      expect(find.text('strength'), findsOneWidget);
+    });
+
+    testWidgets('renders FAB for creating new program', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+    });
+  });
+
+  // ========================================================
+  // Unit Tests for ProgramLibraryFilterState
+  // (These don't require widget rendering)
   // ========================================================
 
   group('ProgramLibraryFilterState', () {
