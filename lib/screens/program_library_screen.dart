@@ -6,12 +6,12 @@ import 'package:hugeicons/hugeicons.dart';
 import '../core/providers/program_library_filter_provider.dart';
 import '../core/providers/repository_providers.dart';
 import '../core/router/app_router.dart';
-import '../core/theme/app_colors.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_extensions.dart';
 import '../models/models.dart';
 import '../utils/date_utils.dart';
+import '../utils/program_colors.dart';
 import '../widgets/common/app_widgets.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/skeleton_loader.dart';
@@ -595,7 +595,7 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
                   width: 4,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: _getTypeColor(type),
+                    color: type.getColor(context),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -657,28 +657,6 @@ class _ProgramLibraryScreenState extends ConsumerState<ProgramLibraryScreen>
     );
   }
 
-  Color _getTypeColor(ProgramType type) {
-    switch (type) {
-      case ProgramType.strength:
-        return AppColors.muscleChest;
-      case ProgramType.hypertrophy:
-        return AppColors.muscleBack;
-      case ProgramType.powerlifting:
-        return AppColors.muscleCore;
-      case ProgramType.bodybuilding:
-        return AppColors.muscleLegs;
-      case ProgramType.cardio:
-      case ProgramType.hiit:
-        return AppColors.cardio;
-      case ProgramType.flexibility:
-      case ProgramType.rehabilitation:
-        return context.warningColor;
-      case ProgramType.general:
-      case ProgramType.sport:
-        return context.primaryColor;
-    }
-  }
-
   void _navigateToProgramDetail(Program program) {
     context.pushProgramDetail(program.id);
   }
@@ -710,7 +688,7 @@ class _ProgramLibraryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeColor = _getTypeColor(context, program.type);
+    final typeColor = program.type.getColor(context);
     final hasActiveCycle = program.activeCycle != null;
 
     return AppCard(
@@ -816,7 +794,7 @@ class _ProgramLibraryCard extends StatelessWidget {
                       _buildBadge(
                         context,
                         program.difficulty.displayName,
-                        _getDifficultyColor(context, program.difficulty),
+                        program.difficulty.getColor(context),
                       ),
                       const Spacer(),
                       // Last used
@@ -889,43 +867,6 @@ class _ProgramLibraryCard extends StatelessWidget {
         style: AppTextStyles.labelSmall.copyWith(color: color, fontSize: 10),
       ),
     );
-  }
-
-  Color _getTypeColor(BuildContext context, ProgramType type) {
-    switch (type) {
-      case ProgramType.strength:
-        return AppColors.muscleChest;
-      case ProgramType.hypertrophy:
-        return AppColors.muscleBack;
-      case ProgramType.powerlifting:
-        return AppColors.muscleCore;
-      case ProgramType.bodybuilding:
-        return AppColors.muscleLegs;
-      case ProgramType.cardio:
-      case ProgramType.hiit:
-        return AppColors.cardio;
-      case ProgramType.flexibility:
-      case ProgramType.rehabilitation:
-        return context.warningColor;
-      case ProgramType.general:
-      case ProgramType.sport:
-        return context.primaryColor;
-    }
-  }
-
-  Color _getDifficultyColor(
-    BuildContext context,
-    ProgramDifficulty difficulty,
-  ) {
-    switch (difficulty) {
-      case ProgramDifficulty.beginner:
-        return context.successColor;
-      case ProgramDifficulty.intermediate:
-        return context.warningColor;
-      case ProgramDifficulty.advanced:
-      case ProgramDifficulty.expert:
-        return context.errorColor;
-    }
   }
 }
 
@@ -1090,7 +1031,7 @@ class _ProgramFilterBottomSheetState extends State<_ProgramFilterBottomSheet> {
       runSpacing: AppSpacing.xs,
       children: ProgramDifficulty.values.map((difficulty) {
         final isSelected = _filter.selectedDifficulty == difficulty;
-        final color = _getDifficultyColor(difficulty);
+        final color = difficulty.getColor(context);
         return FilterChip(
           label: Text(difficulty.displayName),
           selected: isSelected,
@@ -1110,17 +1051,5 @@ class _ProgramFilterBottomSheetState extends State<_ProgramFilterBottomSheet> {
         );
       }).toList(),
     );
-  }
-
-  Color _getDifficultyColor(ProgramDifficulty difficulty) {
-    switch (difficulty) {
-      case ProgramDifficulty.beginner:
-        return context.successColor;
-      case ProgramDifficulty.intermediate:
-        return context.warningColor;
-      case ProgramDifficulty.advanced:
-      case ProgramDifficulty.expert:
-        return context.errorColor;
-    }
   }
 }

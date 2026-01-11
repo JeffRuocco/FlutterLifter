@@ -9,6 +9,7 @@ import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_extensions.dart';
 import '../utils/date_utils.dart';
+import '../utils/program_colors.dart';
 import '../widgets/common/app_widgets.dart';
 import '../models/models.dart';
 import '../widgets/skeleton_loader.dart';
@@ -321,10 +322,7 @@ class _ProgramCard extends StatelessWidget {
                         const SizedBox(width: AppSpacing.xs),
                         _InfoChip(
                           label: program.difficulty.displayName,
-                          color: _getDifficultyColor(
-                            context,
-                            program.difficulty.displayName,
-                          ),
+                          color: program.difficulty.getColor(context),
                         ),
                       ],
                     ),
@@ -351,19 +349,6 @@ class _ProgramCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Color _getDifficultyColor(BuildContext context, String difficulty) {
-    switch (difficulty.toLowerCase()) {
-      case 'beginner':
-        return context.successColor;
-      case 'intermediate':
-        return context.warningColor;
-      case 'advanced':
-        return context.errorColor;
-      default:
-        return context.primaryColor;
-    }
   }
 }
 
