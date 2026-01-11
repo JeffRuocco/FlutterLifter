@@ -479,23 +479,17 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
   @override
   Future<ProgramCycle> startNewCycle(String programId) async {
-    // First, end any active cycle across ALL programs
+    // End any active cycle across ALL programs first.
+    // This is a single-user app, so we trust this operation completes
+    // before we proceed. The fresh program fetch below will reflect
+    // any changes made by endActiveCycle().
     await endActiveCycle();
 
-    // Get the FRESH program (after endActiveCycle may have updated it)
+    // Get the program with up-to-date cycle state
     final program = await getProgramById(programId);
     if (program == null) {
       throw RepositoryException('Program not found: $programId');
     }
-
-    // Ensure all existing cycles in this program are inactive
-    // (in case the same program had an active cycle that was just ended)
-    final deactivatedCycles = program.cycles.map((cycle) {
-      if (cycle.isActive) {
-        return cycle.copyWith(isActive: false);
-      }
-      return cycle;
-    }).toList();
 
     // Create a new active cycle
     final newCycle = ProgramCycle.create(
@@ -506,9 +500,11 @@ class ProgramRepositoryImpl implements ProgramRepository {
       periodicity: program.defaultPeriodicity,
     );
 
-    // Update the program with deactivated old cycles + new active cycle
+    // Update the program with the new active cycle.
+    // No need to re-deactivate existing cycles - endActiveCycle() already
+    // handled that, and the fresh program fetch reflects that state.
     final updatedProgram = program.copyWith(
-      cycles: [...deactivatedCycles, newCycle],
+      cycles: [...program.cycles, newCycle],
       lastUsedAt: DateTime.now(),
     );
 
