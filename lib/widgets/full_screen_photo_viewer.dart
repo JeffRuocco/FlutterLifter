@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:hugeicons/styles/stroke_rounded.dart';
 
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
@@ -281,9 +283,9 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.broken_image_outlined,
-          size: 64,
+        HugeIcon(
+          icon: HugeIconsStrokeRounded.imageNotFound01,
+          size: AppDimensions.iconXLarge,
           color: Colors.white.withValues(alpha: 0.5),
         ),
         const SizedBox(height: 16),
@@ -320,7 +322,11 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
             children: [
               // Close button
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                icon: const HugeIcon(
+                  icon: HugeIconsStrokeRounded.cancel01,
+                  color: Colors.white,
+                  size: AppDimensions.iconMedium,
+                ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
 
@@ -343,10 +349,10 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(
-                          Icons.delete_outline,
+                      : const HugeIcon(
+                          icon: HugeIconsStrokeRounded.delete02,
                           color: Colors.white,
-                          size: 28,
+                          size: AppDimensions.iconMedium,
                         ),
                   onPressed: _isDeleting ? null : _handleDelete,
                 )
@@ -442,7 +448,10 @@ class DismissiblePhoto extends StatelessWidget {
         color: Colors.red,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: AppSpacing.lg),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const HugeIcon(
+          icon: HugeIconsStrokeRounded.delete02,
+          color: Colors.white,
+        ),
       ),
       child: photo,
     );
@@ -480,7 +489,10 @@ class DismissiblePhoto extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.delete_outline, color: context.errorColor),
+              leading: HugeIcon(
+                icon: HugeIconsStrokeRounded.delete02,
+                color: context.errorColor,
+              ),
               title: Text(
                 'Delete Photo',
                 style: TextStyle(color: context.errorColor),
@@ -494,7 +506,9 @@ class DismissiblePhoto extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.cancel_outlined),
+              leading: const HugeIcon(
+                icon: HugeIconsStrokeRounded.cancelCircle,
+              ),
               title: const Text('Cancel'),
               onTap: () => Navigator.of(context).pop(),
             ),

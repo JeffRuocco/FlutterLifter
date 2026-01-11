@@ -143,6 +143,8 @@ class PhotoStorageService {
       Uint8List finalBytes;
       if (compressionSupported) {
         // Compress the image
+        // Note: minWidth/minHeight in flutter_image_compress act as max constraints
+        // Images larger than these will be scaled down; smaller images won't scale up
         finalBytes = await FlutterImageCompress.compressWithList(
           bytes,
           minWidth: _maxWidth,
@@ -184,10 +186,7 @@ class PhotoStorageService {
   /// flutter_image_compress supports: Android, iOS, macOS, Web
   /// Not supported: Windows, Linux
   bool _isCompressionSupported() {
-    if (kIsWeb) return true;
-    // Platform.isAndroid, Platform.isIOS, Platform.isMacOS are supported
-    // Platform.isWindows, Platform.isLinux are NOT supported
-    return Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
+    return kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
   }
 
   /// Save a photo from bytes (useful for importing or testing).

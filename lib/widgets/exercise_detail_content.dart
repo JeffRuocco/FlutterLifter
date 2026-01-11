@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:hugeicons/styles/stroke_rounded.dart';
 import 'package:intl/intl.dart';
 
 import '../core/providers/repository_providers.dart';
@@ -96,8 +97,28 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
   }
 
   Future<void> _initPhotoService() async {
-    _photoService = PhotoStorageService();
-    await _photoService!.init();
+    try {
+      final service = PhotoStorageService();
+      await service.init();
+      if (!mounted) return;
+      setState(() {
+        _photoService = service;
+      });
+    } catch (e, stackTrace) {
+      // Ensure the photo service is not left in a partially initialized state.
+      debugPrint('Failed to initialize PhotoStorageService: $e\n$stackTrace');
+      if (!mounted) return;
+      setState(() {
+        _photoService = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Failed to initialize photo features. Photos will be disabled for this session.',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _loadPreferences() async {
@@ -1240,9 +1261,9 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
                       color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Icon(
-                      Icons.cloud_done,
-                      size: 12,
+                    child: const HugeIcon(
+                      icon: HugeIconsStrokeRounded.cloudSavingDone02,
+                      size: AppDimensions.iconSmall,
                       color: Colors.white,
                     ),
                   ),
@@ -1281,7 +1302,10 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
         errorBuilder: (context, error, stackTrace) {
           return Container(
             color: context.surfaceVariant,
-            child: Icon(Icons.broken_image, color: context.textSecondary),
+            child: HugeIcon(
+              icon: HugeIconsStrokeRounded.imageNotFound01,
+              color: context.textSecondary,
+            ),
           );
         },
       );
@@ -1292,7 +1316,10 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
         errorBuilder: (context, error, stackTrace) {
           return Container(
             color: context.surfaceVariant,
-            child: Icon(Icons.broken_image, color: context.textSecondary),
+            child: HugeIcon(
+              icon: HugeIconsStrokeRounded.imageNotFound01,
+              color: context.textSecondary,
+            ),
           );
         },
       );
