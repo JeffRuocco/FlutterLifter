@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/core/router/app_router.dart';
 import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -9,6 +10,8 @@ import '../core/theme/theme_extensions.dart';
 import '../models/models.dart';
 import 'common/app_widgets.dart';
 import 'exercise_detail_content.dart';
+
+// TODO: need fast way to see last session details (weight x reps x sets), not just total sets and weight
 
 /// A bottom sheet that displays detailed information about an exercise.
 ///
@@ -91,15 +94,30 @@ class ExerciseDetailBottomSheet extends StatelessWidget {
 
                   const VSpace.xl(),
 
-                  // Close button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Close'),
-                    ),
+                  // Link to main exercise details page
+                  AppButton.text(
+                    onPressed: () {
+                      Navigator.pop(context); // Close bottom sheet
+                      context.pushExerciseDetail(exercise.id);
+                    },
+                    text: 'View exercise',
                   ),
 
+                  const VSpace.sm(),
+
+                  // Close button
+                  AppButton.elevated(
+                    text: 'Close',
+                    onPressed: () => Navigator.pop(context),
+                  ),
+
+                  // SizedBox(
+                  //   width: double.infinity,
+                  //   child: ElevatedButton(
+                  //     onPressed: () => Navigator.pop(context),
+                  //     child: const Text('Close'),
+                  //   ),
+                  // ),
                   const VSpace.md(),
                 ],
               ),

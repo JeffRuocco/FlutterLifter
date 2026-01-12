@@ -547,7 +547,11 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
+// TODO: replace manual routes with these extension methods
+
 /// Extension on BuildContext for convenient navigation
+///
+/// Usage: context.goToHome(), context.pushExerciseDetail(exerciseId), etc.
 extension AppRouterExtension on BuildContext {
   /// Navigate to login screen
   void goToLogin() => go(AppRoutes.login);

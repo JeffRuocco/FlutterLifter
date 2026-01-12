@@ -12,6 +12,8 @@ import '../core/theme/theme_extensions.dart';
 import '../services/photo_storage_service.dart';
 import 'common/app_widgets.dart';
 
+// TODO: pinch to zoom not working
+
 /// A full-screen photo viewer with zoom and pan capabilities.
 ///
 /// Features:

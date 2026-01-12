@@ -189,6 +189,15 @@ class ExerciseSessionRecord {
     return '$workingSets sets • ${totalVolume.toStringAsFixed(0)} lbs total';
   }
 
+  /// Detailed summary string for display.
+  ///
+  /// Includes all sets with weight and reps.
+  ///
+  /// Example: "100x5 • 105x5 • 110x3"
+  String get detailedSummaryString {
+    return sets.map((s) => '${s.weight}x${s.reps}').join(' • ');
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

@@ -575,7 +575,7 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen>
   }
 
   Future<void> _navigateToExerciseDetail(Exercise exercise) async {
-    await context.push('${AppRoutes.exercises}/${exercise.id}');
+    context.pushExerciseDetail(exercise.id);
     // Refresh the exercise list when returning from detail/edit screen
     _loadExercises();
   }

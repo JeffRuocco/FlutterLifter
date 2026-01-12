@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/models/exercise/exercise_session_record.dart';
 import 'package:flutter_lifter/services/logging_service.dart';
 import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -887,7 +888,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
     );
   }
 
-  Widget _buildSessionPreviewItem(dynamic session) {
+  Widget _buildSessionPreviewItem(ExerciseSessionRecord session) {
     final isPR =
         session.sessionPR != null && session.sessionPR == _history!.allTimePR;
 
@@ -915,7 +916,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
                   ),
                 ),
                 Text(
-                  '${session.workingSets} sets • ${session.totalVolume.toStringAsFixed(0)} lbs',
+                  session.detailedSummaryString,
                   style: AppTextStyles.labelSmall.copyWith(
                     color: context.textSecondary,
                   ),
