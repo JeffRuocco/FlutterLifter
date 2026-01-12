@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/services/logging_service.dart';
 import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -106,7 +107,9 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
       });
     } catch (e, stackTrace) {
       // Ensure the photo service is not left in a partially initialized state.
-      debugPrint('Failed to initialize PhotoStorageService: $e\n$stackTrace');
+      LoggingService.debug(
+        'Failed to initialize PhotoStorageService: $e\n$stackTrace',
+      );
       if (!mounted) return;
       setState(() {
         _photoService = null;
@@ -125,7 +128,44 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
     setState(() => _isLoadingPreferences = true);
     try {
       final repo = ref.read(exerciseRepositoryProvider);
-      final prefs = await repo.getPreferenceForExercise(widget.exercise.id);
+      var prefs = await repo.getPreferenceForExercise(widget.exercise.id);
+
+      // Validate and clean up non-existent local photo paths (native platforms only)
+      // TODO: make sure we clean up photos for web as well
+      if (prefs != null && prefs.localPhotoPaths.isNotEmpty && !kIsWeb) {
+        final validPaths = <String>[];
+        final invalidPaths = <String>[];
+
+        for (final path in prefs.localPhotoPaths) {
+          final file = File(path);
+          if (await file.exists()) {
+            validPaths.add(path);
+          } else {
+            invalidPaths.add(path);
+            LoggingService.debug(
+              'Photo file not found, removing from preferences: $path',
+            );
+          }
+        }
+
+        // If some paths were invalid, update preferences
+        if (invalidPaths.isNotEmpty) {
+          // Also clean up pending uploads for invalid paths
+          final validPendingUploads = prefs.pendingPhotoUploads
+              .where((p) => !invalidPaths.contains(p))
+              .toList();
+
+          prefs = prefs.copyWith(
+            localPhotoPaths: validPaths,
+            pendingPhotoUploads: validPendingUploads,
+            updatedAt: DateTime.now(),
+          );
+
+          // Persist the cleaned-up preferences
+          await repo.setPreference(prefs);
+        }
+      }
+
       if (mounted) {
         setState(() {
           _preferences = prefs;
@@ -134,6 +174,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
         });
       }
     } catch (e) {
+      LoggingService.error('Error loading preferences: $e');
       if (mounted) {
         setState(() => _isLoadingPreferences = false);
       }
@@ -211,7 +252,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
         if (mounted) showSuccessMessage(context, 'Photo added');
       }
     } catch (e) {
-      debugPrint('Failed to add photo from camera: $e');
+      LoggingService.error('Failed to add photo from camera: $e');
       if (mounted) {
         showErrorMessage(context, 'Failed to add photo: $e');
       }
@@ -239,7 +280,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
         if (mounted) showSuccessMessage(context, 'Photo added');
       }
     } catch (e) {
-      debugPrint('Failed to add photo from gallery: $e');
+      LoggingService.error('Failed to add photo from gallery: $e');
       if (mounted) {
         showErrorMessage(context, 'Failed to add photo: $e');
       }
@@ -264,7 +305,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
 
       return true;
     } catch (e) {
-      debugPrint('Failed to delete photo: $e');
+      LoggingService.error('Failed to delete photo: $e');
       if (mounted) {
         showErrorMessage(context, 'Failed to delete photo');
       }
@@ -1276,7 +1317,36 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
   }
 
   Widget _buildPhotoImage(String photoPath, bool isCloudPhoto) {
-    // On web, always use Image.network (local files are blob URLs)
+    // Check if this is a Hive-stored photo (web platform)
+    if (PhotoStorageService.isHivePhotoUri(photoPath)) {
+      final bytes = PhotoStorageService.loadPhotoFromHive(photoPath);
+      if (bytes != null) {
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: context.surfaceVariant,
+              child: HugeIcon(
+                icon: HugeIconsStrokeRounded.imageNotFound01,
+                color: context.textSecondary,
+              ),
+            );
+          },
+        );
+      } else {
+        // Photo not found in Hive
+        return Container(
+          color: context.surfaceVariant,
+          child: HugeIcon(
+            icon: HugeIconsStrokeRounded.imageNotFound01,
+            color: context.textSecondary,
+          ),
+        );
+      }
+    }
+
+    // On web, use Image.network for cloud photos (blob URLs won't work after restart)
     // On native, use Image.network for cloud photos, Image.file for local
     final useNetworkImage = isCloudPhoto || kIsWeb;
 

@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:flutter_lifter/services/logging_service.dart';
+import 'package:flutter_lifter/services/storage_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -45,13 +47,6 @@ class PhotoStorageService {
   /// Path to the photos directory
   String? get photosDirectoryPath => _photosDirectory?.path;
 
-  void _log(String message) {
-    if (kDebugMode) {
-      // ignore: avoid_print
-      print('[PhotoStorageService] $message');
-    }
-  }
-
   /// Initialize the service.
   ///
   /// Must be called before using any photo operations.
@@ -62,7 +57,7 @@ class PhotoStorageService {
     if (kIsWeb) {
       // Web platform doesn't use local file storage the same way
       // Photos will be handled via IndexedDB or cloud storage
-      _log('Web platform - using alternative storage');
+      LoggingService.info('Web platform - using alternative storage');
       _isInitialized = true;
       return;
     }
@@ -71,15 +66,36 @@ class PhotoStorageService {
       final appDir = await getApplicationDocumentsDirectory();
       _photosDirectory = Directory('${appDir.path}/$_photosDirectoryName');
 
+      LoggingService.debug('App documents directory: ${appDir.path}');
+      LoggingService.debug('Photos directory path: ${_photosDirectory!.path}');
+
       if (!await _photosDirectory!.exists()) {
         await _photosDirectory!.create(recursive: true);
-        _log('Created photos directory at ${_photosDirectory!.path}');
+        LoggingService.debug(
+          'Created photos directory at ${_photosDirectory!.path}',
+        );
+      } else {
+        // List existing photos on init for debugging
+        final existingFiles = _photosDirectory!.listSync();
+        LoggingService.debug(
+          'Photos directory exists with ${existingFiles.length} files',
+        );
+        for (final file in existingFiles.take(5)) {
+          LoggingService.debug(
+            '  - ${file.path.split(Platform.pathSeparator).last}',
+          );
+        }
+        if (existingFiles.length > 5) {
+          LoggingService.debug('  ... and ${existingFiles.length - 5} more');
+        }
       }
 
       _isInitialized = true;
-      _log('Initialized with directory ${_photosDirectory!.path}');
+      LoggingService.debug(
+        'Initialized with directory ${_photosDirectory!.path}',
+      );
     } catch (e) {
-      _log('Failed to initialize: $e');
+      LoggingService.error('Failed to initialize: $e');
       rethrow;
     }
   }
@@ -110,31 +126,38 @@ class PhotoStorageService {
       );
 
       if (pickedFile == null) {
-        _log('User cancelled picker');
+        LoggingService.debug('User cancelled picker');
         return null;
       }
 
       return await _compressAndSave(pickedFile, exerciseId);
     } catch (e) {
-      _log('Failed to pick photo from $source: $e');
+      LoggingService.error('Failed to pick photo from $source: $e');
       return null;
     }
   }
 
   Future<String?> _compressAndSave(XFile pickedFile, String exerciseId) async {
-    if (kIsWeb) {
-      // On web, return the XFile path directly (handled by browser)
-      return pickedFile.path;
-    }
-
     try {
       final bytes = await pickedFile.readAsBytes();
 
-      // Generate unique filename
+      // Generate unique photo ID
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final sanitizedExerciseId = _sanitizeFilename(exerciseId);
-      final filename = '${sanitizedExerciseId}_$timestamp.jpg';
-      final outputPath = '${_photosDirectory!.path}/$filename';
+      final photoId = '${sanitizedExerciseId}_$timestamp';
+
+      if (kIsWeb) {
+        // On web, store photo bytes in Hive (IndexedDB)
+        // This persists across browser sessions
+        return await _saveToHive(bytes, photoId);
+      }
+
+      // Native platform: save to file system
+      final filename = '$photoId.jpg';
+      final outputPath =
+          '${_photosDirectory!.path}${Platform.pathSeparator}$filename';
+
+      LoggingService.debug('Attempting to save photo to: $outputPath');
 
       // Check if compression is supported on this platform
       // flutter_image_compress only supports Android, iOS, macOS, and Web
@@ -158,25 +181,81 @@ class PhotoStorageService {
         final savings = ((1 - compressedSize / originalSize) * 100)
             .toStringAsFixed(1);
 
-        _log(
-          'Saved photo to $outputPath '
+        LoggingService.debug(
+          'Compressed photo '
           '(${_formatBytes(originalSize)} -> ${_formatBytes(compressedSize)}, $savings% reduction)',
         );
       } else {
         // On Windows/Linux, skip compression and save original
         finalBytes = bytes;
-        _log(
-          'Saved photo to $outputPath (no compression - platform not supported)',
-        );
+        LoggingService.debug('Skipping compression - platform not supported');
       }
 
       // Save the image
       final outputFile = File(outputPath);
       await outputFile.writeAsBytes(finalBytes);
 
-      return outputPath;
-    } catch (e) {
-      _log('Failed to compress and save photo: $e');
+      // Verify the file was written successfully
+      if (await outputFile.exists()) {
+        final fileSize = await outputFile.length();
+        LoggingService.debug(
+          'Successfully saved photo to $outputPath (${_formatBytes(fileSize)})',
+        );
+        return outputPath;
+      } else {
+        LoggingService.error('ERROR: File was not created at $outputPath');
+        return null;
+      }
+    } catch (e, stackTrace) {
+      LoggingService.error('Failed to compress and save photo: $e');
+      LoggingService.error('Stack trace: $stackTrace');
+      return null;
+    }
+  }
+
+  /// Save photo bytes to Hive storage (web platform).
+  ///
+  /// Compresses the image if supported and stores as base64 in IndexedDB.
+  /// Returns the hive:// URI for the stored photo.
+  // TODO: Add unit tests
+  Future<String?> _saveToHive(Uint8List bytes, String photoId) async {
+    try {
+      Uint8List finalBytes;
+
+      // Compress on web (flutter_image_compress supports web)
+      if (_isCompressionSupported()) {
+        finalBytes = await FlutterImageCompress.compressWithList(
+          bytes,
+          minWidth: _maxWidth,
+          minHeight: _maxHeight,
+          quality: _compressionQuality,
+          format: CompressFormat.jpeg,
+        );
+
+        final originalSize = bytes.length;
+        final compressedSize = finalBytes.length;
+        final savings = ((1 - compressedSize / originalSize) * 100)
+            .toStringAsFixed(1);
+
+        LoggingService.debug(
+          'Compressed photo for web '
+          '(${_formatBytes(originalSize)} -> ${_formatBytes(compressedSize)}, $savings% reduction)',
+        );
+      } else {
+        finalBytes = bytes;
+      }
+
+      // Store in Hive (uses IndexedDB on web)
+      final hiveUri = await HiveStorageService.storePhoto(photoId, finalBytes);
+
+      LoggingService.debug(
+        'Saved photo to Hive: $hiveUri (${_formatBytes(finalBytes.length)})',
+      );
+
+      return hiveUri;
+    } catch (e, stackTrace) {
+      LoggingService.error('Failed to save photo to Hive: $e');
+      LoggingService.error('Stack trace: $stackTrace');
       return null;
     }
   }
@@ -191,7 +270,7 @@ class PhotoStorageService {
 
   /// Save a photo from bytes (useful for importing or testing).
   ///
-  /// Returns the saved file path, or null if failed.
+  /// Returns the saved file path (or hive:// URI on web), or null if failed.
   Future<String?> saveFromBytes(
     Uint8List bytes,
     String exerciseId, {
@@ -199,16 +278,19 @@ class PhotoStorageService {
   }) async {
     _ensureInitialized();
 
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final sanitizedExerciseId = _sanitizeFilename(exerciseId);
+    final photoId = '${sanitizedExerciseId}_$timestamp';
+
     if (kIsWeb) {
-      _log('saveFromBytes not supported on web');
-      return null;
+      // On web, store in Hive
+      return await _saveToHive(bytes, photoId);
     }
 
     try {
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final sanitizedExerciseId = _sanitizeFilename(exerciseId);
-      final filename = '${sanitizedExerciseId}_$timestamp.jpg';
-      final outputPath = '${_photosDirectory!.path}/$filename';
+      final filename = '$photoId.jpg';
+      final outputPath =
+          '${_photosDirectory!.path}${Platform.pathSeparator}$filename';
 
       Uint8List finalBytes = bytes;
 
@@ -226,21 +308,40 @@ class PhotoStorageService {
       final outputFile = File(outputPath);
       await outputFile.writeAsBytes(finalBytes);
 
-      _log('Saved photo from bytes to $outputPath');
+      LoggingService.debug('Saved photo from bytes to $outputPath');
 
       return outputPath;
     } catch (e) {
-      _log('Failed to save photo from bytes: $e');
+      LoggingService.error('Failed to save photo from bytes: $e');
       return null;
     }
   }
 
   /// Delete a locally stored photo.
   ///
+  /// Handles both native file paths and hive:// URIs (web).
   /// Returns true if deleted successfully, false otherwise.
   Future<bool> deletePhoto(String photoPath) async {
+    // Handle hive:// URIs (web storage)
+    if (HiveStorageService.isHivePhotoUri(photoPath)) {
+      try {
+        final photoId = HiveStorageService.parseHivePhotoUri(photoPath);
+        if (photoId == null) {
+          LoggingService.error('Invalid hive photo URI: $photoPath');
+          return false;
+        }
+        await HiveStorageService.deletePhoto(photoId);
+        LoggingService.debug('Deleted photo from Hive: $photoPath');
+        return true;
+      } catch (e) {
+        LoggingService.error('Failed to delete photo from Hive: $e');
+        return false;
+      }
+    }
+
+    // Native file system
     if (kIsWeb) {
-      _log('deletePhoto not supported on web for local files');
+      LoggingService.debug('deletePhoto not supported on web for local files');
       return false;
     }
 
@@ -248,14 +349,14 @@ class PhotoStorageService {
       final file = File(photoPath);
       if (await file.exists()) {
         await file.delete();
-        _log('Deleted photo at $photoPath');
+        LoggingService.debug('Deleted photo at $photoPath');
         return true;
       } else {
-        _log('Photo not found at $photoPath');
+        LoggingService.debug('Photo not found at $photoPath');
         return false;
       }
     } catch (e) {
-      _log('Failed to delete photo at $photoPath: $e');
+      LoggingService.error('Failed to delete photo at $photoPath: $e');
       return false;
     }
   }
@@ -275,7 +376,7 @@ class PhotoStorageService {
 
       for (final entity in files) {
         if (entity is File) {
-          final filename = entity.path.split('/').last;
+          final filename = entity.path.split(Platform.pathSeparator).last;
           if (filename.startsWith('${sanitizedId}_')) {
             await entity.delete();
             deletedCount++;
@@ -283,17 +384,29 @@ class PhotoStorageService {
         }
       }
 
-      _log('Deleted $deletedCount photos for exercise $exerciseId');
+      LoggingService.debug(
+        'Deleted $deletedCount photos for exercise $exerciseId',
+      );
 
       return deletedCount;
     } catch (e) {
-      _log('Failed to delete photos for exercise $exerciseId: $e');
+      LoggingService.error(
+        'Failed to delete photos for exercise $exerciseId: $e',
+      );
       return 0;
     }
   }
 
-  /// Check if a local photo file exists.
+  /// Check if a photo exists (supports both file paths and hive:// URIs).
   Future<bool> photoExists(String photoPath) async {
+    // Handle hive:// URIs (web storage)
+    if (HiveStorageService.isHivePhotoUri(photoPath)) {
+      final photoId = HiveStorageService.parseHivePhotoUri(photoPath);
+      if (photoId == null) return false;
+      return HiveStorageService.photoExists(photoId);
+    }
+
+    // Native file system
     if (kIsWeb) return false;
 
     try {
@@ -303,8 +416,17 @@ class PhotoStorageService {
     }
   }
 
-  /// Get the size of a photo file in bytes.
+  /// Get the size of a photo in bytes (supports both file paths and hive:// URIs).
   Future<int?> getPhotoSize(String photoPath) async {
+    // Handle hive:// URIs (web storage)
+    if (HiveStorageService.isHivePhotoUri(photoPath)) {
+      final photoId = HiveStorageService.parseHivePhotoUri(photoPath);
+      if (photoId == null) return null;
+      final bytes = HiveStorageService.getPhotoBytes(photoId);
+      return bytes?.length;
+    }
+
+    // Native file system
     if (kIsWeb) return null;
 
     try {
@@ -319,8 +441,12 @@ class PhotoStorageService {
   }
 
   /// Get total storage used by exercise photos in bytes.
+  ///
+  /// On web, returns the estimated size of photos stored in Hive.
   Future<int> getTotalStorageUsed() async {
-    if (kIsWeb) return 0;
+    if (kIsWeb) {
+      return HiveStorageService.getPhotoStorageSize();
+    }
 
     _ensureInitialized();
 
@@ -336,7 +462,7 @@ class PhotoStorageService {
 
       return totalBytes;
     } catch (e) {
-      _log('Failed to calculate storage used: $e');
+      LoggingService.error('Failed to calculate storage used: $e');
       return 0;
     }
   }
@@ -345,7 +471,14 @@ class PhotoStorageService {
   ///
   /// Use with caution - this deletes all photos!
   Future<int> clearAllPhotos() async {
-    if (kIsWeb) return 0;
+    if (kIsWeb) {
+      // Clear all photos from Hive storage
+      final photoIds = HiveStorageService.getAllPhotoIds();
+      final count = photoIds.length;
+      await HiveStorageService.clearAllPhotos();
+      LoggingService.debug('Cleared all photos from Hive ($count photos)');
+      return count;
+    }
 
     _ensureInitialized();
 
@@ -360,13 +493,36 @@ class PhotoStorageService {
         }
       }
 
-      _log('Cleared all photos ($deletedCount files)');
+      LoggingService.debug('Cleared all photos ($deletedCount files)');
 
       return deletedCount;
     } catch (e) {
-      _log('Failed to clear all photos: $e');
+      LoggingService.error('Failed to clear all photos: $e');
       return 0;
     }
+  }
+
+  // ============================================
+  // Hive Photo Loading (Web Platform)
+  // ============================================
+
+  /// Load photo bytes from Hive storage by URI.
+  ///
+  /// Returns null if the photo doesn't exist or URI is invalid.
+  /// This is a static method so it can be called from widgets without
+  /// needing a PhotoStorageService instance.
+  // TODO: The loadPhotoFromHive method performs synchronous base64 decoding in the widget build method, which could cause UI jank for large photos. Consider making this async and using FutureBuilder or caching the decoded bytes to avoid blocking the UI thread during decoding.
+  static Uint8List? loadPhotoFromHive(String hiveUri) {
+    final photoId = HiveStorageService.parseHivePhotoUri(hiveUri);
+    if (photoId == null) return null;
+    final bytes = HiveStorageService.getPhotoBytes(photoId);
+    if (bytes == null) return null;
+    return Uint8List.fromList(bytes);
+  }
+
+  /// Check if a URI is a Hive photo URI.
+  static bool isHivePhotoUri(String uri) {
+    return HiveStorageService.isHivePhotoUri(uri);
   }
 
   // ============================================
@@ -379,7 +535,7 @@ class PhotoStorageService {
   /// Currently a stub - will be implemented with Firebase Storage.
   Future<String?> uploadToCloud(String localPath, String exerciseId) async {
     // TODO: Implement with Firebase Storage
-    _log('uploadToCloud not yet implemented');
+    LoggingService.debug('uploadToCloud not yet implemented');
     throw UnimplementedError('Cloud storage upload not yet implemented');
   }
 
@@ -389,7 +545,7 @@ class PhotoStorageService {
   /// Currently a stub - will be implemented with Firebase Storage.
   Future<String?> downloadFromCloud(String cloudUrl, String exerciseId) async {
     // TODO: Implement with Firebase Storage
-    _log('downloadFromCloud not yet implemented');
+    LoggingService.debug('downloadFromCloud not yet implemented');
     throw UnimplementedError('Cloud storage download not yet implemented');
   }
 
@@ -399,7 +555,7 @@ class PhotoStorageService {
   /// Currently a stub - will be implemented with Firebase Storage.
   Future<bool> deleteFromCloud(String cloudUrl) async {
     // TODO: Implement with Firebase Storage
-    _log('deleteFromCloud not yet implemented');
+    LoggingService.debug('deleteFromCloud not yet implemented');
     throw UnimplementedError('Cloud storage delete not yet implemented');
   }
 
@@ -412,7 +568,7 @@ class PhotoStorageService {
     String exerciseId,
   ) async {
     // TODO: Implement with Firebase Storage
-    _log('syncPendingUploads not yet implemented');
+    LoggingService.debug('syncPendingUploads not yet implemented');
     throw UnimplementedError('Cloud storage sync not yet implemented');
   }
 

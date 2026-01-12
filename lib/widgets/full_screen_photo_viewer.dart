@@ -9,6 +9,7 @@ import 'package:hugeicons/styles/stroke_rounded.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/theme_extensions.dart';
+import '../services/photo_storage_service.dart';
 import 'common/app_widgets.dart';
 
 /// A full-screen photo viewer with zoom and pan capabilities.
@@ -240,6 +241,22 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   }
 
   Widget _buildPhotoWidget(String photoPath) {
+    // Check if this is a Hive-stored photo (web platform)
+    if (PhotoStorageService.isHivePhotoUri(photoPath)) {
+      final bytes = PhotoStorageService.loadPhotoFromHive(photoPath);
+      if (bytes != null) {
+        return Image.memory(
+          bytes,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildErrorWidget();
+          },
+        );
+      } else {
+        return _buildErrorWidget();
+      }
+    }
+
     // Check if it's a network URL, blob URL (web), or local file
     // On web, local files are blob URLs which need Image.network
     final isNetworkOrBlobUrl =

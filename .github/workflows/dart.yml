@@ -8,6 +8,8 @@ name: Dart
 on:
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - '**/*.md'
 
 env:
   FLUTTER_VERSION: '3.38.x'

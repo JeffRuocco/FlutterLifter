@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -339,9 +338,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
       await workoutService.saveWorkout();
     } catch (error) {
       // Silent error - don't interrupt workout flow
-      if (kDebugMode) {
-        print('Failed to save workout: $error');
-      }
+      LoggingService.error('Failed to save workout: $error');
     }
   }
 
