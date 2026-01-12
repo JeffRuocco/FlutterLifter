@@ -30,11 +30,10 @@
 - [x] **Remove sets from workout**
 - [x] **Create program library page**
   - [x] Start new program from library
-- [ ] **Determine best option for location storage (Hive?)**
-- [ ] **Add Hive for local storage (all platforms)**
-  - [ ] Add hive dependencies to pubspec.yaml
-  - [ ] Implement HiveStorageService
-  - [ ] Update ServiceLocator to use Hive
+- [x] **Determine best option for location storage (Hive?)**
+- [x] **Add Hive for local storage (all platforms)**
+  - [x] Add hive dependencies to pubspec.yaml
+  - [x] Implement HiveStorageService
   - [ ] Test storage persistence in PWA
 - [ ] **Add program creation pages**
   - [ ] Add program to local program library
