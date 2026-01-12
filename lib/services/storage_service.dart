@@ -515,6 +515,7 @@ class HiveStorageService implements StorageService {
   }
 
   /// Get the total size of all stored photos in bytes (approximate)
+  // TODO: Cache total size and update it incrementally when photos are added/removed for improved efficiency
   static int getPhotoStorageSize() {
     _ensureInitialized();
     var totalSize = 0;

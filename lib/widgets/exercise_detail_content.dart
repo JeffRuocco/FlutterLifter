@@ -131,6 +131,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
       var prefs = await repo.getPreferenceForExercise(widget.exercise.id);
 
       // Validate and clean up non-existent local photo paths (native platforms only)
+      // TODO: make sure we clean up photos for web as well
       if (prefs != null && prefs.localPhotoPaths.isNotEmpty && !kIsWeb) {
         final validPaths = <String>[];
         final invalidPaths = <String>[];

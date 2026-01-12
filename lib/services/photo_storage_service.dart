@@ -217,6 +217,7 @@ class PhotoStorageService {
   ///
   /// Compresses the image if supported and stores as base64 in IndexedDB.
   /// Returns the hive:// URI for the stored photo.
+  // TODO: Add unit tests
   Future<String?> _saveToHive(Uint8List bytes, String photoId) async {
     try {
       Uint8List finalBytes;
@@ -510,6 +511,7 @@ class PhotoStorageService {
   /// Returns null if the photo doesn't exist or URI is invalid.
   /// This is a static method so it can be called from widgets without
   /// needing a PhotoStorageService instance.
+  // TODO: The loadPhotoFromHive method performs synchronous base64 decoding in the widget build method, which could cause UI jank for large photos. Consider making this async and using FutureBuilder or caching the decoded bytes to avoid blocking the UI thread during decoding.
   static Uint8List? loadPhotoFromHive(String hiveUri) {
     final photoId = HiveStorageService.parseHivePhotoUri(hiveUri);
     if (photoId == null) return null;
