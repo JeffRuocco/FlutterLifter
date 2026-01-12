@@ -1,3 +1,4 @@
+import 'package:flutter_lifter/services/logging_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/workout_service.dart';
@@ -183,6 +184,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   /// This should be called at app startup or when returning to the home screen
   /// to ensure the current/next workout is available in state.
   Future<void> loadNextWorkout() async {
+    LoggingService.debug('Loading next workout session...');
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repository = ref.read(programRepositoryProvider);
@@ -194,18 +196,27 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
           .firstOrNull;
 
       if (activeProgram != null) {
-        final nextSession = activeProgram.activeCycle?.currentWorkoutSession;
+        LoggingService.debug('Active program found: ${activeProgram.name}');
+        final nextSession =
+            activeProgram.activeCycle?.currentWorkoutSession ??
+            activeProgram.activeCycle?.nextWorkout;
+        LoggingService.debug(
+          'Next workout session: ${nextSession?.id ?? "None"}',
+        );
         state = state.copyWith(currentWorkout: nextSession, isLoading: false);
       } else {
+        LoggingService.debug('No active program found.');
         state = state.copyWith(currentWorkout: null, isLoading: false);
       }
     } catch (e) {
+      LoggingService.error('Error loading next workout: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
   /// Set the current workout session directly (e.g., when passed via route)
   void setCurrentWorkout(WorkoutSession? session) {
+    LoggingService.debug('Setting current workout session: ${session?.id}');
     state = state.copyWith(currentWorkout: session);
   }
 
@@ -219,6 +230,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
         isLoading: false,
       );
     } catch (e) {
+      LoggingService.error('Error starting workout: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -249,6 +261,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       await _workoutService.finishWorkout();
       state = state.copyWith(currentWorkout: null, isLoading: false);
     } catch (e) {
+      LoggingService.error('Error finishing workout: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -311,6 +324,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       await _workoutService.cancelWorkout();
       state = state.copyWith(currentWorkout: null, isLoading: false);
     } catch (e) {
+      LoggingService.error('Error cancelling workout: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -325,6 +339,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
         isLoading: false,
       );
     } catch (e) {
+      LoggingService.error('Error resuming workout: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }

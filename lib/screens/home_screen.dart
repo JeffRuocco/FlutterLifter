@@ -15,6 +15,9 @@ import '../widgets/animations/animate_on_load.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/skeleton_loader.dart';
 
+// TODO: workout sessions not loading from program repo
+// Seems to always fallbak to mock data
+
 /// The home screen and dashboard of the app.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
