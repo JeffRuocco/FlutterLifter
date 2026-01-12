@@ -89,6 +89,7 @@ class HiveStorageService implements StorageService {
   static const String exerciseHistoryBoxName = 'exercise_history';
   static const String syncMetadataBoxName = 'sync_metadata';
   static const String generalBoxName = 'general_storage';
+  static const String photoStorageBoxName = 'photo_storage';
 
   /// Opened boxes for quick access
   static late Box<String> _programsBox;
@@ -97,6 +98,7 @@ class HiveStorageService implements StorageService {
   static late Box<String> _exerciseHistoryBox;
   static late Box<String> _syncMetadataBox;
   static late Box<dynamic> _generalBox;
+  static late Box<String> _photoStorageBox;
 
   static bool _isInitialized = false;
 
@@ -110,6 +112,7 @@ class HiveStorageService implements StorageService {
     _exerciseHistoryBox = await Hive.openBox<String>(exerciseHistoryBoxName);
     _syncMetadataBox = await Hive.openBox<String>(syncMetadataBoxName);
     _generalBox = await Hive.openBox(generalBoxName);
+    _photoStorageBox = await Hive.openBox<String>(photoStorageBoxName);
 
     _isInitialized = true;
   }
@@ -452,6 +455,92 @@ class HiveStorageService implements StorageService {
     await _syncMetadataBox.clear();
   }
 
+  // ===== Photo Storage Operations (Web Platform) =====
+
+  /// URI scheme for Hive-stored photos
+  static const String hivePhotoScheme = 'hive://photo/';
+
+  /// Store photo bytes as base64 string in Hive (for web platform)
+  ///
+  /// Returns the hive:// URI that can be used to retrieve the photo.
+  static Future<String> storePhoto(String photoId, List<int> bytes) async {
+    _ensureInitialized();
+    final base64Data = base64Encode(bytes);
+    await _photoStorageBox.put(photoId, base64Data);
+    return '$hivePhotoScheme$photoId';
+  }
+
+  /// Retrieve photo bytes from Hive by photo ID
+  ///
+  /// Returns null if photo not found.
+  static List<int>? getPhotoBytes(String photoId) {
+    _ensureInitialized();
+    final base64Data = _photoStorageBox.get(photoId);
+    if (base64Data == null) return null;
+    try {
+      return base64Decode(base64Data);
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'decode',
+        'photo:$photoId',
+        e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  /// Check if a photo exists in Hive storage
+  static bool photoExists(String photoId) {
+    _ensureInitialized();
+    return _photoStorageBox.containsKey(photoId);
+  }
+
+  /// Delete a photo from Hive storage
+  static Future<void> deletePhoto(String photoId) async {
+    _ensureInitialized();
+    await _photoStorageBox.delete(photoId);
+  }
+
+  /// Get all photo IDs stored in Hive
+  static List<String> getAllPhotoIds() {
+    _ensureInitialized();
+    return _photoStorageBox.keys.cast<String>().toList();
+  }
+
+  /// Clear all photos from Hive storage
+  static Future<void> clearAllPhotos() async {
+    _ensureInitialized();
+    await _photoStorageBox.clear();
+  }
+
+  /// Get the total size of all stored photos in bytes (approximate)
+  static int getPhotoStorageSize() {
+    _ensureInitialized();
+    var totalSize = 0;
+    for (final key in _photoStorageBox.keys) {
+      final value = _photoStorageBox.get(key);
+      if (value != null) {
+        // Base64 is ~33% larger than binary, so estimate actual size
+        totalSize += (value.length * 3 ~/ 4);
+      }
+    }
+    return totalSize;
+  }
+
+  /// Parse a hive:// URI to extract the photo ID
+  ///
+  /// Returns null if the URI is not a valid hive photo URI.
+  static String? parseHivePhotoUri(String uri) {
+    if (!uri.startsWith(hivePhotoScheme)) return null;
+    return uri.substring(hivePhotoScheme.length);
+  }
+
+  /// Check if a URI is a hive:// photo URI
+  static bool isHivePhotoUri(String uri) {
+    return uri.startsWith(hivePhotoScheme);
+  }
+
   // ===== Cache Metadata Operations =====
 
   /// Key for storing cache timestamps
@@ -548,6 +637,7 @@ class HiveStorageService implements StorageService {
     await _exerciseHistoryBox.close();
     await _syncMetadataBox.close();
     await _generalBox.close();
+    await _photoStorageBox.close();
 
     _isInitialized = false;
   }
@@ -561,6 +651,7 @@ class HiveStorageService implements StorageService {
     await _exerciseHistoryBox.clear();
     await _syncMetadataBox.clear();
     await _generalBox.clear();
+    await _photoStorageBox.clear();
   }
 }
 
