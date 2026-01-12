@@ -15,6 +15,10 @@ import '../widgets/animations/animate_on_load.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/skeleton_loader.dart';
 
+// TODO: Programs not loading from local storage. Defaults not loaded into cache?
+// TODO: Workout sessions not automatically scheduled based on program periodicity
+// TODO: Program and workout changes not persisting across app restarts
+
 /// The home screen and dashboard of the app.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
