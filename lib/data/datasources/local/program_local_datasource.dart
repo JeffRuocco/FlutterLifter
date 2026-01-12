@@ -1,3 +1,4 @@
+import 'package:flutter_lifter/data/datasources/mock/default_programs.dart';
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/services/storage_service.dart';
 
@@ -23,14 +24,28 @@ class ProgramLocalDataSourceImpl implements ProgramLocalDataSource {
   @override
   Future<List<Program>> getCachedPrograms() async {
     final programsJson = HiveStorageService.getAllPrograms();
-    return programsJson.values.map((json) => Program.fromJson(json)).toList();
+    final hivePrograms = programsJson.values
+        .map((json) => Program.fromJson(json))
+        .toList();
+
+    // Get all built-in defaults
+    final defaultPrograms = DefaultPrograms.programs;
+
+    // Merge: add any default not present in Hive
+    final hiveIds = hivePrograms.map((p) => p.id).toSet();
+    final missingDefaults = defaultPrograms
+        .where((p) => !hiveIds.contains(p.id))
+        .toList();
+
+    return [...hivePrograms, ...missingDefaults];
   }
 
   @override
   Future<Program?> getCachedProgramById(String id) async {
     final json = HiveStorageService.getProgram(id);
-    if (json == null) return null;
-    return Program.fromJson(json);
+    if (json != null) return Program.fromJson(json);
+    // Fallback: check built-in defaults
+    return DefaultPrograms.getProgramById(id);
   }
 
   @override

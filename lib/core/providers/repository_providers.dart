@@ -83,7 +83,8 @@ final programRepositoryProvider = Provider<ProgramRepository>((ref) {
   return ProgramRepositoryImpl(
     mockDataSource: mockDataSource,
     localDataSource: localDataSource,
-    useMockData: true,
+    useMockData: AppConfig.useMockProgramData,
+    // TODO: enable remote API when ready
     useRemoteApi: false,
   );
 });

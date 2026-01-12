@@ -22,7 +22,7 @@ class AppConfig {
   ///
   /// When true, sample programs are available for testing.
   /// When false, the app starts with no programs (production-like).
-  static const bool useMockProgramData = true;
+  static const bool useMockProgramData = false;
 
   // ============================================
   // Debug Configuration

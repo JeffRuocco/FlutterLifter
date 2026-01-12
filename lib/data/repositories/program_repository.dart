@@ -1,6 +1,7 @@
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/models/workout_session_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
+import 'package:flutter_lifter/services/logging_service.dart';
 import 'package:flutter_lifter/utils/utils.dart';
 
 import '../datasources/local/program_local_datasource.dart';
@@ -110,12 +111,13 @@ class ProgramRepositoryImpl implements ProgramRepository {
   }
 
   /// Factory constructor for production with API
+  // TODO: Uncomment apiDataSource parameter when API is ready
   factory ProgramRepositoryImpl.production({
-    required ProgramApiDataSource apiDataSource,
+    // required ProgramApiDataSource apiDataSource,
     required ProgramLocalDataSource localDataSource,
   }) {
     return ProgramRepositoryImpl(
-      remoteDataSource: apiDataSource,
+      // remoteDataSource: apiDataSource,
       localDataSource: localDataSource,
       useRemoteApi: true,
       useMockData: false,
@@ -134,7 +136,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
     // Try local cache first
     if (localDataSource != null) {
       final isExpired = await localDataSource!.isCacheExpired();
-      if (!isExpired) {
+      if (!isExpired || !useRemoteApi) {
         final cachedPrograms = await localDataSource!.getCachedPrograms();
         if (cachedPrograms.isNotEmpty) {
           return cachedPrograms;
@@ -154,6 +156,10 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
         return programs;
       } catch (e) {
+        LoggingService.error(
+          'Failed to fetch programs from remote: $e',
+          e is Exception ? e : null,
+        );
         // Fall back to cache if remote fails
         if (localDataSource != null) {
           final cachedPrograms = await localDataSource!.getCachedPrograms();
@@ -161,7 +167,6 @@ class ProgramRepositoryImpl implements ProgramRepository {
             return cachedPrograms;
           }
         }
-        rethrow;
       }
     }
 
@@ -203,64 +208,116 @@ class ProgramRepositoryImpl implements ProgramRepository {
     return null;
   }
 
+  /// Creates a new program in the repository
   @override
   Future<void> createProgram(Program program) async {
+    LoggingService.debug('Creating program: ${program.id}');
+
     if (useMockData && mockDataSource != null) {
+      LoggingService.debug('Using mock data source for program creation');
       await mockDataSource!.createProgram(program);
       return;
     }
 
-    if (useRemoteApi && remoteDataSource != null) {
-      final createdProgram = await remoteDataSource!.createProgram(program);
+    // Update local cache
+    if (localDataSource != null) {
+      LoggingService.debug(
+        'Updating local cache for new program: ${program.id}',
+      );
+      await localDataSource!.cacheProgram(program);
+    }
 
-      // Update local cache
+    if (useRemoteApi && remoteDataSource != null) {
+      LoggingService.debug(
+        'Updating remote API for new program: ${program.id}',
+      );
+      final createdProgram = await remoteDataSource!.createProgram(program);
       if (localDataSource != null) {
         await localDataSource!.cacheProgram(createdProgram);
       }
     }
   }
 
+  /// Updates a program in the repository
   @override
   Future<void> updateProgram(Program program) async {
+    LoggingService.debug('Updating program: ${program.id}');
+
     if (useMockData && mockDataSource != null) {
+      LoggingService.debug('Using mock data source for update');
       await mockDataSource!.updateProgram(program);
       return;
     }
 
-    if (useRemoteApi && remoteDataSource != null) {
-      final updatedProgram = await remoteDataSource!.updateProgram(program);
+    // Always update local cache
+    if (localDataSource != null) {
+      LoggingService.debug('Updating local cache for program: ${program.id}');
+      await localDataSource!.cacheProgram(program);
+    }
 
-      // Update local cache
+    // If using API, also update remote and re-cache result
+    if (useRemoteApi && remoteDataSource != null) {
+      LoggingService.debug('Updating remote API for program: ${program.id}');
+      final updatedProgram = await remoteDataSource!.updateProgram(program);
       if (localDataSource != null) {
         await localDataSource!.cacheProgram(updatedProgram);
       }
     }
   }
 
+  /// Deletes a program from the repository
   @override
   Future<void> deleteProgram(String id) async {
+    LoggingService.debug('Deleting program: $id');
+
     if (useMockData && mockDataSource != null) {
+      LoggingService.debug('Using mock data source for deletion');
       await mockDataSource!.deleteProgram(id);
       return;
     }
 
-    if (useRemoteApi && remoteDataSource != null) {
-      await remoteDataSource!.deleteProgram(id);
+    // Remove from local cache
+    if (localDataSource != null) {
+      LoggingService.debug('Removing program from local cache: $id');
+      await localDataSource!.removeCachedProgram(id);
+    }
 
-      // Remove from local cache
-      if (localDataSource != null) {
-        await localDataSource!.removeCachedProgram(id);
-      }
+    if (useRemoteApi && remoteDataSource != null) {
+      LoggingService.debug('Removing program from remote API: $id');
+      await remoteDataSource!.deleteProgram(id);
     }
   }
 
+  /// Search programs by name or description
   @override
   Future<List<Program>> searchPrograms(String query) async {
     if (useMockData && mockDataSource != null) {
+      LoggingService.debug('Searching programs via mock data: $query');
       return await mockDataSource!.searchPrograms(query);
     }
 
+    if (localDataSource != null) {
+      LoggingService.debug('Searching programs via local cache: $query');
+
+      // TODO: move this to local data source
+      final cachedPrograms = await localDataSource!.getCachedPrograms();
+      final lowercaseQuery = query.toLowerCase();
+      final results = cachedPrograms.where((program) {
+        return program.name.toLowerCase().contains(lowercaseQuery) ||
+            (program.description?.toLowerCase().contains(lowercaseQuery) ??
+                false) ||
+            program.tags.any(
+              (tag) => tag.toLowerCase().contains(lowercaseQuery),
+            );
+      }).toList();
+      if (results.isNotEmpty) {
+        return results;
+      }
+    }
+
+    // Fallback to API
     if (useRemoteApi && remoteDataSource != null) {
+      LoggingService.debug('Searching programs via remote API: $query');
       return await remoteDataSource!.searchPrograms(query);
     }
 
@@ -272,6 +329,9 @@ class ProgramRepositoryImpl implements ProgramRepository {
     ProgramDifficulty difficulty,
   ) async {
     if (useMockData && mockDataSource != null) {
+      LoggingService.debug(
+        'Getting programs by difficulty via mock data: $difficulty',
+      );
       return await mockDataSource!.getProgramsByDifficulty(difficulty);
     }
 
@@ -483,6 +543,8 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
   @override
   Future<ProgramCycle> startNewCycle(String programId) async {
+    LoggingService.debug('Starting new cycle for program: $programId');
+
     // End any active cycle across ALL programs first.
     // This is a single-user app, so we trust this operation completes
     // before we proceed. The fresh program fetch below will reflect
@@ -502,6 +564,10 @@ class ProgramRepositoryImpl implements ProgramRepository {
       startDate: DateTime.now(),
       isActive: true,
       periodicity: program.defaultPeriodicity,
+    );
+
+    LoggingService.debug(
+      'Created new active cycle: ${newCycle.id} for program: $programId',
     );
 
     // Update the program with the new active cycle.

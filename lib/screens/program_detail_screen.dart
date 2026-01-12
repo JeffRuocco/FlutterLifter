@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lifter/services/logging_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -141,6 +142,10 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
         context.goToHome();
       }
     } catch (e) {
+      LoggingService.error(
+        'Failed to start new cycle: $e',
+        e is Exception ? e : null,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

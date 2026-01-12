@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/models/workout_session_models.dart';
 import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,8 +16,10 @@ import '../widgets/animations/animate_on_load.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/skeleton_loader.dart';
 
-// TODO: workout sessions not loading from program repo
+// TODO: workout sessions not loading or saving from program repo
 // Seems to always fallbak to mock data
+// Need to implement proper saving/loading of sessions in program_repository.dart
+// TODO: Need a way to save sessions that are not tied to a program or cycle
 
 /// The home screen and dashboard of the app.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -230,7 +233,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 /// Hero workout card showing current/next workout with progress ring
 class _HeroWorkoutCard extends StatelessWidget {
-  final dynamic workoutSession;
+  final WorkoutSession? workoutSession;
   final VoidCallback? onStartWorkout;
 
   const _HeroWorkoutCard({required this.workoutSession, this.onStartWorkout});
@@ -316,7 +319,7 @@ class _HeroWorkoutCard extends StatelessWidget {
               children: [
                 _WorkoutStat(
                   label: 'Exercises',
-                  value: '${workoutSession.exercises?.length ?? 0}',
+                  value: '${workoutSession?.exercises.length ?? 0}',
                   icon: HugeIcons.strokeRoundedDumbbell01,
                 ),
                 _WorkoutStat(
