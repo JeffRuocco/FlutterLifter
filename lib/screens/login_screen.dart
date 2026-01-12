@@ -185,9 +185,14 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _emailController,
                           labelText: 'Email',
                           keyboardType: TextInputType.emailAddress,
-                          prefixIcon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedMail01,
-                            color: context.onSurface,
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(
+                              AppDimensions.borderRadiusMedium,
+                            ),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedMail01,
+                              color: context.onSurface,
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -209,9 +214,14 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _passwordController,
                           labelText: 'Password',
                           obscureText: _obscurePassword,
-                          prefixIcon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedLockPassword,
-                            color: context.onSurface,
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(
+                              AppDimensions.borderRadiusMedium,
+                            ),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedLockPassword,
+                              color: context.onSurface,
+                            ),
                           ),
                           suffixIcon: IconButton(
                             icon: HugeIcon(
@@ -219,6 +229,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   ? HugeIcons.strokeRoundedView
                                   : HugeIcons.strokeRoundedViewOff,
                               color: context.onSurface,
+                              size: AppDimensions.iconSmall,
                             ),
                             onPressed: () {
                               setState(() {
