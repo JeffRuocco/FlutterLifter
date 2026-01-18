@@ -10,7 +10,9 @@ import '../../screens/programs_screen.dart';
 import '../../screens/create_program_screen.dart';
 import '../../screens/program_library_screen.dart';
 import '../../screens/program_detail_screen.dart';
+import '../../screens/scheduled_sessions_screen.dart';
 import '../../screens/workout_screen.dart';
+import '../../screens/workout_history_screen.dart';
 import '../../screens/progress_screen.dart';
 import '../../screens/exercise_library_screen.dart';
 import '../../screens/exercise_detail_screen.dart';
@@ -40,10 +42,12 @@ class AppRoutes {
   static const String programLibrary = '/programs/library';
   static const String programDetail = '/programs/:id';
   static const String editProgram = '/programs/:id/edit';
+  static const String scheduledSessions = '/programs/:id/sessions';
   static const String exerciseDetail = '/exercises/:id';
   static const String exerciseHistory = '/exercises/:id/history';
   static const String createExercise = '/exercises/create';
   static const String editExercise = '/exercises/:id/edit';
+  static const String workoutHistory = '/workout/history';
   static const String settings = '/settings';
   static const String debugSettings = '/settings/debug';
   static const String widgetGallery = '/settings/widget-gallery';
@@ -228,6 +232,36 @@ final routerProvider = Provider<GoRouter>((ref) {
                       );
                     },
                   ),
+                  // Scheduled sessions (nested, but uses root navigator)
+                  GoRoute(
+                    path: 'sessions',
+                    name: 'scheduledSessions',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    pageBuilder: (context, state) {
+                      final programId = state.pathParameters['id']!;
+                      return CustomTransitionPage(
+                        key: state.pageKey,
+                        child: ScheduledSessionsScreen(programId: programId),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                              return SlideTransition(
+                                position:
+                                    Tween<Offset>(
+                                      begin: const Offset(1, 0),
+                                      end: Offset.zero,
+                                    ).animate(
+                                      CurvedAnimation(
+                                        parent: animation,
+                                        curve: AppCurves.standard,
+                                      ),
+                                    ),
+                                child: child,
+                              );
+                            },
+                        transitionDuration: AppDurations.medium,
+                      );
+                    },
+                  ),
                 ],
               ),
             ],
@@ -382,6 +416,35 @@ final routerProvider = Provider<GoRouter>((ref) {
                   },
               transitionDuration: AppDurations.fast,
             ),
+            routes: [
+              // Workout history (nested, but uses root navigator)
+              GoRoute(
+                path: 'history',
+                name: 'workoutHistory',
+                parentNavigatorKey: _rootNavigatorKey,
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const WorkoutHistoryScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                        return SlideTransition(
+                          position:
+                              Tween<Offset>(
+                                begin: const Offset(1, 0),
+                                end: Offset.zero,
+                              ).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: AppCurves.standard,
+                                ),
+                              ),
+                          child: child,
+                        );
+                      },
+                  transitionDuration: AppDurations.medium,
+                ),
+              ),
+            ],
           ),
 
           // Progress tab
@@ -619,6 +682,13 @@ extension AppRouterExtension on BuildContext {
   /// Push edit program screen (for back navigation)
   Future<void> pushEditProgram(String programId) async =>
       await push('${AppRoutes.programs}/$programId/edit');
+
+  /// Push scheduled sessions screen (for back navigation)
+  Future<void> pushScheduledSessions(String programId) async =>
+      await push('${AppRoutes.programs}/$programId/sessions');
+
+  /// Push workout history screen (for back navigation)
+  void pushWorkoutHistory() => push(AppRoutes.workoutHistory);
 
   /// Navigate to theme editor screen
   Future<void> goToThemeEditor({String? editThemeId}) async {

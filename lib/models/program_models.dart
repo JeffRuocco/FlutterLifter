@@ -6,6 +6,117 @@ import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_lifter/utils/utils.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+/// Represents a template for a workout day within a program.
+/// Contains the exercise IDs that should be included when generating sessions.
+/// When sessions are generated, each exercise's defaults (sets, reps, weight, rest)
+/// are used to create the WorkoutExercise instances.
+class WorkoutDayTemplate {
+  /// Unique identifier for this template
+  final String id;
+
+  /// Display name for this workout day (e.g., "Upper Body A", "Push Day")
+  final String name;
+
+  /// Index for ordering/rotation (0, 1, 2... for cycling through templates)
+  final int dayIndex;
+
+  /// Optional variant identifier for A/B style splits (e.g., "A", "B")
+  final String? variant;
+
+  /// List of exercise IDs to include in sessions generated from this template.
+  /// Order is preserved when generating workout sessions.
+  final List<String> exerciseIds;
+
+  /// Optional description of this workout day's focus
+  final String? description;
+
+  const WorkoutDayTemplate({
+    required this.id,
+    required this.name,
+    required this.dayIndex,
+    this.variant,
+    required this.exerciseIds,
+    this.description,
+  });
+
+  /// Creates a WorkoutDayTemplate with auto-generated ID
+  WorkoutDayTemplate.create({
+    required this.name,
+    required this.dayIndex,
+    this.variant,
+    required this.exerciseIds,
+    this.description,
+  }) : id = Utils.generateId();
+
+  /// Returns a display-friendly name including variant if present
+  String get displayName => variant != null ? '$name $variant' : name;
+
+  /// Returns whether this template has exercises defined
+  bool get hasExercises => exerciseIds.isNotEmpty;
+
+  /// Returns the number of exercises in this template
+  int get exerciseCount => exerciseIds.length;
+
+  /// Creates a copy with updated values
+  WorkoutDayTemplate copyWith({
+    String? id,
+    String? name,
+    int? dayIndex,
+    String? variant,
+    List<String>? exerciseIds,
+    String? description,
+  }) {
+    return WorkoutDayTemplate(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      dayIndex: dayIndex ?? this.dayIndex,
+      variant: variant ?? this.variant,
+      exerciseIds: exerciseIds ?? this.exerciseIds,
+      description: description ?? this.description,
+    );
+  }
+
+  /// Creates WorkoutDayTemplate from JSON
+  factory WorkoutDayTemplate.fromJson(Map<String, dynamic> json) {
+    return WorkoutDayTemplate(
+      id: json['id'],
+      name: json['name'],
+      dayIndex: json['dayIndex'],
+      variant: json['variant'],
+      exerciseIds: List<String>.from(json['exerciseIds'] ?? []),
+      description: json['description'],
+    );
+  }
+
+  /// Converts WorkoutDayTemplate to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'dayIndex': dayIndex,
+      'variant': variant,
+      'exerciseIds': exerciseIds,
+      'description': description,
+    };
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WorkoutDayTemplate &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return 'WorkoutDayTemplate{id: $id, name: $displayName, dayIndex: $dayIndex, '
+        'exerciseCount: $exerciseCount}';
+  }
+}
+
 /// Represents the scheduling periodicity for workout sessions in a program
 class WorkoutPeriodicity {
   final PeriodicityType type;
@@ -747,6 +858,11 @@ class Program {
   /// List of program cycles - each cycle represents a run of this program
   final List<ProgramCycle> cycles;
 
+  /// Workout day templates defining which exercises to include for each workout day.
+  /// Used when generating sessions to populate exercises automatically.
+  /// Order determines rotation through workout types.
+  final List<WorkoutDayTemplate> dayTemplates;
+
   Program({
     required this.id,
     required this.name,
@@ -764,6 +880,7 @@ class Program {
     this.lastUsedAt,
     this.templateId,
     this.cycles = const [],
+    this.dayTemplates = const [],
   });
 
   /// Named constructor for creating new programs with auto-generated ID
@@ -782,6 +899,7 @@ class Program {
     this.lastUsedAt,
     this.templateId,
     this.cycles = const [],
+    this.dayTemplates = const [],
   }) : id = Utils.generateId(),
        createdAt = DateTime.now();
 
@@ -1055,7 +1173,20 @@ class Program {
   /// Returns the program icon, falling back to a default icon
   HugeIconData get icon {
     if (metadata != null && metadata!.containsKey('icon')) {
-      return metadata!['icon'] as HugeIconData;
+      final iconData = metadata!['icon'];
+      // Handle type conversion from JSON deserialization
+      // JSON returns List<dynamic> which needs to be cast to List<List<dynamic>>
+      if (iconData is List<List<dynamic>>) {
+        return iconData;
+      } else if (iconData is List) {
+        // Convert List<dynamic> to List<List<dynamic>>
+        return iconData.map<List<dynamic>>((item) {
+          if (item is List) {
+            return item.cast<dynamic>();
+          }
+          return <dynamic>[item];
+        }).toList();
+      }
     }
     // Return a default icon
     return HugeIcons.strokeRoundedDumbbell01;
@@ -1065,6 +1196,44 @@ class Program {
   Program storeIcon(HugeIconData icon) {
     var updatedMetadata = {...?metadata, 'icon': icon};
     return copyWith(metadata: updatedMetadata);
+  }
+
+  /// Returns whether this program has workout day templates defined
+  bool get hasDayTemplates => dayTemplates.isNotEmpty;
+
+  /// Returns the day template for a given index (with rotation/wrapping)
+  WorkoutDayTemplate? getDayTemplateForIndex(int index) {
+    if (dayTemplates.isEmpty) return null;
+    return dayTemplates[index % dayTemplates.length];
+  }
+
+  /// Returns a day template by its ID
+  WorkoutDayTemplate? getDayTemplateById(String templateId) {
+    try {
+      return dayTemplates.firstWhere((t) => t.id == templateId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Updates a day template in this program
+  Program updateDayTemplate(WorkoutDayTemplate updatedTemplate) {
+    final updatedTemplates = dayTemplates.map((t) {
+      return t.id == updatedTemplate.id ? updatedTemplate : t;
+    }).toList();
+    return copyWith(dayTemplates: updatedTemplates);
+  }
+
+  /// Adds a new day template to this program
+  Program addDayTemplate(WorkoutDayTemplate template) {
+    return copyWith(dayTemplates: [...dayTemplates, template]);
+  }
+
+  /// Removes a day template from this program by ID
+  Program removeDayTemplate(String templateId) {
+    return copyWith(
+      dayTemplates: dayTemplates.where((t) => t.id != templateId).toList(),
+    );
   }
 
   /// Creates a copy of this program with updated values
@@ -1085,6 +1254,7 @@ class Program {
     DateTime? lastUsedAt,
     String? templateId,
     List<ProgramCycle>? cycles,
+    List<WorkoutDayTemplate>? dayTemplates,
   }) {
     return Program(
       id: id ?? this.id,
@@ -1103,6 +1273,7 @@ class Program {
       lastUsedAt: lastUsedAt ?? this.lastUsedAt,
       templateId: templateId ?? this.templateId,
       cycles: cycles ?? this.cycles,
+      dayTemplates: dayTemplates ?? this.dayTemplates,
     );
   }
 
@@ -1162,6 +1333,11 @@ class Program {
                 .map((cycleJson) => ProgramCycle.fromJson(cycleJson))
                 .toList()
           : [],
+      dayTemplates: json['dayTemplates'] != null
+          ? (json['dayTemplates'] as List)
+                .map((t) => WorkoutDayTemplate.fromJson(t))
+                .toList()
+          : [],
     );
   }
 
@@ -1199,6 +1375,7 @@ class Program {
       'lastUsedAt': lastUsedAt?.toIso8601String(),
       'templateId': templateId,
       'cycles': cycles.map((cycle) => cycle.toJson()).toList(),
+      'dayTemplates': dayTemplates.map((t) => t.toJson()).toList(),
     };
   }
 

@@ -32,6 +32,294 @@ class DefaultPrograms {
     }
   }
 
+  // ============================================
+  // WORKOUT DAY TEMPLATES
+  // ============================================
+
+  /// Upper/Lower program day templates
+  static const _upperLowerTemplates = [
+    WorkoutDayTemplate(
+      id: 'upper_lower_upper_a',
+      name: 'Upper Body',
+      dayIndex: 0,
+      variant: 'A',
+      description: 'Chest and back focus with arm accessories',
+      exerciseIds: [
+        'bench', // Bench Press
+        'row', // Bent-Over Barbell Row
+        'ohp', // Overhead Press
+        'lat_pulldown', // Lat Pulldown
+        'dumbbell_fly', // Dumbbell Fly
+        'barbell_curl', // Barbell Curl
+        'tricep_pushdown', // Tricep Pushdown
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'upper_lower_lower_a',
+      name: 'Lower Body',
+      dayIndex: 1,
+      variant: 'A',
+      description: 'Squat focus with hamstring and calf work',
+      exerciseIds: [
+        'squat', // Barbell Back Squat
+        'romanian_deadlift', // Romanian Deadlift
+        'leg_press', // Leg Press
+        'leg_curl', // Leg Curl
+        'leg_extension', // Leg Extension
+        'calf_raise', // Standing Calf Raise
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'upper_lower_upper_b',
+      name: 'Upper Body',
+      dayIndex: 2,
+      variant: 'B',
+      description: 'Shoulder and back focus with arm accessories',
+      exerciseIds: [
+        'ohp', // Overhead Press
+        'pullup', // Pull-ups
+        'incline_bench', // Incline Bench Press
+        'seated_cable_row', // Seated Cable Row
+        'lateral_raise', // Lateral Raise
+        'face_pull', // Face Pull
+        'hammer_curl', // Hammer Curl
+        'dips', // Dips
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'upper_lower_lower_b',
+      name: 'Lower Body',
+      dayIndex: 3,
+      variant: 'B',
+      description: 'Deadlift focus with quad and glute work',
+      exerciseIds: [
+        'deadlift', // Deadlift
+        'front_squat', // Front Squat
+        'lunges', // Lunges
+        'leg_curl', // Leg Curl
+        'leg_extension', // Leg Extension
+        'calf_raise', // Standing Calf Raise
+      ],
+    ),
+  ];
+
+  /// Full Body program day templates
+  static const _fullBodyTemplates = [
+    WorkoutDayTemplate(
+      id: 'full_body_day_a',
+      name: 'Full Body',
+      dayIndex: 0,
+      variant: 'A',
+      description: 'Squat and bench focus',
+      exerciseIds: [
+        'squat', // Barbell Back Squat
+        'bench', // Bench Press
+        'row', // Bent-Over Barbell Row
+        'ohp', // Overhead Press
+        'barbell_curl', // Barbell Curl
+        'plank', // Plank
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'full_body_day_b',
+      name: 'Full Body',
+      dayIndex: 1,
+      variant: 'B',
+      description: 'Deadlift and overhead focus',
+      exerciseIds: [
+        'deadlift', // Deadlift
+        'ohp', // Overhead Press
+        'pullup', // Pull-ups
+        'incline_bench', // Incline Bench Press
+        'lunges', // Lunges
+        'hanging_leg_raise', // Hanging Leg Raise
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'full_body_day_c',
+      name: 'Full Body',
+      dayIndex: 2,
+      variant: 'C',
+      description: 'Front squat and accessory focus',
+      exerciseIds: [
+        'front_squat', // Front Squat
+        'bench', // Bench Press
+        'seated_cable_row', // Seated Cable Row
+        'lateral_raise', // Lateral Raise
+        'leg_curl', // Leg Curl
+        'tricep_pushdown', // Tricep Pushdown
+      ],
+    ),
+  ];
+
+  /// Push/Pull/Legs program day templates
+  static const _pplTemplates = [
+    WorkoutDayTemplate(
+      id: 'ppl_push',
+      name: 'Push',
+      dayIndex: 0,
+      description: 'Chest, shoulders, and triceps',
+      exerciseIds: [
+        'bench', // Bench Press
+        'ohp', // Overhead Press
+        'incline_bench', // Incline Bench Press
+        'dumbbell_fly', // Dumbbell Fly
+        'lateral_raise', // Lateral Raise
+        'tricep_pushdown', // Tricep Pushdown
+        'dips', // Dips
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'ppl_pull',
+      name: 'Pull',
+      dayIndex: 1,
+      description: 'Back and biceps',
+      exerciseIds: [
+        'deadlift', // Deadlift
+        'pullup', // Pull-ups
+        'row', // Bent-Over Barbell Row
+        'lat_pulldown', // Lat Pulldown
+        'face_pull', // Face Pull
+        'barbell_curl', // Barbell Curl
+        'hammer_curl', // Hammer Curl
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'ppl_legs',
+      name: 'Legs',
+      dayIndex: 2,
+      description: 'Quadriceps, hamstrings, glutes, and calves',
+      exerciseIds: [
+        'squat', // Barbell Back Squat
+        'romanian_deadlift', // Romanian Deadlift
+        'leg_press', // Leg Press
+        'leg_curl', // Leg Curl
+        'leg_extension', // Leg Extension
+        'calf_raise', // Standing Calf Raise
+      ],
+    ),
+  ];
+
+  /// Starting Strength program day templates (classic A/B)
+  static const _startingStrengthTemplates = [
+    WorkoutDayTemplate(
+      id: 'ss_day_a',
+      name: 'Workout',
+      dayIndex: 0,
+      variant: 'A',
+      description: 'Squat, Bench, Deadlift',
+      exerciseIds: [
+        'squat', // Barbell Back Squat
+        'bench', // Bench Press
+        'deadlift', // Deadlift
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'ss_day_b',
+      name: 'Workout',
+      dayIndex: 1,
+      variant: 'B',
+      description: 'Squat, Press, Power Clean/Row',
+      exerciseIds: [
+        'squat', // Barbell Back Squat
+        'ohp', // Overhead Press
+        'row', // Bent-Over Barbell Row (substitute for power clean)
+      ],
+    ),
+  ];
+
+  /// PPL 6-Day Split templates (each muscle group twice per week)
+  static const _ppl6DayTemplates = [
+    WorkoutDayTemplate(
+      id: 'ppl6_push_a',
+      name: 'Push',
+      dayIndex: 0,
+      variant: 'A',
+      description: 'Heavy chest and shoulders',
+      exerciseIds: [
+        'bench', // Bench Press
+        'ohp', // Overhead Press
+        'incline_bench', // Incline Bench Press
+        'lateral_raise', // Lateral Raise
+        'tricep_pushdown', // Tricep Pushdown
+        'dips', // Dips
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'ppl6_pull_a',
+      name: 'Pull',
+      dayIndex: 1,
+      variant: 'A',
+      description: 'Heavy back with deadlifts',
+      exerciseIds: [
+        'deadlift', // Deadlift
+        'pullup', // Pull-ups
+        'row', // Bent-Over Barbell Row
+        'face_pull', // Face Pull
+        'barbell_curl', // Barbell Curl
+        'hammer_curl', // Hammer Curl
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'ppl6_legs_a',
+      name: 'Legs',
+      dayIndex: 2,
+      variant: 'A',
+      description: 'Heavy squat focus',
+      exerciseIds: [
+        'squat', // Barbell Back Squat
+        'romanian_deadlift', // Romanian Deadlift
+        'leg_press', // Leg Press
+        'leg_curl', // Leg Curl
+        'calf_raise', // Standing Calf Raise
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'ppl6_push_b',
+      name: 'Push',
+      dayIndex: 3,
+      variant: 'B',
+      description: 'Volume chest and shoulders',
+      exerciseIds: [
+        'incline_bench', // Incline Bench Press
+        'bench', // Bench Press
+        'dumbbell_fly', // Dumbbell Fly
+        'lateral_raise', // Lateral Raise
+        'ohp', // Overhead Press
+        'tricep_pushdown', // Tricep Pushdown
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'ppl6_pull_b',
+      name: 'Pull',
+      dayIndex: 4,
+      variant: 'B',
+      description: 'Volume back without deadlifts',
+      exerciseIds: [
+        'pullup', // Pull-ups
+        'lat_pulldown', // Lat Pulldown
+        'seated_cable_row', // Seated Cable Row
+        'face_pull', // Face Pull
+        'barbell_curl', // Barbell Curl
+        'hammer_curl', // Hammer Curl
+      ],
+    ),
+    WorkoutDayTemplate(
+      id: 'ppl6_legs_b',
+      name: 'Legs',
+      dayIndex: 5,
+      variant: 'B',
+      description: 'Volume leg work',
+      exerciseIds: [
+        'front_squat', // Front Squat
+        'lunges', // Lunges
+        'leg_extension', // Leg Extension
+        'leg_curl', // Leg Curl
+        'calf_raise', // Standing Calf Raise
+      ],
+    ),
+  ];
+
   /// List of default program templates (without active cycles/sessions)
   static List<Program> programs = [
     Program(
@@ -49,11 +337,12 @@ class DefaultPrograms {
       ]), // Mon, Tue, Thu, Fri - 4 days/week
       tags: ['strength', 'hypertrophy', 'upper body', 'lower body'],
       createdAt: DateTime(2024, 1, 1),
+      isDefault: true,
       metadata: {
         'color': Colors.blue,
         'icon': HugeIcons.strokeRoundedDumbbell01,
       },
-      // No cycles - this is a clean template
+      dayTemplates: _upperLowerTemplates,
       cycles: [],
     ),
     Program(
@@ -70,10 +359,12 @@ class DefaultPrograms {
       ]), // Mon, Wed, Fri - 3 days/week
       tags: ['strength', 'hypertrophy', 'full body', 'beginner'],
       createdAt: DateTime(2024, 1, 1),
+      isDefault: true,
       metadata: {
         'color': Colors.green,
         'icon': HugeIcons.strokeRoundedBodyPartMuscle,
       },
+      dayTemplates: _fullBodyTemplates,
       cycles: [],
     ),
     Program(
@@ -89,7 +380,9 @@ class DefaultPrograms {
       ), // 3 days on, 1 day rest
       tags: ['strength', 'hypertrophy', 'split', 'advanced'],
       createdAt: DateTime(2024, 1, 1),
+      isDefault: true,
       metadata: {'color': Colors.orange, 'icon': HugeIcons.strokeRoundedFire},
+      dayTemplates: _pplTemplates,
       cycles: [],
     ),
     Program(
@@ -106,10 +399,12 @@ class DefaultPrograms {
       ]), // Mon, Wed, Fri - 3 days/week
       tags: ['strength', 'beginner', 'compound', 'barbell'],
       createdAt: DateTime(2024, 1, 1),
+      isDefault: true,
       metadata: {
         'color': Colors.red,
         'icon': HugeIcons.strokeRoundedDumbbell02,
       },
+      dayTemplates: _startingStrengthTemplates,
       cycles: [],
     ),
     Program(
@@ -129,10 +424,12 @@ class DefaultPrograms {
       ]), // Mon-Sat - 6 days/week
       tags: ['hypertrophy', 'split', 'high frequency', 'muscle building'],
       createdAt: DateTime(2024, 1, 1),
+      isDefault: true,
       metadata: {
         'color': Colors.purple,
         'icon': HugeIcons.strokeRoundedBodyPartMuscle,
       },
+      dayTemplates: _ppl6DayTemplates,
       cycles: [],
     ),
   ];

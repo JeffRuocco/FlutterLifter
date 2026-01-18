@@ -81,6 +81,58 @@ class WorkoutSession {
     startTime ??= DateTime.now();
   }
 
+  /// Creates a new session as a clone of this session for a new date.
+  ///
+  /// This is useful for "Repeat Last Workout" functionality.
+  /// The cloned session will have:
+  /// - A new unique ID
+  /// - The specified date (defaults to today)
+  /// - All exercises with fresh sets (targets copied, actuals cleared)
+  /// - No start/end times (not started)
+  /// - Original program reference preserved (if any)
+  ///
+  /// Use [preserveTargets] to copy target weights/reps from actual values
+  /// if the original sets were completed (useful for progressive overload).
+  WorkoutSession cloneAsNewSession({
+    DateTime? newDate,
+    bool preserveTargets = true,
+  }) {
+    final clonedExercises = exercises.map((exercise) {
+      final clonedSets = exercise.sets.map((set) {
+        return ExerciseSet.create(
+          // Use actual values as new targets if preserving and available
+          targetReps: preserveTargets
+              ? (set.actualReps ?? set.targetReps)
+              : set.targetReps,
+          targetWeight: preserveTargets
+              ? (set.actualWeight ?? set.targetWeight)
+              : set.targetWeight,
+          // Clear actual values and completion status
+        );
+      }).toList();
+
+      return WorkoutExercise(
+        id: Utils.generateId(),
+        exercise: exercise.exercise,
+        sets: clonedSets,
+        restTime: exercise.restTime,
+        notes: exercise.notes,
+      );
+    }).toList();
+
+    return WorkoutSession.create(
+      programId: programId,
+      programName: programName,
+      date: newDate ?? DateTime.now(),
+      exercises: clonedExercises,
+      metadata: {
+        ...?metadata,
+        'clonedFromId': id,
+        'clonedAt': DateTime.now().toIso8601String(),
+      },
+    );
+  }
+
   /// Creates a copy of this workout session with updated values
   WorkoutSession copyWith({
     String? id,

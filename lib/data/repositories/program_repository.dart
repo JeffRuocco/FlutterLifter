@@ -1,8 +1,10 @@
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/models/workout_session_models.dart';
+import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:flutter_lifter/services/logging_service.dart';
 import 'package:flutter_lifter/utils/utils.dart';
+import 'package:flutter_lifter/data/repositories/exercise_repository.dart';
 
 import '../datasources/local/program_local_datasource.dart';
 import '../datasources/remote/program_api_datasource.dart';
@@ -26,10 +28,77 @@ abstract class ProgramRepository {
   Future<List<ProgramCycle>> getProgramCyclesWithProgram(String programId);
 
   // Workout session methods
-  Future<void> saveWorkoutSession(WorkoutSession session);
+  /// Saves a workout session and optionally propagates exercise changes
+  /// to future sessions with the same day template.
+  ///
+  /// When [propagateToFuture] is true (default), any exercise list changes
+  /// (additions, removals, reordering) in this session will be applied to
+  /// ALL future sessions in the same cycle that share the same day template.
+  Future<void> saveWorkoutSession(
+    WorkoutSession session, {
+    bool propagateToFuture = true,
+  });
+
+  /// Updates future sessions to match the exercise list of a template session.
+  ///
+  /// This enables "template inheritance" - when a user modifies a session's
+  /// exercises, all future sessions of the same day type automatically update.
+  ///
+  /// Only affects sessions that:
+  /// - Are in the same cycle as the source session
+  /// - Have the same dayTemplateId in metadata
+  /// - Are scheduled AFTER the source session's date
+  /// - Have not been started (startTime == null)
+  Future<void> propagateExercisesToFutureSessions({
+    required WorkoutSession sourceSession,
+    required String cycleId,
+  });
+
+  /// Reschedules future sessions when a session's date is changed.
+  ///
+  /// When a session is moved to a new date, this method shifts all subsequent
+  /// sessions in the cycle by the same time difference.
+  ///
+  /// [session] - The session with the new date already set
+  /// [originalDate] - The original date before the change
+  ///
+  /// Only affects sessions that:
+  /// - Are in the same cycle
+  /// - Were scheduled AFTER the original date
+  /// - Have not been completed
+  Future<void> rescheduleFutureSessions({
+    required WorkoutSession session,
+    required DateTime originalDate,
+  });
+
   Future<WorkoutSession?> getWorkoutSessionById(String sessionId);
   Future<List<WorkoutSession>> getWorkoutHistory();
   Future<void> deleteWorkoutSession(String sessionId);
+
+  /// Gets any currently in-progress workout session.
+  ///
+  /// Returns the first session that has been started but not completed.
+  /// This includes standalone workouts (quick workouts) not tied to a program.
+  /// Returns null if no workout is currently in progress.
+  Future<WorkoutSession?> getInProgressSession();
+
+  /// Cancels all in-progress sessions except the one with the specified ID.
+  ///
+  /// This ensures only one workout can be active at a time.
+  /// Used when starting a new workout to deactivate any previous ones.
+  Future<void> cancelOtherInProgressSessions(String exceptSessionId);
+
+  /// Gets completed workout sessions with pagination and optional date filtering.
+  ///
+  /// Returns sessions sorted by completion date (most recent first).
+  /// Use [limit] and [offset] for pagination.
+  /// Use [startDate] and [endDate] to filter by date range.
+  Future<List<WorkoutSession>> getCompletedSessions({
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 10,
+    int offset = 0,
+  });
 
   // ===== Program Library Methods =====
 
@@ -85,6 +154,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
   final ProgramApiDataSource? remoteDataSource;
   final ProgramLocalDataSource? localDataSource;
   final MockProgramDataSource? mockDataSource;
+  final ExerciseRepository? exerciseRepository;
   final bool useRemoteApi;
   final bool useMockData;
 
@@ -92,6 +162,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
     this.remoteDataSource,
     this.localDataSource,
     this.mockDataSource,
+    this.exerciseRepository,
     this.useRemoteApi = false,
     this.useMockData = true,
   });
@@ -101,10 +172,13 @@ class ProgramRepositoryImpl implements ProgramRepository {
   /// Uses [InMemoryProgramLocalDataSource] by default for testing purposes.
   /// For production, use [ProgramRepositoryImpl.production] with
   /// [ProgramLocalDataSourceImpl] which persists data using Hive.
-  factory ProgramRepositoryImpl.development() {
+  factory ProgramRepositoryImpl.development({
+    ExerciseRepository? exerciseRepository,
+  }) {
     return ProgramRepositoryImpl(
       mockDataSource: MockProgramDataSource(),
       localDataSource: InMemoryProgramLocalDataSource(),
+      exerciseRepository: exerciseRepository,
       useMockData: true,
       useRemoteApi: false,
     );
@@ -115,10 +189,12 @@ class ProgramRepositoryImpl implements ProgramRepository {
   factory ProgramRepositoryImpl.production({
     // required ProgramApiDataSource apiDataSource,
     required ProgramLocalDataSource localDataSource,
+    ExerciseRepository? exerciseRepository,
   }) {
     return ProgramRepositoryImpl(
       // remoteDataSource: apiDataSource,
       localDataSource: localDataSource,
+      exerciseRepository: exerciseRepository,
       useRemoteApi: true,
       useMockData: false,
     );
@@ -404,10 +480,304 @@ class ProgramRepositoryImpl implements ProgramRepository {
   // (Hive for persistent storage, in-memory for development)
 
   @override
-  Future<void> saveWorkoutSession(WorkoutSession session) async {
+  Future<void> saveWorkoutSession(
+    WorkoutSession session, {
+    bool propagateToFuture = true,
+  }) async {
     LoggingService.debug('Saving workout session: ${session.id}');
+
+    // Save the session itself to local datasource
     if (localDataSource != null) {
       await localDataSource!.saveWorkoutSession(session);
+    }
+
+    // Also update the session in the Program's cycle scheduledSessions list
+    // This ensures the Program cache stays in sync with session changes
+    await _updateSessionInProgramCycle(session);
+
+    // Propagate exercise changes to future sessions if enabled
+    if (propagateToFuture && session.metadata != null) {
+      final cycleId = session.metadata!['cycleId'] as String?;
+      final dayTemplateId = session.metadata!['dayTemplateId'] as String?;
+
+      if (cycleId != null && dayTemplateId != null) {
+        await propagateExercisesToFutureSessions(
+          sourceSession: session,
+          cycleId: cycleId,
+        );
+      }
+    }
+  }
+
+  /// Updates a session within its parent Program's cycle scheduledSessions list.
+  ///
+  /// This ensures the Program cache stays in sync when session properties
+  /// (like date, exercises, status) are changed.
+  Future<void> _updateSessionInProgramCycle(WorkoutSession session) async {
+    final cycleId = session.metadata?['cycleId'] as String?;
+    if (cycleId == null) {
+      LoggingService.debug(
+        'No cycleId in session metadata, skipping program update for: ${session.id}',
+      );
+      return;
+    }
+
+    // Find the program containing this cycle
+    final programs = await getPrograms();
+    Program? targetProgram;
+    ProgramCycle? targetCycle;
+
+    for (final program in programs) {
+      for (final cycle in program.cycles) {
+        if (cycle.id == cycleId) {
+          targetProgram = program;
+          targetCycle = cycle;
+          break;
+        }
+      }
+      if (targetCycle != null) break;
+    }
+
+    if (targetProgram == null || targetCycle == null) {
+      LoggingService.debug('Cycle not found for session update: $cycleId');
+      return;
+    }
+
+    // Update the session in the cycle's scheduledSessions list
+    final updatedSessions = targetCycle.scheduledSessions.map((s) {
+      return s.id == session.id ? session : s;
+    }).toList();
+
+    // Update the cycle with modified sessions
+    final updatedCycle = targetCycle.copyWith(
+      scheduledSessions: updatedSessions,
+    );
+
+    // Update the program with the modified cycle
+    final updatedProgram = targetProgram.updateCycle(updatedCycle);
+    await updateProgram(updatedProgram);
+
+    LoggingService.debug(
+      'Updated session ${session.id} in program cycle $cycleId',
+    );
+  }
+
+  @override
+  Future<void> propagateExercisesToFutureSessions({
+    required WorkoutSession sourceSession,
+    required String cycleId,
+  }) async {
+    final dayTemplateId = sourceSession.metadata?['dayTemplateId'] as String?;
+    if (dayTemplateId == null) {
+      LoggingService.debug(
+        'No dayTemplateId found, skipping propagation for session: ${sourceSession.id}',
+      );
+      return;
+    }
+
+    LoggingService.debug(
+      'Propagating exercises from session ${sourceSession.id} to future sessions '
+      'with dayTemplateId: $dayTemplateId in cycle: $cycleId',
+    );
+
+    // Find the program and cycle containing this session
+    final programs = await getPrograms();
+    Program? targetProgram;
+    ProgramCycle? targetCycle;
+
+    for (final program in programs) {
+      for (final cycle in program.cycles) {
+        if (cycle.id == cycleId) {
+          targetProgram = program;
+          targetCycle = cycle;
+          break;
+        }
+      }
+      if (targetCycle != null) break;
+    }
+
+    if (targetProgram == null || targetCycle == null) {
+      LoggingService.warning('Cycle not found for propagation: $cycleId');
+      return;
+    }
+
+    // Find future sessions with the same day template that haven't started
+    final updatedSessions = <WorkoutSession>[];
+    var changesCount = 0;
+
+    for (final session in targetCycle.scheduledSessions) {
+      // Skip the source session itself
+      if (session.id == sourceSession.id) {
+        updatedSessions.add(session);
+        continue;
+      }
+
+      // Skip sessions that are before or on the same date
+      if (!session.date.isAfter(sourceSession.date)) {
+        updatedSessions.add(session);
+        continue;
+      }
+
+      // Skip sessions that have already started
+      if (session.startTime != null) {
+        updatedSessions.add(session);
+        continue;
+      }
+
+      // Skip sessions with different day template
+      final sessionTemplateId = session.metadata?['dayTemplateId'] as String?;
+      if (sessionTemplateId != dayTemplateId) {
+        updatedSessions.add(session);
+        continue;
+      }
+
+      // Create template exercises from the source session
+      // Reset all sets to incomplete with target values only
+      final templateExercises = sourceSession.exercises.map((srcExercise) {
+        final templateSets = srcExercise.sets.map((srcSet) {
+          return ExerciseSet.create(
+            targetReps: srcSet.targetReps ?? srcSet.actualReps,
+            targetWeight: srcSet.targetWeight ?? srcSet.actualWeight,
+          );
+        }).toList();
+
+        return WorkoutExercise(
+          id: Utils.generateId(), // New ID for the copied exercise
+          exercise: srcExercise.exercise,
+          sets: templateSets,
+          restTime: srcExercise.restTime,
+          notes: srcExercise.notes,
+        );
+      }).toList();
+
+      // Update the session with new exercises
+      final updatedSession = session.copyWith(
+        exercises: templateExercises,
+        metadata: {
+          ...?session.metadata,
+          'templateUpdatedAt': DateTime.now().toIso8601String(),
+          'templateSourceId': sourceSession.id,
+        },
+      );
+      updatedSessions.add(updatedSession);
+      changesCount++;
+    }
+
+    if (changesCount > 0) {
+      // Update the cycle with modified sessions
+      final updatedCycle = targetCycle.copyWith(
+        scheduledSessions: updatedSessions,
+      );
+
+      // Update the program with the modified cycle
+      final updatedProgram = targetProgram.updateCycle(updatedCycle);
+      await updateProgram(updatedProgram);
+
+      LoggingService.info(
+        'Propagated exercises to $changesCount future sessions',
+      );
+    }
+  }
+
+  @override
+  Future<void> rescheduleFutureSessions({
+    required WorkoutSession session,
+    required DateTime originalDate,
+  }) async {
+    final cycleId = session.metadata?['cycleId'] as String?;
+    if (cycleId == null) {
+      LoggingService.debug(
+        'No cycleId in session metadata, skipping reschedule for: ${session.id}',
+      );
+      return;
+    }
+
+    // Compare calendar dates (ignore time component)
+    final sessionDateOnly = DateTime(
+      session.date.year,
+      session.date.month,
+      session.date.day,
+    );
+    final originalDateOnly = DateTime(
+      originalDate.year,
+      originalDate.month,
+      originalDate.day,
+    );
+
+    // Calculate difference in calendar days
+    final daysDiff = sessionDateOnly.difference(originalDateOnly).inDays;
+    if (daysDiff == 0) {
+      LoggingService.debug('No calendar date change, skipping reschedule');
+      return;
+    }
+
+    LoggingService.debug('Rescheduling future sessions by $daysDiff days');
+
+    // Find the program and cycle containing this session
+    final programs = await getPrograms();
+    Program? targetProgram;
+    ProgramCycle? targetCycle;
+
+    for (final program in programs) {
+      for (final cycle in program.cycles) {
+        if (cycle.id == cycleId) {
+          targetProgram = program;
+          targetCycle = cycle;
+          break;
+        }
+      }
+      if (targetCycle != null) break;
+    }
+
+    if (targetProgram == null || targetCycle == null) {
+      LoggingService.warning('Cycle not found for rescheduling: $cycleId');
+      return;
+    }
+
+    // Reschedule future sessions - collect updates first, then batch save
+    final updatedSessions = <WorkoutSession>[];
+    final sessionsToSave = <WorkoutSession>[];
+
+    for (final s in targetCycle.scheduledSessions) {
+      // Keep the modified session as-is (it already has the new date)
+      if (s.id == session.id) {
+        updatedSessions.add(session);
+        continue;
+      }
+
+      // Only reschedule sessions that were AFTER the original date
+      // and have not been completed
+      if (s.date.isAfter(originalDate) && !s.isCompleted) {
+        // Add the calendar day difference (preserving time of day)
+        final newDate = s.date.add(Duration(days: daysDiff));
+        final rescheduledSession = s.copyWith(date: newDate);
+        updatedSessions.add(rescheduledSession);
+        sessionsToSave.add(rescheduledSession);
+      } else {
+        updatedSessions.add(s);
+      }
+    }
+
+    if (sessionsToSave.isNotEmpty) {
+      // Batch save all rescheduled sessions in parallel to avoid UI hitching
+      if (localDataSource != null) {
+        await Future.wait(
+          sessionsToSave.map((s) => localDataSource!.saveWorkoutSession(s)),
+        );
+      }
+
+      // Update the cycle with rescheduled sessions
+      final updatedCycle = targetCycle.copyWith(
+        scheduledSessions: updatedSessions,
+      );
+
+      // Update the program with the modified cycle
+      final updatedProgram = targetProgram.updateCycle(updatedCycle);
+      await updateProgram(updatedProgram);
+
+      LoggingService.info(
+        'Rescheduled ${sessionsToSave.length} future sessions',
+      );
     }
   }
 
@@ -451,9 +821,195 @@ class ProgramRepositoryImpl implements ProgramRepository {
   @override
   Future<void> deleteWorkoutSession(String sessionId) async {
     LoggingService.debug('Deleting workout session: $sessionId');
+
+    // First, remove from local datasource
     if (localDataSource != null) {
       await localDataSource!.deleteWorkoutSession(sessionId);
     }
+
+    // Also remove from the Program's cycle scheduledSessions list
+    await _removeSessionFromProgramCycle(sessionId);
+  }
+
+  @override
+  Future<WorkoutSession?> getInProgressSession() async {
+    LoggingService.debug('Checking for in-progress session');
+    if (localDataSource == null) return null;
+
+    try {
+      final allSessions = await localDataSource!.getAllWorkoutSessions();
+      // Find any session that is in progress (started but not completed)
+      final inProgress = allSessions.where((s) => s.isInProgress).toList();
+
+      if (inProgress.isEmpty) {
+        LoggingService.debug('No in-progress session found');
+        return null;
+      }
+
+      // Sort by start time (most recent first) and return the first one
+      inProgress.sort((a, b) {
+        final aStart = a.startTime ?? DateTime(1970);
+        final bStart = b.startTime ?? DateTime(1970);
+        return bStart.compareTo(aStart);
+      });
+
+      LoggingService.debug('Found in-progress session: ${inProgress.first.id}');
+      return inProgress.first;
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'get',
+        'in_progress_session',
+        e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  @override
+  Future<void> cancelOtherInProgressSessions(String exceptSessionId) async {
+    LoggingService.debug(
+      'Cancelling other in-progress sessions (keeping: $exceptSessionId)',
+    );
+    if (localDataSource == null) return;
+
+    try {
+      final allSessions = await localDataSource!.getAllWorkoutSessions();
+      final otherInProgress = allSessions
+          .where((s) => s.isInProgress && s.id != exceptSessionId)
+          .toList();
+
+      if (otherInProgress.isEmpty) {
+        LoggingService.debug('No other in-progress sessions to cancel');
+        return;
+      }
+
+      // Cancel each other in-progress session by marking it as ended
+      for (final session in otherInProgress) {
+        LoggingService.debug(
+          'Cancelling session: ${session.id} '
+          '(${session.programName ?? "Quick Workout"})',
+        );
+        // Mark the session as cancelled by setting end time
+        // We don't delete it - just end it so it shows in history
+        session.endTime = DateTime.now();
+        await localDataSource!.saveWorkoutSession(session);
+      }
+
+      LoggingService.debug(
+        'Cancelled ${otherInProgress.length} other in-progress session(s)',
+      );
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'cancel',
+        'other_in_progress_sessions',
+        e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Removes a session from its parent Program's cycle scheduledSessions list.
+  Future<void> _removeSessionFromProgramCycle(String sessionId) async {
+    final programs = await getPrograms();
+
+    for (final program in programs) {
+      for (final cycle in program.cycles) {
+        final sessionIndex = cycle.scheduledSessions.indexWhere(
+          (s) => s.id == sessionId,
+        );
+
+        if (sessionIndex != -1) {
+          // Found the session - remove it
+          final updatedSessions = List<WorkoutSession>.from(
+            cycle.scheduledSessions,
+          )..removeAt(sessionIndex);
+
+          final updatedCycle = cycle.copyWith(
+            scheduledSessions: updatedSessions,
+          );
+
+          final updatedProgram = program.updateCycle(updatedCycle);
+          await updateProgram(updatedProgram);
+
+          LoggingService.debug(
+            'Removed session $sessionId from program cycle ${cycle.id}',
+          );
+          return;
+        }
+      }
+    }
+
+    LoggingService.debug('Session $sessionId not found in any program cycle');
+  }
+
+  @override
+  Future<List<WorkoutSession>> getCompletedSessions({
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    LoggingService.debug(
+      'Getting completed sessions: limit=$limit, offset=$offset',
+    );
+
+    // Get all completed sessions from all program cycles
+    final programs = await getPrograms();
+    final completedSessions = <WorkoutSession>[];
+
+    for (final program in programs) {
+      for (final cycle in program.cycles) {
+        for (final session in cycle.scheduledSessions) {
+          if (session.isCompleted) {
+            completedSessions.add(session);
+          }
+        }
+      }
+    }
+
+    // Also get standalone sessions from local storage
+    if (localDataSource != null) {
+      final allSessions = await localDataSource!.getAllWorkoutSessions();
+      for (final session in allSessions) {
+        if (session.isCompleted) {
+          // Avoid duplicates - check if already in list
+          if (!completedSessions.any((s) => s.id == session.id)) {
+            completedSessions.add(session);
+          }
+        }
+      }
+    }
+
+    // Filter by date range if provided
+    var filteredSessions = completedSessions;
+    if (startDate != null) {
+      filteredSessions = filteredSessions.where((s) {
+        final sessionDate = s.endTime ?? s.startTime ?? s.date;
+        return sessionDate.isAfter(startDate) ||
+            sessionDate.isAtSameMomentAs(startDate);
+      }).toList();
+    }
+    if (endDate != null) {
+      filteredSessions = filteredSessions.where((s) {
+        final sessionDate = s.endTime ?? s.startTime ?? s.date;
+        return sessionDate.isBefore(endDate.add(const Duration(days: 1)));
+      }).toList();
+    }
+
+    // Sort by completion date, most recent first
+    filteredSessions.sort((a, b) {
+      final dateA = a.endTime ?? a.startTime ?? a.date;
+      final dateB = b.endTime ?? b.startTime ?? b.date;
+      return dateB.compareTo(dateA);
+    });
+
+    // Apply pagination
+    if (offset >= filteredSessions.length) {
+      return [];
+    }
+    final endIndex = (offset + limit).clamp(0, filteredSessions.length);
+    return filteredSessions.sublist(offset, endIndex);
   }
 
   // ===== Program Library Methods Implementation =====
@@ -563,7 +1119,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
     }
 
     // Create a new active cycle
-    final newCycle = ProgramCycle.create(
+    var newCycle = ProgramCycle.create(
       programId: programId,
       cycleNumber: program.nextCycleNumber,
       startDate: DateTime.now(),
@@ -571,8 +1127,17 @@ class ProgramRepositoryImpl implements ProgramRepository {
       periodicity: program.defaultPeriodicity,
     );
 
+    // Generate scheduled sessions based on periodicity
+    newCycle = newCycle.generateScheduledSessions();
+
+    // Populate exercises from day templates if available
+    if (program.hasDayTemplates && exerciseRepository != null) {
+      newCycle = await _populateSessionsWithExercises(newCycle, program);
+    }
+
     LoggingService.debug(
-      'Created new active cycle: ${newCycle.id} for program: $programId',
+      'Created new active cycle: ${newCycle.id} for program: $programId '
+      'with ${newCycle.scheduledSessions.length} sessions',
     );
 
     // Update the program with the new active cycle.
@@ -588,6 +1153,76 @@ class ProgramRepositoryImpl implements ProgramRepository {
     // Return the cycle with program reference set
     newCycle.setProgram(updatedProgram);
     return newCycle;
+  }
+
+  /// Populates workout sessions with exercises from day templates.
+  ///
+  /// Uses the program's dayTemplates to determine which exercises to include
+  /// in each session, rotating through templates as needed.
+  Future<ProgramCycle> _populateSessionsWithExercises(
+    ProgramCycle cycle,
+    Program program,
+  ) async {
+    if (program.dayTemplates.isEmpty || exerciseRepository == null) {
+      return cycle;
+    }
+
+    final updatedSessions = <WorkoutSession>[];
+
+    for (var i = 0; i < cycle.scheduledSessions.length; i++) {
+      final session = cycle.scheduledSessions[i];
+
+      // Get the day template for this session index (with rotation)
+      final template = program.getDayTemplateForIndex(i);
+      if (template == null || template.exerciseIds.isEmpty) {
+        updatedSessions.add(session);
+        continue;
+      }
+
+      // Build workout exercises from template
+      final workoutExercises = <WorkoutExercise>[];
+      for (final exerciseId in template.exerciseIds) {
+        final exercise = await exerciseRepository!.getExerciseById(exerciseId);
+        if (exercise == null) {
+          LoggingService.warning(
+            'Exercise not found for template: $exerciseId',
+          );
+          continue;
+        }
+
+        // Create WorkoutExercise with sets from exercise defaults
+        final sets = List.generate(
+          exercise.defaultSets,
+          (_) => ExerciseSet.create(
+            targetReps: exercise.defaultReps,
+            targetWeight: exercise.defaultWeight,
+          ),
+        );
+
+        workoutExercises.add(
+          WorkoutExercise(
+            id: Utils.generateId(),
+            exercise: exercise,
+            sets: sets,
+            restTime: Duration(seconds: exercise.defaultRestTimeSeconds),
+          ),
+        );
+      }
+
+      // Update session with exercises and template metadata
+      final updatedSession = session.copyWith(
+        programName: program.name,
+        exercises: workoutExercises,
+        metadata: {
+          ...?session.metadata,
+          'dayTemplateId': template.id,
+          'dayTemplateName': template.displayName,
+        },
+      );
+      updatedSessions.add(updatedSession);
+    }
+
+    return cycle.copyWith(scheduledSessions: updatedSessions);
   }
 
   // ===== Program Cloning Implementation =====
@@ -613,6 +1248,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
     }
 
     // Create a deep copy with new ID, same name, and templateId reference
+    // Also copy day templates so user can customize them
     final customProgram = Program(
       id: Utils.generateId(),
       name: template.name, // Keep original name, no "(Copy)" suffix
@@ -630,6 +1266,18 @@ class ProgramRepositoryImpl implements ProgramRepository {
       lastUsedAt: null, // Never used yet
       templateId: template.id, // Reference to original template
       cycles: [], // Start fresh with no cycles
+      dayTemplates: template.dayTemplates
+          .map(
+            (t) => WorkoutDayTemplate(
+              id: Utils.generateId(), // New IDs for custom templates
+              name: t.name,
+              dayIndex: t.dayIndex,
+              variant: t.variant,
+              exerciseIds: List.from(t.exerciseIds),
+              description: t.description,
+            ),
+          )
+          .toList(),
     );
 
     // Save the new program
