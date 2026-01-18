@@ -11,8 +11,6 @@ import '../models/models.dart';
 import 'common/app_widgets.dart';
 import 'exercise_detail_content.dart';
 
-// TODO: need fast way to see last session details (weight x reps x sets), not just total sets and weight
-
 /// A bottom sheet that displays detailed information about an exercise.
 ///
 /// This is a thin wrapper around [ExerciseDetailContent] that provides

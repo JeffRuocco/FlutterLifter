@@ -20,6 +20,9 @@ import '../widgets/skeleton_loader.dart';
 // Seems to always fallbak to mock data
 // Need to implement proper saving/loading of sessions in program_repository.dart
 // TODO: Need a way to save sessions that are not tied to a program or cycle
+// TODO: Programs not loading from local storage. Defaults not loaded into cache?
+// TODO: Workout sessions not automatically scheduled based on program periodicity
+// TODO: Program and workout changes not persisting across app restarts
 
 /// The home screen and dashboard of the app.
 class HomeScreen extends ConsumerStatefulWidget {
