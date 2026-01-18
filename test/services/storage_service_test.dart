@@ -17,8 +17,8 @@ void main() {
       await appSettingsService.init();
       await LoggingService.init(appSettingsService);
 
-      // Initialize Hive for testing with a temporary directory
-      Hive.init('./test_hive');
+      // Initialize Hive for testing with a unique directory to avoid test conflicts
+      Hive.init('./test_hive_storage_service');
       await HiveStorageService.initializeBoxes();
     });
 
@@ -340,6 +340,131 @@ void main() {
       test('syncMetadataBox getter returns the box', () {
         expect(HiveStorageService.syncMetadataBox, isNotNull);
         expect(HiveStorageService.syncMetadataBox, isA<Box<String>>());
+      });
+    });
+
+    group('workout sessions box operations', () {
+      setUp(() async {
+        await HiveStorageService.clearWorkoutSessions();
+      });
+
+      test(
+        'storeWorkoutSession and getWorkoutSession work correctly',
+        () async {
+          final session = {
+            'id': 'session1',
+            'programId': 'prog1',
+            'programName': 'Test Program',
+            'date': DateTime.now().toIso8601String(),
+            'exercises': [],
+          };
+          await HiveStorageService.storeWorkoutSession('session1', session);
+          final result = HiveStorageService.getWorkoutSession('session1');
+          expect(result, equals(session));
+        },
+      );
+
+      test('getWorkoutSession returns null for non-existent session', () {
+        final result = HiveStorageService.getWorkoutSession('non_existent');
+        expect(result, isNull);
+      });
+
+      test('getAllWorkoutSessions returns all sessions', () async {
+        final session1 = {
+          'id': 'session1',
+          'date': DateTime.now().toIso8601String(),
+          'exercises': [],
+        };
+        final session2 = {
+          'id': 'session2',
+          'date': DateTime.now().toIso8601String(),
+          'exercises': [],
+        };
+        await HiveStorageService.storeWorkoutSession('session1', session1);
+        await HiveStorageService.storeWorkoutSession('session2', session2);
+
+        final all = HiveStorageService.getAllWorkoutSessions();
+        expect(all.length, equals(2));
+        expect(all['session1'], equals(session1));
+        expect(all['session2'], equals(session2));
+      });
+
+      test('deleteWorkoutSession removes a session', () async {
+        await HiveStorageService.storeWorkoutSession('session1', {
+          'id': 'session1',
+          'date': DateTime.now().toIso8601String(),
+        });
+        expect(HiveStorageService.getWorkoutSession('session1'), isNotNull);
+        await HiveStorageService.deleteWorkoutSession('session1');
+        expect(HiveStorageService.getWorkoutSession('session1'), isNull);
+      });
+
+      test('clearWorkoutSessions removes all sessions', () async {
+        await HiveStorageService.storeWorkoutSession('session1', {
+          'id': 'session1',
+        });
+        await HiveStorageService.storeWorkoutSession('session2', {
+          'id': 'session2',
+        });
+        await HiveStorageService.clearWorkoutSessions();
+        expect(HiveStorageService.getAllWorkoutSessions(), isEmpty);
+      });
+
+      test('workoutSessionsBox getter returns the box', () {
+        expect(HiveStorageService.workoutSessionsBox, isNotNull);
+        expect(HiveStorageService.workoutSessionsBox, isA<Box<String>>());
+      });
+
+      test('storeWorkoutSession overwrites existing session', () async {
+        final session1 = {'id': 'session1', 'notes': 'Original notes'};
+        final session1Updated = {'id': 'session1', 'notes': 'Updated notes'};
+        await HiveStorageService.storeWorkoutSession('session1', session1);
+        await HiveStorageService.storeWorkoutSession(
+          'session1',
+          session1Updated,
+        );
+
+        final result = HiveStorageService.getWorkoutSession('session1');
+        expect(result!['notes'], equals('Updated notes'));
+      });
+
+      test('workout session with complete data structure', () async {
+        final completeSession = {
+          'id': 'complete_session',
+          'programId': 'prog1',
+          'programName': 'Full Body Workout',
+          'date': '2026-01-18T10:00:00.000Z',
+          'exercises': [
+            {
+              'exerciseId': 'ex1',
+              'exerciseName': 'Bench Press',
+              'sets': [
+                {'weight': 135.0, 'reps': 10, 'isCompleted': true},
+                {'weight': 155.0, 'reps': 8, 'isCompleted': true},
+              ],
+            },
+          ],
+          'startTime': '2026-01-18T10:00:00.000Z',
+          'endTime': '2026-01-18T11:30:00.000Z',
+          'notes': 'Great workout!',
+          'metadata': {'feeling': 'good', 'difficulty': 7},
+        };
+
+        await HiveStorageService.storeWorkoutSession(
+          'complete_session',
+          completeSession,
+        );
+        final retrieved = HiveStorageService.getWorkoutSession(
+          'complete_session',
+        );
+
+        expect(retrieved, isNotNull);
+        expect(retrieved!['id'], equals('complete_session'));
+        expect(retrieved['programName'], equals('Full Body Workout'));
+        expect(retrieved['exercises'], isA<List>());
+        expect((retrieved['exercises'] as List).length, equals(1));
+        expect(retrieved['notes'], equals('Great workout!'));
+        expect(retrieved['metadata'], isA<Map>());
       });
     });
 

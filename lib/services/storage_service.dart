@@ -90,6 +90,7 @@ class HiveStorageService implements StorageService {
   static const String syncMetadataBoxName = 'sync_metadata';
   static const String generalBoxName = 'general_storage';
   static const String photoStorageBoxName = 'photo_storage';
+  static const String workoutSessionsBoxName = 'workout_sessions';
 
   /// Opened boxes for quick access
   static late Box<String> _programsBox;
@@ -99,6 +100,7 @@ class HiveStorageService implements StorageService {
   static late Box<String> _syncMetadataBox;
   static late Box<dynamic> _generalBox;
   static late Box<String> _photoStorageBox;
+  static late Box<String> _workoutSessionsBox;
 
   static bool _isInitialized = false;
 
@@ -113,6 +115,7 @@ class HiveStorageService implements StorageService {
     _syncMetadataBox = await Hive.openBox<String>(syncMetadataBoxName);
     _generalBox = await Hive.openBox(generalBoxName);
     _photoStorageBox = await Hive.openBox<String>(photoStorageBoxName);
+    _workoutSessionsBox = await Hive.openBox<String>(workoutSessionsBoxName);
 
     _isInitialized = true;
   }
@@ -246,6 +249,76 @@ class HiveStorageService implements StorageService {
   static Future<void> clearPrograms() async {
     _ensureInitialized();
     await _programsBox.clear();
+  }
+
+  // ===== Workout Sessions Box Operations =====
+
+  /// Get the workout sessions box for direct access
+  static Box<String> get workoutSessionsBox {
+    _ensureInitialized();
+    return _workoutSessionsBox;
+  }
+
+  /// Store a workout session as JSON
+  static Future<void> storeWorkoutSession(
+    String id,
+    Map<String, dynamic> json,
+  ) async {
+    _ensureInitialized();
+    await _workoutSessionsBox.put(id, jsonEncode(json));
+  }
+
+  /// Retrieve a workout session by ID
+  static Map<String, dynamic>? getWorkoutSession(String id) {
+    _ensureInitialized();
+    final value = _workoutSessionsBox.get(id);
+    if (value == null) return null;
+    try {
+      return jsonDecode(value) as Map<String, dynamic>;
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'decode',
+        'workout_session:$id',
+        e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  /// Get all workout sessions as JSON maps
+  static Map<String, Map<String, dynamic>> getAllWorkoutSessions() {
+    _ensureInitialized();
+    final result = <String, Map<String, dynamic>>{};
+    for (final key in _workoutSessionsBox.keys) {
+      final value = _workoutSessionsBox.get(key);
+      if (value != null) {
+        try {
+          result[key as String] = jsonDecode(value) as Map<String, dynamic>;
+        } catch (e, stackTrace) {
+          // Skip corrupted entries
+          LoggingService.logDataError(
+            'decode',
+            'workout_session:$key',
+            e,
+            stackTrace: stackTrace,
+          );
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Delete a workout session
+  static Future<void> deleteWorkoutSession(String id) async {
+    _ensureInitialized();
+    await _workoutSessionsBox.delete(id);
+  }
+
+  /// Clear all workout sessions
+  static Future<void> clearWorkoutSessions() async {
+    _ensureInitialized();
+    await _workoutSessionsBox.clear();
   }
 
   // ===== Custom Exercises Box Operations =====
@@ -639,6 +712,7 @@ class HiveStorageService implements StorageService {
     await _syncMetadataBox.close();
     await _generalBox.close();
     await _photoStorageBox.close();
+    await _workoutSessionsBox.close();
 
     _isInitialized = false;
   }
@@ -653,6 +727,7 @@ class HiveStorageService implements StorageService {
     await _syncMetadataBox.clear();
     await _generalBox.clear();
     await _photoStorageBox.clear();
+    await _workoutSessionsBox.clear();
   }
 }
 

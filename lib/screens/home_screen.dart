@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
+import 'package:flutter_lifter/models/workout_session_models.dart';
 import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,9 +16,8 @@ import '../widgets/animations/animate_on_load.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/skeleton_loader.dart';
 
-// TODO: Programs not loading from local storage. Defaults not loaded into cache?
+// TODO: Need a way to save sessions that are not tied to a program or cycle
 // TODO: Workout sessions not automatically scheduled based on program periodicity
-// TODO: Program and workout changes not persisting across app restarts
 
 /// The home screen and dashboard of the app.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -231,7 +231,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 /// Hero workout card showing current/next workout with progress ring
 class _HeroWorkoutCard extends StatelessWidget {
-  final dynamic workoutSession;
+  final WorkoutSession? workoutSession;
   final VoidCallback? onStartWorkout;
 
   const _HeroWorkoutCard({required this.workoutSession, this.onStartWorkout});
@@ -317,7 +317,7 @@ class _HeroWorkoutCard extends StatelessWidget {
               children: [
                 _WorkoutStat(
                   label: 'Exercises',
-                  value: '${workoutSession.exercises?.length ?? 0}',
+                  value: '${workoutSession?.exercises.length ?? 0}',
                   icon: HugeIcons.strokeRoundedDumbbell01,
                 ),
                 _WorkoutStat(
