@@ -1108,6 +1108,29 @@ class Program {
 
   /// Creates a Program from JSON
   factory Program.fromJson(Map<String, dynamic> json) {
+    // Deserialize metadata with special handling for Color objects
+    Map<String, dynamic>? deserializedMetadata;
+    if (json['metadata'] != null) {
+      final rawMetadata = json['metadata'] as Map<String, dynamic>;
+      deserializedMetadata = {};
+      for (final entry in rawMetadata.entries) {
+        // Skip the marker keys
+        if (entry.key.endsWith('_isColor')) continue;
+
+        // Check if this entry was marked as a color
+        if (rawMetadata['${entry.key}_isColor'] == true && entry.value is int) {
+          deserializedMetadata[entry.key] = Color.fromARGB(
+            (entry.value >> 24) & 0xFF,
+            (entry.value >> 16) & 0xFF,
+            (entry.value >> 8) & 0xFF,
+            entry.value & 0xFF,
+          );
+        } else {
+          deserializedMetadata[entry.key] = entry.value;
+        }
+      }
+    }
+
     return Program(
       id: json['id'],
       name: json['name'],
@@ -1128,7 +1151,7 @@ class Program {
       isPublic: json['isPublic'] ?? false,
       tags: List<String>.from(json['tags'] ?? []),
       imageUrl: json['imageUrl'],
-      metadata: json['metadata'],
+      metadata: deserializedMetadata,
       isDefault: json['isDefault'] ?? false,
       lastUsedAt: json['lastUsedAt'] != null
           ? DateTime.parse(json['lastUsedAt'])
@@ -1144,6 +1167,21 @@ class Program {
 
   /// Converts Program to JSON
   Map<String, dynamic> toJson() {
+    // Serialize metadata with special handling for Color objects
+    Map<String, dynamic>? serializedMetadata;
+    if (metadata != null) {
+      serializedMetadata = {};
+      for (final entry in metadata!.entries) {
+        if (entry.value is Color) {
+          // Convert Color to ARGB32 int value for JSON serialization
+          serializedMetadata[entry.key] = (entry.value as Color).toARGB32();
+          serializedMetadata['${entry.key}_isColor'] = true;
+        } else {
+          serializedMetadata[entry.key] = entry.value;
+        }
+      }
+    }
+
     return {
       'id': id,
       'name': name,
@@ -1156,7 +1194,7 @@ class Program {
       'isPublic': isPublic,
       'tags': tags,
       'imageUrl': imageUrl,
-      'metadata': metadata,
+      'metadata': serializedMetadata,
       'isDefault': isDefault,
       'lastUsedAt': lastUsedAt?.toIso8601String(),
       'templateId': templateId,
