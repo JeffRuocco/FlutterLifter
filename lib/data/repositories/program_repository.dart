@@ -167,6 +167,8 @@ class ProgramRepositoryImpl implements ProgramRepository {
             return cachedPrograms;
           }
         }
+        // If no cached data is available, rethrow to allow callers to handle the failure
+        rethrow;
       }
     }
 

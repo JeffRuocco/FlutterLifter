@@ -48,16 +48,6 @@ class AppConfig {
   /// When enabled, displays debug overlays and diagnostic information.
   static const bool showDebugInfo = false;
 
-  /// Whether to enable verbose logging for debugging.
-  ///
-  /// When enabled, logs detailed information about:
-  /// - Storage operations (save, load, delete)
-  /// - Repository method calls
-  /// - Workout session lifecycle
-  ///
-  /// Useful for debugging persistence issues.
-  static const bool enableVerboseLogging = false;
-
   // ============================================
   // Feature Flags
   // ============================================
