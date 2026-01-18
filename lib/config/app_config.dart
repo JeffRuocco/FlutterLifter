@@ -1,17 +1,29 @@
 /// App-wide configuration settings for development and production.
 ///
 /// Toggle these settings to change app behavior during development.
+/// All providers and repositories respect these settings automatically.
+///
+/// **Quick Reference:**
+/// - Production:  storageMode=hive, useMockProgramData=false
+/// - UI Dev:      storageMode=inMemory, useMockProgramData=true
+/// - Persistence: storageMode=hive, useMockProgramData=false
 class AppConfig {
   // ============================================
   // Storage Configuration
   // ============================================
 
-  /// Controls which storage backend is used for data persistence.
+  /// Controls which storage backend is used for ALL data persistence.
   ///
-  /// - [StorageMode.hive]: Persistent local storage using Hive (recommended for testing persistence)
-  /// - [StorageMode.inMemory]: In-memory storage that resets on app restart (fast for UI development)
+  /// - [StorageMode.hive]: Persistent local storage using Hive
+  ///   - Programs, workout sessions, exercises persist across app restarts
+  ///   - Uses IndexedDB on web, file-based storage on mobile/desktop
+  ///   - **Recommended for production and testing persistence**
   ///
-  /// **Change this value to switch storage modes during development.**
+  /// - [StorageMode.inMemory]: In-memory storage that resets on app restart
+  ///   - Fast startup, no persisted state between launches
+  ///   - **Recommended for rapid UI development**
+  ///
+  /// **All repositories automatically respect this setting.**
   static const StorageMode storageMode = StorageMode.hive;
 
   // ============================================
@@ -20,8 +32,11 @@ class AppConfig {
 
   /// Whether to use mock/sample data for programs.
   ///
-  /// When true, sample programs are available for testing.
-  /// When false, the app starts with no programs (production-like).
+  /// - `true`: Sample programs available for testing features
+  /// - `false`: App starts with only default programs (production-like)
+  ///
+  /// Default programs (5x5, PPL, etc.) are always available regardless
+  /// of this setting. This only affects additional mock/test data.
   static const bool useMockProgramData = false;
 
   // ============================================
@@ -29,21 +44,63 @@ class AppConfig {
   // ============================================
 
   /// Whether to show debug information in the UI.
+  ///
+  /// When enabled, displays debug overlays and diagnostic information.
   static const bool showDebugInfo = false;
 
-  /// Whether to log storage operations to console.
-  static const bool logStorageOperations = false;
+  /// Whether to enable verbose logging for debugging.
+  ///
+  /// When enabled, logs detailed information about:
+  /// - Storage operations (save, load, delete)
+  /// - Repository method calls
+  /// - Workout session lifecycle
+  ///
+  /// Useful for debugging persistence issues.
+  static const bool enableVerboseLogging = false;
+
+  // ============================================
+  // Feature Flags
+  // ============================================
+
+  /// Whether remote API syncing is enabled.
+  ///
+  /// When true, repositories will attempt to sync with remote APIs.
+  /// Currently not implemented - always use false.
+  static const bool enableRemoteSync = false;
+
+  // ============================================
+  // Computed Properties
+  // ============================================
+
+  /// Returns true if using persistent storage (Hive).
+  static bool get isPersistentStorage => storageMode == StorageMode.hive;
+
+  /// Returns true if using in-memory storage.
+  static bool get isInMemoryStorage => storageMode == StorageMode.inMemory;
+
+  /// Returns true if in development/debug mode.
+  static bool get isDevelopmentMode =>
+      showDebugInfo || useMockProgramData || isInMemoryStorage;
 }
 
 /// Storage backend mode for the app.
 enum StorageMode {
   /// Persistent local storage using Hive.
-  /// Data persists across app restarts.
+  ///
+  /// Data persists across app restarts:
+  /// - Programs and custom modifications
+  /// - Workout sessions and history
+  /// - Exercises and user preferences
+  /// - User settings
+  ///
   /// Uses IndexedDB on web, file-based storage on mobile/desktop.
   hive,
 
   /// In-memory storage that resets on app restart.
+  ///
   /// Useful for rapid UI development without persisted state.
-  /// Each app launch starts fresh.
+  /// Each app launch starts fresh with default programs only.
+  ///
+  /// **Note:** Data is lost when the app is closed or restarted.
   inMemory,
 }

@@ -398,57 +398,60 @@ class ProgramRepositoryImpl implements ProgramRepository {
   }
 
   // Workout session methods implementation
-  // TODO: These are temporary in-memory implementations
-  // In a real app, these would be persisted via local storage or API
-  final Map<String, WorkoutSession> _workoutSessions = {};
+  // Uses localDataSource which respects AppConfig.storageMode
+  // (Hive for persistent storage, in-memory for development)
 
   @override
   Future<void> saveWorkoutSession(WorkoutSession session) async {
-    if (useMockData || localDataSource != null) {
-      // For now, store in memory
-      _workoutSessions[session.id] = session;
-
-      // TODO: Implement actual persistence
-      // if (localDataSource != null) {
-      //   await localDataSource!.saveWorkoutSession(session);
-      // }
+    LoggingService.debug('Saving workout session: ${session.id}');
+    if (localDataSource != null) {
+      await localDataSource!.saveWorkoutSession(session);
     }
   }
 
   @override
   Future<WorkoutSession?> getWorkoutSessionById(String sessionId) async {
-    // For now, return from memory
-    return _workoutSessions[sessionId];
-
-    // TODO: Implement actual retrieval
-    // if (localDataSource != null) {
-    //   return await localDataSource!.getWorkoutSessionById(sessionId);
-    // }
+    LoggingService.debug('Getting workout session: $sessionId');
+    if (localDataSource == null) return null;
+    try {
+      return await localDataSource!.getWorkoutSessionById(sessionId);
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'parse',
+        'workout_session:$sessionId',
+        e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 
   @override
   Future<List<WorkoutSession>> getWorkoutHistory() async {
-    // For now, return from memory
-    final sessions = _workoutSessions.values.toList();
-    // Sort by date, most recent first
-    sessions.sort((a, b) => b.date.compareTo(a.date));
-    return sessions;
-
-    // TODO: Implement actual retrieval
-    // if (localDataSource != null) {
-    //   return await localDataSource!.getWorkoutHistory();
-    // }
+    LoggingService.debug('Getting workout history');
+    if (localDataSource == null) return [];
+    try {
+      final sessions = await localDataSource!.getAllWorkoutSessions();
+      // Sort by date, most recent first
+      sessions.sort((a, b) => b.date.compareTo(a.date));
+      return sessions;
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'get',
+        'workout_history',
+        e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
   }
 
   @override
   Future<void> deleteWorkoutSession(String sessionId) async {
-    // For now, remove from memory
-    _workoutSessions.remove(sessionId);
-
-    // TODO: Implement actual deletion
-    // if (localDataSource != null) {
-    //   await localDataSource!.deleteWorkoutSession(sessionId);
-    // }
+    LoggingService.debug('Deleting workout session: $sessionId');
+    if (localDataSource != null) {
+      await localDataSource!.deleteWorkoutSession(sessionId);
+    }
   }
 
   // ===== Program Library Methods Implementation =====

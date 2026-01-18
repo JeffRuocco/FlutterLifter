@@ -2,11 +2,24 @@ import 'package:flutter_lifter/data/datasources/mock/mock_program_datasource.dar
 import 'package:flutter_lifter/data/repositories/program_repository.dart';
 import 'package:flutter_lifter/models/program_models.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
+import 'package:flutter_lifter/services/app_settings_service.dart';
+import 'package:flutter_lifter/services/logging_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('ProgramRepository', () {
     late ProgramRepository repository;
+
+    setUpAll(() async {
+      // Initialize SharedPreferences for tests
+      SharedPreferences.setMockInitialValues({});
+
+      // Initialize AppSettingsService and LoggingService
+      final appSettingsService = AppSettingsService();
+      await appSettingsService.init();
+      await LoggingService.init(appSettingsService);
+    });
 
     setUp(() {
       // Each MockProgramDataSource shares static state, so we reset it

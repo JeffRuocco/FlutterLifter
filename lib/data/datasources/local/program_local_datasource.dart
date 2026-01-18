@@ -1,5 +1,6 @@
 import 'package:flutter_lifter/data/datasources/mock/default_programs.dart';
 import 'package:flutter_lifter/models/program_models.dart';
+import 'package:flutter_lifter/models/workout_session_models.dart';
 import 'package:flutter_lifter/services/storage_service.dart';
 
 /// Local data source for program-related operations (SQLite, Hive, etc.)
@@ -14,6 +15,13 @@ abstract class ProgramLocalDataSource {
   Future<void> clearCache();
   Future<DateTime?> getLastCacheUpdate();
   Future<bool> isCacheExpired({Duration maxAge = _defaultCacheMaxAge});
+
+  // Workout session methods
+  Future<void> saveWorkoutSession(WorkoutSession session);
+  Future<WorkoutSession?> getWorkoutSessionById(String sessionId);
+  Future<List<WorkoutSession>> getAllWorkoutSessions();
+  Future<void> deleteWorkoutSession(String sessionId);
+  Future<void> clearWorkoutSessions();
 }
 
 /// Implementation of ProgramLocalDataSource using Hive for persistent storage
@@ -94,6 +102,38 @@ class ProgramLocalDataSourceImpl implements ProgramLocalDataSource {
     if (lastUpdate == null) return true;
     return DateTime.now().difference(lastUpdate).compareTo(maxAge) > 0;
   }
+
+  // Workout session methods using Hive storage
+
+  @override
+  Future<void> saveWorkoutSession(WorkoutSession session) async {
+    await HiveStorageService.storeWorkoutSession(session.id, session.toJson());
+  }
+
+  @override
+  Future<WorkoutSession?> getWorkoutSessionById(String sessionId) async {
+    final json = HiveStorageService.getWorkoutSession(sessionId);
+    if (json == null) return null;
+    return WorkoutSession.fromJson(json);
+  }
+
+  @override
+  Future<List<WorkoutSession>> getAllWorkoutSessions() async {
+    final sessionsJson = HiveStorageService.getAllWorkoutSessions();
+    return sessionsJson.values
+        .map((json) => WorkoutSession.fromJson(json))
+        .toList();
+  }
+
+  @override
+  Future<void> deleteWorkoutSession(String sessionId) async {
+    await HiveStorageService.deleteWorkoutSession(sessionId);
+  }
+
+  @override
+  Future<void> clearWorkoutSessions() async {
+    await HiveStorageService.clearWorkoutSessions();
+  }
 }
 
 /// In-memory implementation of ProgramLocalDataSource
@@ -151,5 +191,33 @@ class InMemoryProgramLocalDataSource implements ProgramLocalDataSource {
   }) async {
     if (_lastUpdate == null) return true;
     return DateTime.now().difference(_lastUpdate!).compareTo(maxAge) > 0;
+  }
+
+  // Workout session methods using in-memory storage
+  final Map<String, WorkoutSession> _workoutSessions = {};
+
+  @override
+  Future<void> saveWorkoutSession(WorkoutSession session) async {
+    _workoutSessions[session.id] = session;
+  }
+
+  @override
+  Future<WorkoutSession?> getWorkoutSessionById(String sessionId) async {
+    return _workoutSessions[sessionId];
+  }
+
+  @override
+  Future<List<WorkoutSession>> getAllWorkoutSessions() async {
+    return _workoutSessions.values.toList();
+  }
+
+  @override
+  Future<void> deleteWorkoutSession(String sessionId) async {
+    _workoutSessions.remove(sessionId);
+  }
+
+  @override
+  Future<void> clearWorkoutSessions() async {
+    _workoutSessions.clear();
   }
 }
