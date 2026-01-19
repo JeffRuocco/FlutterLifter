@@ -6,6 +6,7 @@ import 'package:flutter_lifter/models/exercise/exercise_session_record.dart';
 import 'package:flutter_lifter/models/shared_enums.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../core/providers/repository_providers.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
@@ -536,12 +537,16 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
                   AppDimensions.borderRadiusSmall,
                 ),
               ),
-              child: Text(
-                widget.exercise.notes!,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: context.textSecondary,
-                  fontStyle: FontStyle.italic,
-                ),
+              child: MarkdownBody(
+                data: widget.exercise.notes!,
+                selectable: true,
+                styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                    .copyWith(
+                      p: AppTextStyles.bodySmall.copyWith(
+                        color: context.textSecondary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
               ),
             ),
             const VSpace.md(),

@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:hugeicons/styles/stroke_rounded.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../core/providers/repository_providers.dart';
 import '../core/theme/app_colors.dart';
@@ -968,14 +969,19 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
             ],
           ),
           const VSpace.md(),
-          Text(
-            widget.exercise.instructions ??
+          MarkdownBody(
+            data:
+                widget.exercise.instructions ??
                 'No specific instructions available for this exercise. '
                     'Please ensure proper form and consult a fitness professional if needed.',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: context.textSecondary,
-              height: 1.6,
-            ),
+            selectable: true,
+            styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                .copyWith(
+                  p: AppTextStyles.bodyMedium.copyWith(
+                    color: context.textSecondary,
+                    height: 1.6,
+                  ),
+                ),
           ),
         ],
       ),
@@ -1005,12 +1011,16 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
             ],
           ),
           const VSpace.md(),
-          Text(
-            widget.exercise.notes!,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: context.textSecondary,
-              height: 1.6,
-            ),
+          MarkdownBody(
+            data: widget.exercise.notes!,
+            selectable: true,
+            styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                .copyWith(
+                  p: AppTextStyles.bodyMedium.copyWith(
+                    color: context.textSecondary,
+                    height: 1.6,
+                  ),
+                ),
           ),
         ],
       ),
@@ -1082,6 +1092,11 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
             }
           },
         ),
+        const VSpace.xs(),
+        Text(
+          'Markdown supported',
+          style: AppTextStyles.bodySmall.copyWith(color: context.textSecondary),
+        ),
         const VSpace.sm(),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -1126,11 +1141,14 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
           color: context.surfaceVariant.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
         ),
-        child: Text(
-          _preferences?.userNotes ?? '',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: context.textSecondary,
-            height: 1.6,
+        child: MarkdownBody(
+          data: _preferences?.userNotes ?? '',
+          selectable: true,
+          styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+            p: AppTextStyles.bodyMedium.copyWith(
+              color: context.textSecondary,
+              height: 1.6,
+            ),
           ),
         ),
       ),

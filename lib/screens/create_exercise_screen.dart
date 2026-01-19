@@ -320,6 +320,13 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
           _buildSectionTitle('Instructions'),
           const VSpace.sm(),
           _buildInstructionsField(),
+          const VSpace.xs(),
+          Text(
+            'Markdown supported',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: context.textSecondary,
+            ),
+          ),
 
           const VSpace.xl(),
 
@@ -327,6 +334,13 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
           _buildSectionTitle('Notes'),
           const VSpace.sm(),
           _buildNotesField(),
+          const VSpace.xs(),
+          Text(
+            'Markdown supported',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: context.textSecondary,
+            ),
+          ),
 
           const VSpace.xl(),
 
