@@ -60,7 +60,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // Show session picker
       _showSessionPicker(sessionsToday);
     } else {
-      // Start the single session
+      // Set the selected session and navigate to workout screen
+      notifier.setCurrentWorkout(session);
       context.go(AppRoutes.workout);
     }
   }

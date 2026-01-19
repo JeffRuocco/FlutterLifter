@@ -186,14 +186,32 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   /// to ensure the current/next workout is available in state.
   ///
   /// Priority order:
-  /// 1. Any in-progress workout (including standalone quick workouts)
-  /// 2. Current session from active program cycle
-  /// 3. Next scheduled session from active program cycle
+  /// 1. User-selected session (if still valid and not completed)
+  /// 2. Any in-progress workout (including standalone quick workouts)
+  /// 3. Current session from active program cycle
+  /// 4. Next scheduled session from active program cycle
   ///
   /// If multiple sessions are scheduled for today, the first unstarted one is returned.
   /// Use [getSessionsForToday] to get all sessions for today when showing a picker.
-  Future<void> loadNextWorkout() async {
+  ///
+  /// Set [forceReload] to true to always load from storage, ignoring any
+  /// previously selected session. Default is false which respects user selection.
+  Future<void> loadNextWorkout({bool forceReload = false}) async {
     LoggingService.debug('Loading next workout session...');
+
+    // Respect user's explicit selection unless force reload
+    if (!forceReload && state.hasUserSelection) {
+      final selectedSession = state.currentWorkout;
+      if (selectedSession != null && !selectedSession.isCompleted) {
+        LoggingService.debug(
+          'Respecting user selection: ${selectedSession.id} '
+          '(${selectedSession.programName ?? "Quick Workout"})',
+        );
+        // Don't change state, user's selection is still valid
+        return;
+      }
+    }
+
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repository = ref.read(programRepositoryProvider);
@@ -205,11 +223,13 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
           'Found in-progress session: ${inProgressSession.id} '
           '(${inProgressSession.programName ?? "Quick Workout"})',
         );
+
         // Also set it in the service so it stays in sync
         _workoutService.setCurrentWorkout(inProgressSession);
         state = state.copyWith(
           currentWorkout: inProgressSession,
           isLoading: false,
+          clearUserSelection: true,
         );
         return;
       }
@@ -278,9 +298,18 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   }
 
   /// Set the current workout session directly (e.g., when passed via route)
+  ///
+  /// This marks the session as explicitly selected by the user, which prevents
+  /// [loadNextWorkout] from overriding it until the workout is started,
+  /// finished, or cancelled.
   void setCurrentWorkout(WorkoutSession? session) {
-    LoggingService.debug('Setting current workout session: ${session?.id}');
-    state = state.copyWith(currentWorkout: session);
+    LoggingService.debug(
+      'User selecting workout session: ${session?.id ?? "null"}',
+    );
+    state = state.copyWith(
+      currentWorkout: session,
+      userSelectedSessionId: session?.id,
+    );
   }
 
   /// Start a new workout session
@@ -291,6 +320,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       state = state.copyWith(
         currentWorkout: _workoutService.currentWorkout,
         isLoading: false,
+        clearUserSelection: true,
       );
     } catch (e) {
       LoggingService.error('Error starting workout: $e');
@@ -322,7 +352,11 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       }
 
       await _workoutService.finishWorkout();
-      state = state.copyWith(currentWorkout: null, isLoading: false);
+      state = state.copyWith(
+        currentWorkout: null,
+        isLoading: false,
+        clearUserSelection: true,
+      );
     } catch (e) {
       LoggingService.error('Error finishing workout: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -385,7 +419,11 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       await _workoutService.cancelWorkout();
-      state = state.copyWith(currentWorkout: null, isLoading: false);
+      state = state.copyWith(
+        currentWorkout: null,
+        isLoading: false,
+        clearUserSelection: true,
+      );
     } catch (e) {
       LoggingService.error('Error cancelling workout: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -454,6 +492,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
 /// - [currentWorkout]: The active workout session (null if none)
 /// - [isLoading]: Whether an async operation is in progress
 /// - [error]: Error message from the last failed operation (null if none)
+/// - [userSelectedSessionId]: ID of session explicitly selected by user
 ///
 /// Use [copyWith] to create modified copies (immutable update pattern).
 class WorkoutState {
@@ -461,19 +500,39 @@ class WorkoutState {
   final bool isLoading;
   final String? error;
 
-  const WorkoutState({this.currentWorkout, this.isLoading = false, this.error});
+  /// Tracks when a user explicitly selects a session via UI action.
+  /// This prevents loadNextWorkout from overriding their selection.
+  /// Set to null when user starts, finishes, or cancels a workout.
+  final String? userSelectedSessionId;
+
+  const WorkoutState({
+    this.currentWorkout,
+    this.isLoading = false,
+    this.error,
+    this.userSelectedSessionId,
+  });
 
   bool get hasActiveWorkout => currentWorkout?.isInProgress == true;
+
+  /// Returns true if the current workout was explicitly selected by the user
+  bool get hasUserSelection =>
+      userSelectedSessionId != null &&
+      currentWorkout?.id == userSelectedSessionId;
 
   WorkoutState copyWith({
     WorkoutSession? currentWorkout,
     bool? isLoading,
     String? error,
+    String? userSelectedSessionId,
+    bool clearUserSelection = false,
   }) {
     return WorkoutState(
       currentWorkout: currentWorkout ?? this.currentWorkout,
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      userSelectedSessionId: clearUserSelection
+          ? null
+          : (userSelectedSessionId ?? this.userSelectedSessionId),
     );
   }
 }
