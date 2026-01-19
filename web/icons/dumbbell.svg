@@ -12,9 +12,11 @@
   <!-- Background fill (app color) -->
   <rect width="64" height="64" rx="8" fill="#2979FF"/>
 
-  <!-- Artwork group is scaled and translated to create uniform padding.
-       translate(8,8) + scale(0.75) yields an 8px margin on all sides for 64px artboard. -->
-  <g transform="translate(8,8) scale(0.75)" fill="#FFFFFF">
+    <!-- Artwork group is scaled and translated to create uniform padding.
+      Using translate(12,12) + scale(0.625) yields a 12px margin on all sides
+      for the 64px artboard (approx 18.75% padding) so the icon is safe for
+      modern Android adaptive masks and launcher shapes. -->
+    <g transform="translate(12,12) scale(0.625)" fill="#FFFFFF">
     <!-- left plate -->
     <rect x="6" y="20" width="10" height="24" rx="2" />
     <rect x="2" y="16" width="18" height="32" rx="3" />
