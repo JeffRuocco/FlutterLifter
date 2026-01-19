@@ -50,7 +50,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// Handles starting a workout with session picker for overlapping dates
-  Future<void> _handleStartWorkout(WorkoutSession session) async {
+  Future<void> _handleWorkoutSessionSelection(WorkoutSession session) async {
     final notifier = ref.read(workoutNotifierProvider.notifier);
     final sessionsToday = await notifier.getSessionsForToday();
 
@@ -182,7 +182,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     : _HeroWorkoutCard(
                         workoutSession: currentWorkoutSession,
                         onStartWorkout: currentWorkoutSession != null
-                            ? () => _handleStartWorkout(currentWorkoutSession)
+                            ? () => _handleWorkoutSessionSelection(
+                                currentWorkoutSession,
+                              )
                             : null,
                       ),
               ),

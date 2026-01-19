@@ -158,6 +158,12 @@ class ProgramRepositoryImpl implements ProgramRepository {
   final bool useRemoteApi;
   final bool useMockData;
 
+  Map<String, ({Program program, ProgramCycle cycle})>? _cycleIdCache;
+
+  void _invalidateCycleCache() {
+    _cycleIdCache = null;
+  }
+
   ProgramRepositoryImpl({
     this.remoteDataSource,
     this.localDataSource,
@@ -166,6 +172,35 @@ class ProgramRepositoryImpl implements ProgramRepository {
     this.useRemoteApi = false,
     this.useMockData = true,
   });
+
+  /// Helper method to find a program and its cycle by cycle ID.
+  ///
+  /// Returns a record with the program and cycle if found, null otherwise.
+  /// This centralizes the lookup logic and avoids repeated nested loops
+  /// across multiple methods.
+  Future<({Program program, ProgramCycle cycle})?> _findProgramAndCycleById(
+    String cycleId,
+  ) async {
+    // Return from cache if available to avoid iterating over programs
+    if (_cycleIdCache != null && _cycleIdCache!.containsKey(cycleId)) {
+      return _cycleIdCache![cycleId];
+    }
+
+    // Use fresh programs list if cache is empty
+    final programs = await getPrograms();
+
+    // Only rebuild cache if it was invalidated (null)
+    if (_cycleIdCache == null) {
+      _cycleIdCache = {};
+      for (final program in programs) {
+        for (final cycle in program.cycles) {
+          _cycleIdCache![cycle.id] = (program: program, cycle: cycle);
+        }
+      }
+    }
+
+    return _cycleIdCache![cycleId];
+  }
 
   /// Factory constructor for development with mock data
   ///
@@ -289,6 +324,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
   /// Creates a new program in the repository
   @override
   Future<void> createProgram(Program program) async {
+    _invalidateCycleCache();
     LoggingService.debug('Creating program: ${program.id}');
 
     if (useMockData && mockDataSource != null) {
@@ -319,6 +355,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
   /// Updates a program in the repository
   @override
   Future<void> updateProgram(Program program) async {
+    _invalidateCycleCache();
     LoggingService.debug('Updating program: ${program.id}');
 
     if (useMockData && mockDataSource != null) {
@@ -346,6 +383,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
   /// Deletes a program from the repository
   @override
   Future<void> deleteProgram(String id) async {
+    _invalidateCycleCache();
     LoggingService.debug('Deleting program: $id');
 
     if (useMockData && mockDataSource != null) {
@@ -433,6 +471,7 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
   @override
   Future<void> refreshCache() async {
+    _invalidateCycleCache();
     if (localDataSource != null) {
       await localDataSource!.clearCache();
     }
@@ -523,38 +562,23 @@ class ProgramRepositoryImpl implements ProgramRepository {
     }
 
     // Find the program containing this cycle
-    final programs = await getPrograms();
-    Program? targetProgram;
-    ProgramCycle? targetCycle;
-
-    for (final program in programs) {
-      for (final cycle in program.cycles) {
-        if (cycle.id == cycleId) {
-          targetProgram = program;
-          targetCycle = cycle;
-          break;
-        }
-      }
-      if (targetCycle != null) break;
-    }
-
-    if (targetProgram == null || targetCycle == null) {
+    final result = await _findProgramAndCycleById(cycleId);
+    if (result == null) {
       LoggingService.debug('Cycle not found for session update: $cycleId');
       return;
     }
+    final (:program, :cycle) = result;
 
     // Update the session in the cycle's scheduledSessions list
-    final updatedSessions = targetCycle.scheduledSessions.map((s) {
+    final updatedSessions = cycle.scheduledSessions.map((s) {
       return s.id == session.id ? session : s;
     }).toList();
 
     // Update the cycle with modified sessions
-    final updatedCycle = targetCycle.copyWith(
-      scheduledSessions: updatedSessions,
-    );
+    final updatedCycle = cycle.copyWith(scheduledSessions: updatedSessions);
 
     // Update the program with the modified cycle
-    final updatedProgram = targetProgram.updateCycle(updatedCycle);
+    final updatedProgram = program.updateCycle(updatedCycle);
     await updateProgram(updatedProgram);
 
     LoggingService.debug(
@@ -581,31 +605,18 @@ class ProgramRepositoryImpl implements ProgramRepository {
     );
 
     // Find the program and cycle containing this session
-    final programs = await getPrograms();
-    Program? targetProgram;
-    ProgramCycle? targetCycle;
-
-    for (final program in programs) {
-      for (final cycle in program.cycles) {
-        if (cycle.id == cycleId) {
-          targetProgram = program;
-          targetCycle = cycle;
-          break;
-        }
-      }
-      if (targetCycle != null) break;
-    }
-
-    if (targetProgram == null || targetCycle == null) {
+    final result = await _findProgramAndCycleById(cycleId);
+    if (result == null) {
       LoggingService.warning('Cycle not found for propagation: $cycleId');
       return;
     }
+    final (:program, :cycle) = result;
 
     // Find future sessions with the same day template that haven't started
     final updatedSessions = <WorkoutSession>[];
     var changesCount = 0;
 
-    for (final session in targetCycle.scheduledSessions) {
+    for (final session in cycle.scheduledSessions) {
       // Skip the source session itself
       if (session.id == sourceSession.id) {
         updatedSessions.add(session);
@@ -665,12 +676,10 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
     if (changesCount > 0) {
       // Update the cycle with modified sessions
-      final updatedCycle = targetCycle.copyWith(
-        scheduledSessions: updatedSessions,
-      );
+      final updatedCycle = cycle.copyWith(scheduledSessions: updatedSessions);
 
       // Update the program with the modified cycle
-      final updatedProgram = targetProgram.updateCycle(updatedCycle);
+      final updatedProgram = program.updateCycle(updatedCycle);
       await updateProgram(updatedProgram);
 
       LoggingService.info(
@@ -714,31 +723,18 @@ class ProgramRepositoryImpl implements ProgramRepository {
     LoggingService.debug('Rescheduling future sessions by $daysDiff days');
 
     // Find the program and cycle containing this session
-    final programs = await getPrograms();
-    Program? targetProgram;
-    ProgramCycle? targetCycle;
-
-    for (final program in programs) {
-      for (final cycle in program.cycles) {
-        if (cycle.id == cycleId) {
-          targetProgram = program;
-          targetCycle = cycle;
-          break;
-        }
-      }
-      if (targetCycle != null) break;
-    }
-
-    if (targetProgram == null || targetCycle == null) {
+    final result = await _findProgramAndCycleById(cycleId);
+    if (result == null) {
       LoggingService.warning('Cycle not found for rescheduling: $cycleId');
       return;
     }
+    final (:program, :cycle) = result;
 
     // Reschedule future sessions - collect updates first, then batch save
     final updatedSessions = <WorkoutSession>[];
     final sessionsToSave = <WorkoutSession>[];
 
-    for (final s in targetCycle.scheduledSessions) {
+    for (final s in cycle.scheduledSessions) {
       // Keep the modified session as-is (it already has the new date)
       if (s.id == session.id) {
         updatedSessions.add(session);
@@ -767,12 +763,10 @@ class ProgramRepositoryImpl implements ProgramRepository {
       }
 
       // Update the cycle with rescheduled sessions
-      final updatedCycle = targetCycle.copyWith(
-        scheduledSessions: updatedSessions,
-      );
+      final updatedCycle = cycle.copyWith(scheduledSessions: updatedSessions);
 
       // Update the program with the modified cycle
-      final updatedProgram = targetProgram.updateCycle(updatedCycle);
+      final updatedProgram = program.updateCycle(updatedCycle);
       await updateProgram(updatedProgram);
 
       LoggingService.info(
@@ -892,8 +886,8 @@ class ProgramRepositoryImpl implements ProgramRepository {
         );
         // Mark the session as cancelled by setting end time
         // We don't delete it - just end it so it shows in history
-        session.endTime = DateTime.now();
-        await localDataSource!.saveWorkoutSession(session);
+        final updatedSession = session.copyWith(endTime: DateTime.now());
+        await localDataSource!.saveWorkoutSession(updatedSession);
       }
 
       LoggingService.debug(
@@ -957,12 +951,14 @@ class ProgramRepositoryImpl implements ProgramRepository {
     // Get all completed sessions from all program cycles
     final programs = await getPrograms();
     final completedSessions = <WorkoutSession>[];
+    final completedSessionIds = <String>{};
 
     for (final program in programs) {
       for (final cycle in program.cycles) {
         for (final session in cycle.scheduledSessions) {
           if (session.isCompleted) {
             completedSessions.add(session);
+            completedSessionIds.add(session.id);
           }
         }
       }
@@ -973,9 +969,10 @@ class ProgramRepositoryImpl implements ProgramRepository {
       final allSessions = await localDataSource!.getAllWorkoutSessions();
       for (final session in allSessions) {
         if (session.isCompleted) {
-          // Avoid duplicates - check if already in list
-          if (!completedSessions.any((s) => s.id == session.id)) {
+          // Avoid duplicates using O(1) lookup
+          if (!completedSessionIds.contains(session.id)) {
             completedSessions.add(session);
+            completedSessionIds.add(session.id);
           }
         }
       }
@@ -1168,6 +1165,23 @@ class ProgramRepositoryImpl implements ProgramRepository {
     }
 
     final updatedSessions = <WorkoutSession>[];
+    // Collect unique exercise IDs used by templates for this cycle
+    final uniqueExerciseIds = <String>{};
+    for (var i = 0; i < cycle.scheduledSessions.length; i++) {
+      final template = program.getDayTemplateForIndex(i);
+      if (template != null) uniqueExerciseIds.addAll(template.exerciseIds);
+    }
+
+    // Prefetch all unique exercises in parallel to avoid duplicate fetches
+    final exerciseIdList = uniqueExerciseIds.toList();
+    final exerciseFutures = exerciseIdList
+        .map((id) => exerciseRepository!.getExerciseById(id))
+        .toList();
+    final fetchedExercises = await Future.wait(exerciseFutures);
+    final exerciseMap = <String, dynamic>{};
+    for (var i = 0; i < exerciseIdList.length; i++) {
+      exerciseMap[exerciseIdList[i]] = fetchedExercises[i];
+    }
 
     for (var i = 0; i < cycle.scheduledSessions.length; i++) {
       final session = cycle.scheduledSessions[i];
@@ -1181,8 +1195,10 @@ class ProgramRepositoryImpl implements ProgramRepository {
 
       // Build workout exercises from template
       final workoutExercises = <WorkoutExercise>[];
-      for (final exerciseId in template.exerciseIds) {
-        final exercise = await exerciseRepository!.getExerciseById(exerciseId);
+      for (var idx = 0; idx < template.exerciseIds.length; idx++) {
+        final exerciseId = template.exerciseIds[idx];
+        final exercise = exerciseMap[exerciseId] as dynamic;
+
         if (exercise == null) {
           LoggingService.warning(
             'Exercise not found for template: $exerciseId',

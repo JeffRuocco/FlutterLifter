@@ -1176,16 +1176,18 @@ class Program {
       final iconData = metadata!['icon'];
       // Handle type conversion from JSON deserialization
       // JSON returns List<dynamic> which needs to be cast to List<List<dynamic>>
-      if (iconData is List<List<dynamic>>) {
+      if (iconData is List<List<dynamic>> || iconData is HugeIconData) {
         return iconData;
-      } else if (iconData is List) {
-        // Convert List<dynamic> to List<List<dynamic>>
-        return iconData.map<List<dynamic>>((item) {
+      }
+      // JSON may return List<dynamic> which needs to be converted to HugeIconData (List<List<dynamic>>)
+      else if (iconData is List) {
+        final converted = iconData.map<List<dynamic>>((item) {
           if (item is List) {
             return item.cast<dynamic>();
           }
           return <dynamic>[item];
         }).toList();
+        return converted;
       }
     }
     // Return a default icon
