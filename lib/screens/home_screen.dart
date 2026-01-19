@@ -17,7 +17,6 @@ import '../widgets/progress_ring.dart';
 import '../widgets/skeleton_loader.dart';
 
 // TODO: Need a way to save sessions that are not tied to a program or cycle
-// TODO: Workout sessions not automatically scheduled based on program periodicity
 
 /// The home screen and dashboard of the app.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -28,13 +27,58 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  WorkoutSession? _lastWorkout;
+
   @override
   void initState() {
     super.initState();
     // Load the next workout session into state
     Future.microtask(() {
       ref.read(workoutNotifierProvider.notifier).loadNextWorkout();
+      _loadLastWorkout();
     });
+  }
+
+  Future<void> _loadLastWorkout() async {
+    final repository = ref.read(programRepositoryProvider);
+    final completed = await repository.getCompletedSessions(limit: 1);
+    if (mounted && completed.isNotEmpty) {
+      setState(() {
+        _lastWorkout = completed.first;
+      });
+    }
+  }
+
+  /// Handles starting a workout with session picker for overlapping dates
+  Future<void> _handleWorkoutSessionSelection(WorkoutSession session) async {
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    final sessionsToday = await notifier.getSessionsForToday();
+
+    if (!mounted) return;
+
+    if (sessionsToday.length > 1) {
+      // Show session picker
+      _showSessionPicker(sessionsToday);
+    } else {
+      // Start the single session
+      context.go(AppRoutes.workout);
+    }
+  }
+
+  /// Shows a bottom sheet to pick between multiple sessions scheduled for today
+  void _showSessionPicker(List<WorkoutSession> sessions) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _SessionPickerSheet(
+        sessions: sessions,
+        onSessionSelected: (session) {
+          Navigator.pop(context);
+          ref.read(workoutNotifierProvider.notifier).setCurrentWorkout(session);
+          context.go(AppRoutes.workout);
+        },
+      ),
+    );
   }
 
   /// Get time-based greeting message
@@ -138,7 +182,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     : _HeroWorkoutCard(
                         workoutSession: currentWorkoutSession,
                         onStartWorkout: currentWorkoutSession != null
-                            ? () => context.go(AppRoutes.workout)
+                            ? () => _handleWorkoutSessionSelection(
+                                currentWorkoutSession,
+                              )
                             : null,
                       ),
               ),
@@ -210,14 +256,56 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       icon: HugeIcons.strokeRoundedClock01,
                       color: context.secondaryColor,
                       onTap: () {
-                        showInfoMessage(
-                          context,
-                          'Workout history coming soon!',
-                        );
+                        context.pushWorkoutHistory();
                       },
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              // Quick Start Section
+              SlideInWidget(
+                delay: const Duration(milliseconds: 900),
+                child: Text(
+                  'Start Workout',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: context.textPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Quick Start buttons
+              SlideInWidget(
+                delay: const Duration(milliseconds: 1000),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _QuickStartButton(
+                        title: 'Quick Start',
+                        subtitle: 'Empty workout',
+                        icon: HugeIcons.strokeRoundedAdd01,
+                        onTap: _startQuickWorkout,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: _QuickStartButton(
+                        title: 'Repeat Last',
+                        subtitle: _lastWorkout != null
+                            ? _lastWorkout!.programName ?? 'Workout'
+                            : 'No history',
+                        icon: HugeIcons.strokeRoundedRepeat,
+                        onTap: _lastWorkout != null
+                            ? () => _repeatLastWorkout()
+                            : null,
+                        isEnabled: _lastWorkout != null,
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: AppSpacing.lg),
@@ -226,6 +314,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _startQuickWorkout() async {
+    // Create an empty standalone session
+    final session = WorkoutSession.create(
+      programName: 'Quick Workout',
+      date: DateTime.now(),
+    );
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    await notifier.startWorkout(session);
+    if (mounted) {
+      context.go(AppRoutes.workout);
+    }
+  }
+
+  Future<void> _repeatLastWorkout() async {
+    if (_lastWorkout == null) return;
+
+    final newSession = _lastWorkout!.cloneAsNewSession(newDate: DateTime.now());
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    await notifier.startWorkout(newSession);
+    if (mounted) {
+      context.go(AppRoutes.workout);
+    }
   }
 }
 
@@ -473,6 +585,220 @@ class _ActionCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Quick start button for starting workouts directly
+class _QuickStartButton extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final HugeIconData icon;
+  final VoidCallback? onTap;
+  final bool isEnabled;
+
+  const _QuickStartButton({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    this.onTap,
+    this.isEnabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveEnabled = isEnabled && onTap != null;
+
+    return AppCard(
+      onTap: effectiveEnabled ? onTap : null,
+      child: Opacity(
+        opacity: effectiveEnabled ? 1.0 : 0.5,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: context.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.borderRadiusMedium,
+                  ),
+                ),
+                child: HugeIcon(
+                  icon: icon,
+                  color: context.primaryColor,
+                  size: AppDimensions.iconSmall,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.titleSmall.copyWith(
+                        color: context.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      subtitle,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: context.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                color: context.textSecondary,
+                size: AppDimensions.iconSmall,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet for picking between multiple sessions on the same day
+class _SessionPickerSheet extends StatelessWidget {
+  final List<WorkoutSession> sessions;
+  final void Function(WorkoutSession) onSessionSelected;
+
+  const _SessionPickerSheet({
+    required this.sessions,
+    required this.onSessionSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppDimensions.borderRadiusLarge),
+        ),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: context.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Title
+            Row(
+              children: [
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedAlert02,
+                  color: context.warningColor,
+                  size: AppDimensions.iconMedium,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'Multiple Sessions Today',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: context.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'You have ${sessions.length} sessions scheduled for today. '
+              'Pick which one to start:',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Session list
+            ...sessions.map((session) {
+              final dayName = session.metadata?['dayTemplateName'] as String?;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: AppCard(
+                  onTap: () => onSessionSelected(session),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.sm),
+                          decoration: BoxDecoration(
+                            color: context.primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.borderRadiusMedium,
+                            ),
+                          ),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedDumbbell01,
+                            color: context.primaryColor,
+                            size: AppDimensions.iconSmall,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                dayName ?? session.programName ?? 'Workout',
+                                style: AppTextStyles.titleSmall.copyWith(
+                                  color: context.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${session.exercises.length} exercises',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: context.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowRight01,
+                          color: context.textSecondary,
+                          size: AppDimensions.iconSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+
+            const SizedBox(height: AppSpacing.sm),
           ],
         ),
       ),

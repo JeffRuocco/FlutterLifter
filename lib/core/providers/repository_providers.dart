@@ -80,9 +80,11 @@ final exerciseLocalDataSourceProvider = Provider<ExerciseLocalDataSource>((
 final programRepositoryProvider = Provider<ProgramRepository>((ref) {
   final localDataSource = ref.watch(programLocalDataSourceProvider);
   final mockDataSource = ref.watch(mockProgramDataSourceProvider);
+  final exerciseRepository = ref.watch(exerciseRepositoryProvider);
   return ProgramRepositoryImpl(
     mockDataSource: mockDataSource,
     localDataSource: localDataSource,
+    exerciseRepository: exerciseRepository,
     useMockData: AppConfig.useMockProgramData,
     // TODO: enable remote API when ready
     useRemoteApi: false,

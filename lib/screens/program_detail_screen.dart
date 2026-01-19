@@ -826,6 +826,17 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (hasActiveCycle) ...[
+          // View scheduled sessions button
+          OutlinedButton.icon(
+            onPressed: () => context.pushScheduledSessions(program.id),
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedCalendar03,
+              color: context.primaryColor,
+              size: AppDimensions.iconSmall,
+            ),
+            label: const Text('View Schedule'),
+          ),
+          const VSpace.sm(),
           FilledButton.icon(
             onPressed: _isStartingCycle ? null : _resumeCycle,
             icon: HugeIcon(

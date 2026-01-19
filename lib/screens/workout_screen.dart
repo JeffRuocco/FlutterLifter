@@ -189,7 +189,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   }
 
   void _addExercise(WorkoutSession workoutSession) {
-    final workoutService = ref.read(workoutServiceProvider);
+    final notifier = ref.read(workoutNotifierProvider.notifier);
 
     showModalBottomSheet(
       context: context,
@@ -200,13 +200,13 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
           LoggingService.logUserAction(
             "Add exercise to workout session: ${exercise.name}",
           );
-          setState(() {
-            workoutSession.exercises.add(exercise);
-          });
+
+          // Use the notifier to add exercise (updates state + handles immutable list)
+          notifier.addExercise(exercise);
 
           // Auto-save the change
           try {
-            await workoutService.saveWorkoutImmediate();
+            await notifier.saveWorkoutImmediate();
             if (!mounted) return;
             showSuccessMessage(context, 'Exercise added!');
           } catch (error) {
@@ -222,7 +222,8 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   }
 
   void _removeExercise(int index, WorkoutSession workoutSession) {
-    final workoutService = ref.read(workoutServiceProvider);
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    final exerciseName = workoutSession.exercises[index].exercise.name;
 
     showDialog(
       context: context,
@@ -234,7 +235,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
           ),
         ),
         content: Text(
-          'Are you sure you want to remove ${workoutSession.exercises[index].name}?',
+          'Are you sure you want to remove $exerciseName?',
           style: AppTextStyles.bodyMedium.copyWith(
             color: dialogContext.textSecondary,
           ),
@@ -252,16 +253,16 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
           ElevatedButton(
             onPressed: () async {
               LoggingService.logUserAction(
-                "Remove exercise from workout session: ${workoutSession.exercises[index].name}",
+                "Remove exercise from workout session: $exerciseName",
               );
-              setState(() {
-                workoutSession.exercises.removeAt(index);
-              });
+
+              // Use the notifier to remove exercise (updates state + handles immutable list)
+              notifier.removeExerciseAt(index);
               Navigator.pop(dialogContext);
 
               // Auto-save the change
               try {
-                await workoutService.saveWorkoutImmediate();
+                await notifier.saveWorkoutImmediate();
                 if (!mounted) return;
                 showInfoMessage(context, 'Exercise removed');
               } catch (error) {
@@ -285,7 +286,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
 
   /// Shows a modal bottom sheet to swap the current exercise with a new one.
   void _swapExercise(int index, WorkoutSession workoutSession) {
-    final workoutService = ref.read(workoutServiceProvider);
+    final notifier = ref.read(workoutNotifierProvider.notifier);
 
     showModalBottomSheet(
       context: context,
@@ -296,13 +297,13 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
           LoggingService.logUserAction(
             "Swap exercise in workout session: old ${workoutSession.exercises[index].name}, new ${exercise.name}",
           );
-          setState(() {
-            workoutSession.exercises[index] = exercise;
-          });
+
+          // Use the notifier to swap exercise (updates state + handles immutable list)
+          notifier.swapExercise(index, exercise);
 
           // Auto-save the change
           try {
-            await workoutService.saveWorkoutImmediate();
+            await notifier.saveWorkoutImmediate();
             if (!mounted) return;
             showSuccessMessage(context, 'Exercise swapped!');
           } catch (error) {

@@ -468,7 +468,8 @@ void main() {
         final programs = await repository.getDefaultPrograms();
         if (programs.isNotEmpty) {
           final newCycle = await repository.startNewCycle(programs.first.id);
-          expect(newCycle.endDate, isNull); // Initially no end date
+          // generateScheduledSessions sets endDate to 12 weeks from start
+          expect(newCycle.endDate, isNotNull);
 
           await repository.endActiveCycle();
 

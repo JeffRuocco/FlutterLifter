@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/workout_service.dart';
 import '../../models/workout_session_models.dart';
+import '../../models/exercise_models.dart';
 import '../../models/exercise/exercise_set_record.dart';
 import '../../models/exercise/exercise_session_record.dart';
 import 'repository_providers.dart';
@@ -183,11 +184,37 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   ///
   /// This should be called at app startup or when returning to the home screen
   /// to ensure the current/next workout is available in state.
+  ///
+  /// Priority order:
+  /// 1. Any in-progress workout (including standalone quick workouts)
+  /// 2. Current session from active program cycle
+  /// 3. Next scheduled session from active program cycle
+  ///
+  /// If multiple sessions are scheduled for today, the first unstarted one is returned.
+  /// Use [getSessionsForToday] to get all sessions for today when showing a picker.
   Future<void> loadNextWorkout() async {
     LoggingService.debug('Loading next workout session...');
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repository = ref.read(programRepositoryProvider);
+
+      // First, check for any in-progress session (including quick workouts)
+      final inProgressSession = await repository.getInProgressSession();
+      if (inProgressSession != null) {
+        LoggingService.debug(
+          'Found in-progress session: ${inProgressSession.id} '
+          '(${inProgressSession.programName ?? "Quick Workout"})',
+        );
+        // Also set it in the service so it stays in sync
+        _workoutService.setCurrentWorkout(inProgressSession);
+        state = state.copyWith(
+          currentWorkout: inProgressSession,
+          isLoading: false,
+        );
+        return;
+      }
+
+      // No in-progress session, look for next scheduled workout from programs
       final programs = await repository.getPrograms();
 
       // Find the active program with an active cycle
@@ -211,6 +238,42 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     } catch (e) {
       LoggingService.error('Error loading next workout: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// Gets all sessions scheduled for today, useful when there are overlapping sessions.
+  ///
+  /// Returns a list of sessions that:
+  /// - Are scheduled for today (by scheduledDate)
+  /// - Are not yet completed
+  Future<List<WorkoutSession>> getSessionsForToday() async {
+    try {
+      final repository = ref.read(programRepositoryProvider);
+      final programs = await repository.getPrograms();
+
+      final today = DateTime.now();
+      final sessionsForToday = <WorkoutSession>[];
+
+      for (final program in programs) {
+        final activeCycle = program.activeCycle;
+        if (activeCycle == null) continue;
+
+        for (final session in activeCycle.scheduledSessions) {
+          if (session.isCompleted) continue;
+
+          final sessionDate = session.date;
+          if (sessionDate.year == today.year &&
+              sessionDate.month == today.month &&
+              sessionDate.day == today.day) {
+            sessionsForToday.add(session);
+          }
+        }
+      }
+
+      return sessionsForToday;
+    } catch (e) {
+      LoggingService.error('Error getting sessions for today: $e');
+      return [];
     }
   }
 
@@ -342,6 +405,30 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       LoggingService.error('Error resuming workout: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  /// Add an exercise to the current workout
+  ///
+  /// This updates both the service state and the notifier state.
+  void addExercise(WorkoutExercise exercise) {
+    _workoutService.addExercise(exercise);
+    state = state.copyWith(currentWorkout: _workoutService.currentWorkout);
+  }
+
+  /// Remove an exercise from the current workout by index
+  ///
+  /// This updates both the service state and the notifier state.
+  void removeExerciseAt(int index) {
+    _workoutService.removeExerciseAt(index);
+    state = state.copyWith(currentWorkout: _workoutService.currentWorkout);
+  }
+
+  /// Swap/replace an exercise at a specific index
+  ///
+  /// This updates both the service state and the notifier state.
+  void swapExercise(int index, WorkoutExercise newExercise) {
+    _workoutService.swapExercise(index, newExercise);
+    state = state.copyWith(currentWorkout: _workoutService.currentWorkout);
   }
 
   /// Update the workout state (for UI updates after exercise changes)

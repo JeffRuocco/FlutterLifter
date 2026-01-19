@@ -72,9 +72,26 @@ class WorkoutService {
   /// Whether there is an active workout in progress
   bool get hasActiveWorkout => _currentWorkout?.isInProgress == true;
 
+  /// Set the current workout session directly without starting it.
+  ///
+  /// Use this to restore an in-progress workout from storage.
+  /// This does NOT start auto-save - call startWorkout if the workout
+  /// is not already in progress.
+  void setCurrentWorkout(WorkoutSession session) {
+    _currentWorkout = session;
+    _lastSavedHash = session.hash;
+
+    // If the session is in progress, start auto-save
+    if (session.isInProgress) {
+      _startAutoSave();
+      LoggingService.debug('Restored in-progress workout: ${session.id}');
+    }
+  }
+
   /// Start a new workout session
   ///
   /// This will:
+  /// - Cancel any other in-progress sessions in storage
   /// - Set the workout as the current active session
   /// - Start the workout timer
   /// - Begin auto-save functionality
@@ -82,11 +99,15 @@ class WorkoutService {
   Future<void> startWorkout(WorkoutSession session) async {
     LoggingService.logWorkoutStart(session.programName ?? 'Unknown Program');
 
-    // End any existing workout first
+    // End any existing in-memory workout first
     if (_currentWorkout?.isInProgress == true) {
       LoggingService.warning('Ending previous workout to start new one');
       await finishWorkout();
     }
+
+    // Cancel any other in-progress sessions in storage
+    // This ensures only one workout is active at a time
+    await _programRepository.cancelOtherInProgressSessions(session.id);
 
     _currentWorkout = session;
     _lastSavedHash = null; // Reset hash for new workout
@@ -184,6 +205,54 @@ class WorkoutService {
       );
       _startAutoSave();
     }
+  }
+
+  /// Add an exercise to the current workout session
+  ///
+  /// This uses immutable patterns to update the exercise list,
+  /// avoiding issues with const lists.
+  void addExercise(WorkoutExercise exercise) {
+    if (_currentWorkout == null) return;
+
+    final updatedExercises = [..._currentWorkout!.exercises, exercise];
+    _currentWorkout = _currentWorkout!.copyWith(exercises: updatedExercises);
+    LoggingService.debug('Added exercise: ${exercise.exercise.name}');
+  }
+
+  /// Remove an exercise from the current workout session by index
+  ///
+  /// This uses immutable patterns to update the exercise list,
+  /// avoiding issues with const lists.
+  void removeExerciseAt(int index) {
+    if (_currentWorkout == null) return;
+    if (index < 0 || index >= _currentWorkout!.exercises.length) return;
+
+    final exerciseName = _currentWorkout!.exercises[index].exercise.name;
+    final updatedExercises = List<WorkoutExercise>.from(
+      _currentWorkout!.exercises,
+    )..removeAt(index);
+    _currentWorkout = _currentWorkout!.copyWith(exercises: updatedExercises);
+    LoggingService.debug('Removed exercise: $exerciseName');
+  }
+
+  /// Swap/replace an exercise at a specific index in the current workout
+  ///
+  /// This uses immutable patterns to update the exercise list,
+  /// avoiding issues with const lists.
+  void swapExercise(int index, WorkoutExercise newExercise) {
+    if (_currentWorkout == null) return;
+    if (index < 0 || index >= _currentWorkout!.exercises.length) return;
+
+    final oldExerciseName = _currentWorkout!.exercises[index].exercise.name;
+    final updatedExercises = List<WorkoutExercise>.from(
+      _currentWorkout!.exercises,
+    );
+    updatedExercises[index] = newExercise;
+    _currentWorkout = _currentWorkout!.copyWith(exercises: updatedExercises);
+    LoggingService.debug(
+      'Swapped exercise at index $index: $oldExerciseName -> '
+      '${newExercise.exercise.name}',
+    );
   }
 
   /// Get workout session history
