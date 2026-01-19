@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Simple dumbbell icon used as favicon / PWA icon (stylized) -->
+<!--
+  Dumbbell icon with safe-area padding.
+
+  Guidelines followed:
+  - Provide a safe margin around artwork so the icon looks good on
+    device home screens and adaptive icon masks.
+  - For a 64x64 viewBox we use an 8px safe margin (~12.5%). This keeps
+    artwork away from rounded corners and system masks.
+-->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512">
+  <!-- Background fill (app color) -->
   <rect width="64" height="64" rx="8" fill="#2979FF"/>
-  <g transform="translate(0,0)" fill="#FFFFFF">
+
+  <!-- Artwork group is scaled and translated to create uniform padding.
+       translate(8,8) + scale(0.75) yields an 8px margin on all sides for 64px artboard. -->
+  <g transform="translate(8,8) scale(0.75)" fill="#FFFFFF">
     <!-- left plate -->
     <rect x="6" y="20" width="10" height="24" rx="2" />
     <rect x="2" y="16" width="18" height="32" rx="3" />
