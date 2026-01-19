@@ -35,14 +35,16 @@
   - [x] Add hive dependencies to pubspec.yaml
   - [x] Implement HiveStorageService
   - [ ] Test storage persistence in PWA
-- [ ] **Add program creation pages**
-  - [ ] Add program to local program library
-  - [ ] Share program to public library (link/code, eventually a public program library)
+- [ ] **Ensure usablity of quick workouts**
+- [ ] **Implement user authentication**
+  - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
+- [ ] **Implement cloud storage and sycning** (see `storage-implementation-plan.md`)
 
 ## Incremental updates
 
-- [ ] **Implement user authentication**
-  - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
+- [ ] **Add program creation pages**
+  - [ ] Add program to local program library
+  - [ ] Share program to public library (link/code, eventually a public program library)
 - [ ] **UI overhaul**
   - [x] Migrate ServiceLocator to Riverpod state management
   - [x] Implement GoRouter for declarative navigation
@@ -54,12 +56,10 @@
   - [ ] Add riverpod_generator + build_runner for type-safe providers
   - [ ] Add hero animations between screens for cards
   - [x] Better styling/theme
-  - [ ] Additional optional themes (blue and red, white and gold, etc.). Custom themes?
+  - [x] Additional optional themes (blue and red, white and gold, etc.). Custom themes?
 - [ ] **Rest timer**
 - [ ] **Add progress page**
 - [ ] **Workout summary**
-- [ ] **Determine best option cloud storage (Firebase?, API?)**
-- [ ] **Implement backend service**
 - [ ] **Add unit tests for all pages**
   - [ ] Add WorkoutService unit tests
   - [x] Add ExerciseRepository unit tests
@@ -69,10 +69,3 @@
   - [ ] Allow users to import exercises from public library
   - [ ] Add exercise discovery/search in public library
 - [ ] **Public program library**
-
-## Next Steps Priority
-
-1. **Integrate WorkoutService with existing UI** - Update your workout_screen.dart to use the new service
-1. **Test the auto-save functionality** - Verify it works in real usage
-1. **Implement Hive for persistent storage** - Replace in-memory storage with real persistence
-1. **Add rest timer functionality** - Now that saving is handled, focus on UX feature
