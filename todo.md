@@ -38,7 +38,7 @@
 - [x] **Ensure usablity of quick workouts**
 - [ ] **Implement user authentication**
   - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
-- [ ] **Implement cloud storage and sycning** (see `storage-implementation-plan.md`)
+- [ ] **Implement cloud storage and syncing** (see `storage-implementation-plan.md`)
 
 ## Incremental updates
 
