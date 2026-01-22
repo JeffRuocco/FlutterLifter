@@ -42,6 +42,8 @@ class _WorkoutHistoryScreenState extends ConsumerState<WorkoutHistoryScreen> {
   String? _errorMessage;
   DateTime? _startDate;
   DateTime? _endDate;
+  // Track sessions currently being deleted to prevent duplicate deletes
+  final Set<String> _deletingIds = {};
 
   @override
   void initState() {
@@ -306,6 +308,7 @@ class _WorkoutHistoryScreenState extends ConsumerState<WorkoutHistoryScreen> {
                 session: session,
                 onRepeat: () => _repeatSession(session),
                 onTap: () => _showSessionDetails(session),
+                onDelete: () => _confirmAndDelete(session),
               ),
             ),
           );
@@ -344,6 +347,10 @@ class _WorkoutHistoryScreenState extends ConsumerState<WorkoutHistoryScreen> {
           Navigator.pop(context);
           _repeatSession(session);
         },
+        onDelete: () {
+          Navigator.pop(context);
+          _confirmAndDelete(session);
+        },
       ),
     );
   }
@@ -378,6 +385,69 @@ class _WorkoutHistoryScreenState extends ConsumerState<WorkoutHistoryScreen> {
       }
     }
   }
+
+  Future<void> _confirmAndDelete(WorkoutSession session) async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Workout?'),
+            content: const Text(
+              'This will permanently delete this workout session. This cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text(
+                  'Delete',
+                  style: TextStyle(color: context.errorColor),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!confirmed) return;
+
+    if (_deletingIds.contains(session.id)) return;
+    setState(() => _deletingIds.add(session.id));
+
+    try {
+      final repository = ref.read(programRepositoryProvider);
+      await repository.deleteWorkoutSession(session.id);
+
+      setState(() {
+        _sessions.removeWhere((s) => s.id == session.id);
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Workout deleted'),
+            backgroundColor: context.successColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete workout: $e'),
+            backgroundColor: context.errorColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _deletingIds.remove(session.id));
+    }
+  }
 }
 
 /// Card displaying a completed workout session in history
@@ -385,8 +455,14 @@ class _HistorySessionCard extends StatelessWidget {
   final WorkoutSession session;
   final VoidCallback? onRepeat;
   final VoidCallback? onTap;
+  final VoidCallback? onDelete;
 
-  const _HistorySessionCard({required this.session, this.onRepeat, this.onTap});
+  const _HistorySessionCard({
+    required this.session,
+    this.onRepeat,
+    this.onTap,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -472,6 +548,17 @@ class _HistorySessionCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Delete button
+                IconButton(
+                  onPressed: onDelete,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedDelete02,
+                    size: AppDimensions.iconSmall,
+                    color: context.errorColor,
+                  ),
+                  tooltip: 'Delete Workout',
+                ),
+
                 // Repeat button
                 IconButton(
                   onPressed: onRepeat,
@@ -567,8 +654,13 @@ class _HistorySessionCard extends StatelessWidget {
 class _HistoryDetailsSheet extends StatelessWidget {
   final WorkoutSession session;
   final VoidCallback? onRepeat;
+  final VoidCallback? onDelete;
 
-  const _HistoryDetailsSheet({required this.session, this.onRepeat});
+  const _HistoryDetailsSheet({
+    required this.session,
+    this.onRepeat,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -693,17 +785,37 @@ class _HistoryDetailsSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: SafeArea(
-              child: FilledButton.icon(
-                onPressed: onRepeat,
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedRepeat,
-                  size: AppDimensions.iconSmall,
-                  color: context.onPrimary,
-                ),
-                label: const Text('Repeat This Workout'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onDelete != null)
+                    OutlinedButton.icon(
+                      onPressed: onDelete,
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedDelete02,
+                        size: AppDimensions.iconSmall,
+                        color: context.errorColor,
+                      ),
+                      label: const Text('Delete Workout'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                      ),
+                    ),
+                  if (onDelete != null) const VSpace.sm(),
+
+                  FilledButton.icon(
+                    onPressed: onRepeat,
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedRepeat,
+                      size: AppDimensions.iconSmall,
+                      color: context.onPrimary,
+                    ),
+                    label: const Text('Repeat This Workout'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
