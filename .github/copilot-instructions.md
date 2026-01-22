@@ -421,8 +421,7 @@ Route configuration is in `lib/core/router/app_router.dart`.
 
 ```dart
 // ✅ Correct
-Icon(HugeIcons.strokeRoundedHome01)
-Icon(HugeIcons.strokeRoundedDumbbell01)
+HugeIcons.strokeRoundedSearch01
 
 // ❌ NEVER use Material Icons
 Icon(Icons.home)
@@ -523,6 +522,8 @@ AppCard(child: content)  // Handles contrast automatically
 - **Test UI changes in both light and dark mode** before committing
 - Implement optimistic UI updates for better user experience
 - Implement offline-first support using a Stream where applicable
+- Utilize Riverpod providers for dependency injection and state management instead of instantiate services directly (see `docs/riverpod-guide.md` and `docs/data-architecture.md` documents for more info)
+- When in doubt, reference `docs/design-guidelines.md` for architectural and design patterns
 
 ## Code Quality
 - Use meaningful variable and function names
