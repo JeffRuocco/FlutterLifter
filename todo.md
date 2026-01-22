@@ -35,13 +35,19 @@
   - [x] Add hive dependencies to pubspec.yaml
   - [x] Implement HiveStorageService
   - [ ] Test storage persistence in PWA
-- [ ] **Ensure usablity of quick workouts**
+- [x] **Ensure usablity of quick workouts**
 - [ ] **Implement user authentication**
   - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
 - [ ] **Implement cloud storage and sycning** (see `storage-implementation-plan.md`)
 
 ## Incremental updates
 
+- [ ] QoL
+  - [ ] Delete session from history
+  - [ ] Cancel session (delete without completing)
+  - [ ] Plan quick workout without "starting"
+  - [ ] Add/delete sets without starting session
+  - [ ] Plan quick workouts for future dates
 - [ ] **Add program creation pages**
   - [ ] Add program to local program library
   - [ ] Share program to public library (link/code, eventually a public program library)
