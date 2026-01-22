@@ -34,7 +34,7 @@
 - [x] **Add Hive for local storage (all platforms)**
   - [x] Add hive dependencies to pubspec.yaml
   - [x] Implement HiveStorageService
-  - [ ] Test storage persistence in PWA
+  - [x] Test storage persistence in PWA
 - [x] **Ensure usablity of quick workouts**
 - [ ] **Implement user authentication**
   - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
