@@ -7,6 +7,7 @@ import 'package:flutter_lifter/core/providers/repository_providers.dart';
 import 'package:flutter_lifter/core/providers/workout_provider.dart';
 import 'package:flutter_lifter/services/logging_service.dart';
 import 'package:flutter_lifter/services/app_settings_service.dart';
+import 'package:flutter_lifter/core/theme/app_theme.dart';
 import 'package:flutter_lifter/models/workout_session_models.dart';
 import 'package:flutter_lifter/data/datasources/local/program_local_datasource.dart';
 
@@ -57,7 +58,11 @@ void main() {
           // No active workout
           currentWorkoutProvider.overrideWithValue(null),
         ],
-        child: const MaterialApp(home: WorkoutHistoryScreen()),
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          home: const WorkoutHistoryScreen(),
+        ),
       ),
     );
 

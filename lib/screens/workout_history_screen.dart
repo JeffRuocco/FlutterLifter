@@ -789,31 +789,33 @@ class _HistoryDetailsSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (onDelete != null)
-                    OutlinedButton.icon(
+                    AppButton.outlined(
                       onPressed: onDelete,
                       icon: HugeIcon(
                         icon: HugeIcons.strokeRoundedDelete02,
                         size: AppDimensions.iconSmall,
                         color: context.errorColor,
                       ),
-                      label: const Text('Delete Workout'),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 48),
+                      text: 'Delete Workout',
+                      style: ButtonStyle(
+                        foregroundColor: WidgetStateProperty.all(
+                          context.errorColor,
+                        ),
                       ),
+                      width: double.infinity,
                     ),
+
                   if (onDelete != null) const VSpace.sm(),
 
-                  FilledButton.icon(
+                  AppButton.elevated(
                     onPressed: onRepeat,
                     icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedRepeat,
                       size: AppDimensions.iconSmall,
                       color: context.onPrimary,
                     ),
-                    label: const Text('Repeat This Workout'),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
-                    ),
+                    text: 'Repeat This Workout',
+                    width: double.infinity,
                   ),
                 ],
               ),
