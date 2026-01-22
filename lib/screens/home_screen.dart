@@ -324,7 +324,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       date: DateTime.now(),
     );
     final notifier = ref.read(workoutNotifierProvider.notifier);
-    await notifier.startWorkout(session);
+    final workoutService = ref.read(workoutServiceProvider);
+
+    // Set session in service and notifier but do NOT start it.
+    workoutService.setCurrentWorkout(session);
+    notifier.setCurrentWorkout(session);
+
+    // Persist the newly created session so it's available in storage.
+    await notifier.saveWorkoutImmediate();
+
     if (mounted) {
       context.go(AppRoutes.workout);
     }
@@ -335,7 +343,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final newSession = _lastWorkout!.cloneAsNewSession(newDate: DateTime.now());
     final notifier = ref.read(workoutNotifierProvider.notifier);
-    await notifier.startWorkout(newSession);
+    final workoutService = ref.read(workoutServiceProvider);
+
+    // Set the cloned session as current but do not start it yet.
+    workoutService.setCurrentWorkout(newSession);
+    notifier.setCurrentWorkout(newSession);
+
+    // Persist the session immediately
+    await notifier.saveWorkoutImmediate();
+
     if (mounted) {
       context.go(AppRoutes.workout);
     }

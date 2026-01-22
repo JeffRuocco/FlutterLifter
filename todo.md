@@ -3,7 +3,6 @@
 ## MVP
 
 - [x] **Add logging service**
-  - [ ] **Connect Firebase logging**
 - [x] **Add exercise repository**
   - [x] Create ExerciseRepository with default and custom exercise support
   - [x] Add UserExercisePreferences model for customizing default exercises
@@ -43,11 +42,12 @@
 ## Incremental updates
 
 - [ ] QoL
-  - [ ] Delete session from history
+  - [x] Delete session from history
   - [ ] Cancel session (delete without completing)
   - [ ] Plan quick workout without "starting"
   - [ ] Add/delete sets without starting session
   - [ ] Plan quick workouts for future dates
+- [ ] **Connect Firebase logging**
 - [ ] **Add program creation pages**
   - [ ] Add program to local program library
   - [ ] Share program to public library (link/code, eventually a public program library)
