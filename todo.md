@@ -45,7 +45,7 @@
   - [x] Delete session from history
   - [ ] Cancel session (delete without completing)
   - [x] Plan quick workout without "starting"
-  - [ ] Add/delete sets without starting session
+  - [x] Add/delete sets without starting session
   - [ ] Plan quick workouts for future dates
 - [ ] **Connect Firebase logging**
 - [ ] **Add program creation pages**

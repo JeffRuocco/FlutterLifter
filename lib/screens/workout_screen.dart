@@ -750,15 +750,37 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                       markAsCompleted,
                                     ) async {
                                       setState(() {
-                                        workoutSession
+                                        final set = workoutSession
                                             .exercises[index]
-                                            .sets[setIndex]
-                                            .updateSetData(
-                                              weight: weight,
-                                              reps: reps,
-                                              notes: notes,
-                                              markAsCompleted: markAsCompleted,
-                                            );
+                                            .sets[setIndex];
+
+                                        if (workoutSession.isInProgress) {
+                                          // Workout started -> update actuals
+                                          set.updateSetData(
+                                            weight: weight,
+                                            reps: reps,
+                                            notes: notes,
+                                            markAsCompleted: markAsCompleted,
+                                          );
+                                        } else {
+                                          // Planning mode -> update targets
+                                          if (weight != null) {
+                                            set.targetWeight = weight;
+                                          }
+                                          if (reps != null) {
+                                            set.targetReps = reps;
+                                          }
+                                          if (notes != null) set.notes = notes;
+
+                                          // If user explicitly marked as completed while planning,
+                                          // convert targets to actuals and mark completed.
+                                          if (markAsCompleted == true) {
+                                            set.actualWeight ??=
+                                                set.targetWeight;
+                                            set.actualReps ??= set.targetReps;
+                                            set.markCompleted();
+                                          }
+                                        }
                                       });
 
                                       await _saveWorkout();

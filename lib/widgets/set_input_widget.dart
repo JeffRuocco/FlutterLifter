@@ -58,16 +58,21 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   }
 
   void _initializeControllers() {
-    // Initialize weight controller
-    final weightValue = widget.exerciseSet.actualWeight;
+    // Initialize weight controller. If the workout hasn't started yet,
+    // show the planned target weight so users can edit their planned weights.
+    final weightValue = widget.isWorkoutStarted
+        ? widget.exerciseSet.actualWeight
+        : widget.exerciseSet.targetWeight;
     _weightController = TextEditingController(
       text: weightValue != null
           ? weightValue.toStringAsFixed(weightValue % 1 == 0 ? 0 : 1)
           : '',
     );
 
-    // Initialize reps controller
-    final repsValue = widget.exerciseSet.actualReps;
+    // Initialize reps controller (actual when started, otherwise target)
+    final repsValue = widget.isWorkoutStarted
+        ? widget.exerciseSet.actualReps
+        : widget.exerciseSet.targetReps;
     _repsController = TextEditingController(text: repsValue?.toString() ?? '');
 
     // Initialize notes controller
@@ -85,13 +90,31 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     }
 
     // Compare model data to current text field values
-    final currentWeightText = widget.exerciseSet.actualWeight != null
-        ? widget.exerciseSet.actualWeight!.toStringAsFixed(
-            widget.exerciseSet.actualWeight! % 1 == 0 ? 0 : 1,
-          )
+    final currentWeightText =
+        (widget.isWorkoutStarted
+                ? widget.exerciseSet.actualWeight
+                : widget.exerciseSet.targetWeight) !=
+            null
+        ? (widget.isWorkoutStarted
+                  ? widget.exerciseSet.actualWeight!
+                  : widget.exerciseSet.targetWeight!)
+              .toStringAsFixed(
+                (widget.isWorkoutStarted
+                                ? widget.exerciseSet.actualWeight!
+                                : widget.exerciseSet.targetWeight!) %
+                            1 ==
+                        0
+                    ? 0
+                    : 1,
+              )
         : '';
 
-    final currentRepsText = widget.exerciseSet.actualReps?.toString() ?? '';
+    final currentRepsText =
+        (widget.isWorkoutStarted
+                ? widget.exerciseSet.actualReps
+                : widget.exerciseSet.targetReps)
+            ?.toString() ??
+        '';
     final currentNotesText = widget.exerciseSet.notes ?? '';
 
     // Check if model data differs from what's in the text fields
@@ -104,12 +127,17 @@ class _SetInputWidgetState extends State<SetInputWidget> {
 
   void _updateControllersFromModel() {
     // Update the controllers directly without listeners
-    final weightValue = widget.exerciseSet.actualWeight;
+    final weightValue = widget.isWorkoutStarted
+        ? widget.exerciseSet.actualWeight
+        : widget.exerciseSet.targetWeight;
     _weightController.text = weightValue != null
         ? weightValue.toStringAsFixed(weightValue % 1 == 0 ? 0 : 1)
         : '';
 
-    _repsController.text = widget.exerciseSet.actualReps?.toString() ?? '';
+    final repsValue = widget.isWorkoutStarted
+        ? widget.exerciseSet.actualReps
+        : widget.exerciseSet.targetReps;
+    _repsController.text = repsValue?.toString() ?? '';
     _notesController.text = widget.exerciseSet.notes ?? '';
   }
 
@@ -186,7 +214,9 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   @override
   Widget build(BuildContext context) {
     final isCompleted = widget.exerciseSet.isCompleted;
-    final isEditable = widget.isWorkoutStarted && !isCompleted;
+    // Allow editing planned targets when the workout hasn't started yet.
+    // If workout is started, edits affect actual values as before.
+    final isEditable = !isCompleted;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),

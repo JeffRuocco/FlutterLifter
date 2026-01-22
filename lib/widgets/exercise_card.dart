@@ -608,31 +608,29 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
             );
           }),
 
-          // Add Set Button
-          if (widget.isWorkoutStarted) ...[
-            const VSpace.sm(),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _addSet(context),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: context.primaryColor,
-                  side: BorderSide(color: context.primaryColor),
-                ),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
+          // Add Set Button - allow in planning mode as well as active workouts
+          const VSpace.sm(),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _addSet(context),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: context.primaryColor,
+                side: BorderSide(color: context.primaryColor),
+              ),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                color: context.primaryColor,
+                size: AppDimensions.iconMedium,
+              ),
+              label: Text(
+                'Add Set',
+                style: AppTextStyles.labelMedium.copyWith(
                   color: context.primaryColor,
-                  size: AppDimensions.iconMedium,
-                ),
-                label: Text(
-                  'Add Set',
-                  style: AppTextStyles.labelMedium.copyWith(
-                    color: context.primaryColor,
-                  ),
                 ),
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -651,11 +649,10 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
     int index,
     ExerciseSet set,
   ) {
-    // Only allow dismissing if workout is started and there's more than one set
+    // Allow dismissing/removing sets in planning mode as well as when workout
+    // is started, as long as there's more than one set and a handler exists.
     final canDismiss =
-        widget.isWorkoutStarted &&
-        widget.exercise.sets.length > 1 &&
-        widget.onRemoveSet != null;
+        widget.exercise.sets.length > 1 && widget.onRemoveSet != null;
 
     if (!canDismiss) {
       return SetInputWidget(
