@@ -35,6 +35,8 @@ class ExerciseCard extends ConsumerStatefulWidget {
   onSetUpdated;
   final VoidCallback onAddSet;
   final Function(int setIndex)? onRemoveSet;
+  // Optional wrapper to modify the header (e.g., make it the drag start area)
+  final Widget Function(Widget header)? headerWrapper;
 
   const ExerciseCard({
     super.key,
@@ -47,6 +49,7 @@ class ExerciseCard extends ConsumerStatefulWidget {
     required this.onSetUpdated,
     required this.onAddSet,
     this.onRemoveSet,
+    this.headerWrapper,
   });
 
   @override
@@ -160,7 +163,6 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
 
           // Exercise Header
           _buildExerciseHeader(context, muscleColor),
-
           // Exercise Body (collapsible with animation)
           SizeTransition(
             sizeFactor: _expandAnimation,
@@ -174,7 +176,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
   }
 
   Widget _buildExerciseHeader(BuildContext context, Color muscleColor) {
-    return InkWell(
+    final headerWidget = InkWell(
       onTap: _toggleExpanded,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -389,6 +391,12 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
         ),
       ),
     );
+
+    if (widget.headerWrapper != null) {
+      return widget.headerWrapper!(headerWidget);
+    }
+
+    return headerWidget;
   }
 
   /// Build the last performance indicator showing the best set from the last session

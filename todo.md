@@ -46,8 +46,8 @@
   - [ ] Cancel session (delete without completing)
   - [x] Plan quick workout without "starting"
   - [x] Add/delete sets without starting session
-  - [ ] Plan quick workouts for future dates
-  - [ ] Reorder exercises within a session
+  - [x] Plan quick workouts for future dates
+  - [x] Reorder exercises within a session
   - [x] Automatically collapse completed exercises within a session
 - [ ] **In-app suggestion submission.** Can be used to log TODOs/ideas during usage.
 - [ ] **Connect Firebase logging**

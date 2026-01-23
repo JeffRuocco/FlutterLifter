@@ -1204,27 +1204,60 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                     ? EmptyState.noExercises(
                         onAddExercise: () => _addExercise(workoutSession),
                       )
-                    : ListView.builder(
-                        controller: _scrollController,
+                    : ReorderableListView.builder(
+                        key: const ValueKey('reorderable_exercises'),
+                        buildDefaultDragHandles: false,
+                        scrollController: _scrollController,
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.md,
                         ),
                         itemCount: workoutSession.exercises.length,
+                        onReorder: (oldIndex, newIndex) async {
+                          final notifier = ref.read(
+                            workoutNotifierProvider.notifier,
+                          );
+
+                          // Adjust newIndex when moving down the list
+                          if (newIndex > oldIndex) newIndex -= 1;
+
+                          final updatedExercises = List<WorkoutExercise>.from(
+                            workoutSession.exercises,
+                          );
+
+                          final item = updatedExercises.removeAt(oldIndex);
+                          updatedExercises.insert(newIndex, item);
+
+                          final updated = workoutSession.copyWith(
+                            exercises: updatedExercises,
+                          );
+
+                          // Update state and persist immediately
+                          notifier.setCurrentWorkout(updated, markDirty: true);
+                          await notifier.saveWorkoutImmediate();
+                          if (mounted) setState(() {});
+                        },
                         itemBuilder: (context, index) {
+                          final ex = workoutSession.exercises[index];
                           return SlideInWidget(
+                            key: ValueKey(ex.id),
                             delay: Duration(milliseconds: 100 + (index * 50)),
                             child: Padding(
                               padding: const EdgeInsets.only(
                                 bottom: AppSpacing.md,
                               ),
                               child: ExerciseCard(
-                                exercise: workoutSession.exercises[index],
+                                exercise: ex,
                                 exerciseIndex: index + 1,
                                 isWorkoutStarted: workoutSession.isInProgress,
                                 onRemove: () =>
                                     _removeExercise(index, workoutSession),
                                 onSwap: () =>
                                     _swapExercise(index, workoutSession),
+                                headerWrapper: (header) =>
+                                    ReorderableDragStartListener(
+                                      index: index,
+                                      child: header,
+                                    ),
                                 onToggleSetCompleted: (setIndex) async {
                                   // TODO: start rest timer based on set.restTime
                                   setState(() {
