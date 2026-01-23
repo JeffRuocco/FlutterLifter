@@ -22,9 +22,12 @@ This document explains how Riverpod is used throughout the FlutterLifter applica
 
 > **Quick reference for choosing the right data access pattern.** Use this when you're unsure which layer to use.
 
+Tip:
+> **UI almost always goes through NotifierProvider for actions.** The notifier handles state and delegates to services internally.
+
 ### Decision Flowchart
 
-```
+```txt
 Need data in a widget?
 │
 ├─► Need reactive UI updates? ──► ref.watch(provider)
@@ -40,7 +43,7 @@ Need data in a widget?
 ### Layer Responsibilities
 
 | Layer | What It Does | When to Use | Example |
-|-------|--------------|-------------|---------|
+| ----- | ------------ | ----------- | ------- |
 | **Provider** | Exposes dependencies to UI | Always (never instantiate directly) | `ref.watch(workoutNotifierProvider)` |
 | **Notifier** | Manages UI state + coordinates services | UI needs reactive state updates | `notifier.startWorkout(session)` |
 | **Service** | Business logic & orchestration | Complex operations spanning multiple repos | `workoutService.finishWorkout()` |
@@ -50,7 +53,7 @@ Need data in a widget?
 ### Quick Decision Table
 
 | I want to... | Use this | Code example |
-|--------------|----------|--------------|
+| ------------ | -------- | ------------ |
 | **Display data reactively** | `ref.watch()` + Provider | `final workout = ref.watch(currentWorkoutProvider);` |
 | **Trigger an action** | `ref.read()` + Notifier | `ref.read(workoutNotifierProvider.notifier).startWorkout(s);` |
 | **Load async data with loading state** | `ref.watch()` + FutureProvider | `ref.watch(programsProvider).when(...)` |
@@ -107,7 +110,8 @@ await service.finishWorkout(); // Bypasses state management!
 
 ### When to Use Each Layer
 
-#### Use **Notifier** when:
+#### Use **Notifier** when
+
 - UI needs to react to state changes
 - Operation affects displayed data
 - Need loading/error states in UI
@@ -124,7 +128,8 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
 }
 ```
 
-#### Use **Service** when:
+#### Use **Service** when
+
 - Business logic spans multiple repositories
 - Need framework-agnostic code (testable without Flutter)
 - Complex validation or transformation
@@ -141,7 +146,8 @@ class WorkoutService {
 }
 ```
 
-#### Use **Repository** when:
+#### Use **Repository** when
+
 - Simple CRUD operations
 - Need caching layer
 - Abstracting data source (local vs remote)
@@ -157,23 +163,25 @@ await repo.saveProgram(newProgram);
 ### Anti-Patterns to Avoid
 
 | ❌ Don't | ✅ Do Instead | Why |
-|----------|---------------|-----|
+| -------- | ------------- | --- |
 | `WorkoutService(repo)` | `ref.read(workoutServiceProvider)` | Breaks DI, creates multiple instances |
 | `ref.watch()` in callbacks | `ref.read()` in callbacks | Watch causes rebuilds |
 | `ref.read()` in build | `ref.watch()` in build | Read won't update UI |
 | Call service from UI | Call notifier from UI | Service bypasses state management |
 | Repository in widget | Notifier/Provider in widget | Repository is too low-level for UI |
 
-### Provider Selection Guide
+### Which Provider Type to Use
+
+All of these are **types of providers** - pick the one that fits your use case:
 
 | Scenario | Provider Type | Example |
-|----------|---------------|---------|
+| -------- | ------------- | ------- |
 | Singleton service/repo | `Provider` | `programRepositoryProvider` |
 | Mutable UI state | `NotifierProvider` | `workoutNotifierProvider` |
 | One-time async fetch | `FutureProvider` | `programsProvider` |
-| Continuous updates | `StreamProvider` | `connectivityStreamProvider` |
+| Continuous stream | `StreamProvider` | `connectivityStreamProvider` |
 | Derived/computed value | `Provider` | `hasActiveWorkoutProvider` |
-| Parameterized query | `Provider.family` | `programByIdProvider(id)` |
+| Parameterized query | `*.family` variant | `programByIdProvider(id)` |
 
 ### ref.watch() vs ref.read() Summary
 
@@ -203,104 +211,135 @@ void initState() {
 }
 ```
 
-### Provider vs Notifier: Understanding the Difference
+### Types of Providers
 
-These two concepts often cause confusion because both "provide" something to widgets. Here's the key distinction:
+Riverpod offers several **types** of providers. They're all "providers" - each is just optimized for different use cases.
 
-| Aspect | `Provider` | `NotifierProvider` |
-|--------|------------|-------------------|
-| **Purpose** | Expose a **static dependency** | Expose **mutable state** + methods to change it |
-| **State changes?** | No - value is fixed once created | Yes - state updates trigger UI rebuilds |
-| **Has methods?** | Only what the object already has | Yes - notifier has methods to mutate state |
-| **Rebuilds UI?** | Only if dependencies change | Yes, whenever `state = ...` is called |
-| **Use for** | Services, repositories, configs | UI state that changes over time |
+```txt
+All Provider Types (each is a flavor of "provider")
+│
+├── Provider              → Static value (service, repo, config, derived state)
+├── NotifierProvider      → Mutable state + methods to change it
+├── FutureProvider        → Async data with built-in loading/error states
+├── StreamProvider        → Continuous stream of values
+└── StateProvider         → Simple mutable primitive (rarely used)
+```
 
-#### The Mental Model
+#### Quick Comparison
 
-Think of it this way:
+| Provider Type | What It Exposes | State Changes? | Best For |
+| ------------- | --------------- | -------------- | -------- |
+| **`Provider`** | A single value | No* | Services, repos, configs, derived values |
+| **`NotifierProvider`** | State object + notifier with methods | Yes | UI state that changes over time |
+| **`FutureProvider`** | Async result with loading/error | No** | One-time data fetches |
+| **`StreamProvider`** | Stream values | Yes (each emission) | Real-time updates, connectivity |
 
-- **`Provider`** = "Here's a **thing** you can use" (a service, a repository, a utility)
-- **`NotifierProvider`** = "Here's some **state** that can change, plus ways to change it"
+\* Value is fixed unless dependencies change, then it recreates  
+\** Result is cached; use `.future` or invalidate to refresh
+
+#### `Provider` - Static Dependencies
+
+Use for things that don't change (or only change when dependencies change):
 
 ```dart
-// Provider: "Here's the workout service you can use"
+// Services - stateless utilities
 final workoutServiceProvider = Provider<WorkoutService>((ref) {
   return WorkoutService(ref.watch(programRepositoryProvider));
 });
-// The service itself doesn't change. It's always the same instance.
-// You call methods on it, but the Provider doesn't track those changes.
 
-// NotifierProvider: "Here's the current workout STATE, and methods to change it"
-final workoutNotifierProvider = NotifierProvider<WorkoutNotifier, WorkoutState>(...);
-// The state (WorkoutState) changes over time.
-// When state changes, widgets watching this provider rebuild.
+// Repositories - data access
+final programRepositoryProvider = Provider<ProgramRepository>((ref) => ...);
+
+// Derived/computed values - based on other providers
+final hasActiveWorkoutProvider = Provider<bool>((ref) {
+  return ref.watch(workoutNotifierProvider).currentWorkout?.isInProgress ?? false;
+});
+
+// Configuration
+final apiConfigProvider = Provider<ApiConfig>((ref) => ApiConfig(baseUrl: '...'));
 ```
 
-#### Why Both Exist
+**Key point**: The value itself doesn't change. You can call methods on services, but `Provider` doesn't track internal state changes.
+
+#### `NotifierProvider` - Mutable UI State
+
+Use when **state changes over time** and **UI needs to react**:
 
 ```dart
-// Scenario: User taps "Start Workout"
+final workoutNotifierProvider = NotifierProvider<WorkoutNotifier, WorkoutState>(
+  WorkoutNotifier.new,
+);
 
-// 1. Widget calls notifier method
-ref.read(workoutNotifierProvider.notifier).startWorkout(session);
-
-// 2. Notifier updates state (triggers UI rebuild) and delegates to service
 class WorkoutNotifier extends Notifier<WorkoutState> {
+  @override
+  WorkoutState build() => const WorkoutState();  // Initial state
+  
   Future<void> startWorkout(WorkoutSession session) async {
-    state = state.copyWith(isLoading: true);  // ← UI shows spinner
-    
-    await _workoutService.startWorkout(session);  // ← Service does the work
-    
-    state = state.copyWith(                    // ← UI updates with new data
-      currentWorkout: _workoutService.currentWorkout,
+    state = state.copyWith(isLoading: true);      // UI rebuilds (shows spinner)
+    await _service.startWorkout(session);
+    state = state.copyWith(                       // UI rebuilds (shows workout)
+      currentWorkout: session,
       isLoading: false,
     );
   }
 }
-
-// 3. Service does business logic (no UI awareness)
-class WorkoutService {
-  Future<void> startWorkout(WorkoutSession session) async {
-    _currentWorkout = session.copyWith(startTime: DateTime.now());
-    await _repository.saveWorkout(_currentWorkout!);
-  }
-}
 ```
 
-#### Common Confusion Points
-
-**Q: "Can't I just put methods on a service and use `Provider`?"**
-
-Yes, but the UI won't know when to rebuild:
+**You get two things from a NotifierProvider:**
 
 ```dart
-// ❌ This works, but UI won't update automatically
-final service = ref.read(workoutServiceProvider);
-await service.startWorkout(session);
-// UI still shows old state! No rebuild triggered.
+// 1. The STATE - watch this for reactive UI
+final workoutState = ref.watch(workoutNotifierProvider);  // → WorkoutState
 
-// ✅ Notifier triggers rebuilds
-final notifier = ref.read(workoutNotifierProvider.notifier);
-await notifier.startWorkout(session);
-// Notifier sets state = ..., which triggers widgets watching it to rebuild
+// 2. The NOTIFIER - read this to call methods
+final notifier = ref.read(workoutNotifierProvider.notifier);  // → WorkoutNotifier
+notifier.startWorkout(session);
 ```
 
-**Q: "When do I need a Notifier vs just a Provider?"**
+#### `FutureProvider` - Async Data with Loading States
 
-Ask: **"Does the UI need to react to changes?"**
+Use for **one-time async fetches** where you want built-in loading/error handling:
 
-| Situation | Use |
-|-----------|-----|
-| Displaying a list that updates | `NotifierProvider` |
-| Theme mode toggle | `NotifierProvider` |
-| API client / HTTP service | `Provider` |
-| Repository for data access | `Provider` |
-| Current workout being edited | `NotifierProvider` |
-| App configuration | `Provider` (or `NotifierProvider` if user can change it) |
+```dart
+final programsProvider = FutureProvider<List<Program>>((ref) async {
+  final repo = ref.watch(programRepositoryProvider);
+  return repo.getPrograms();
+});
 
-**Q: "Why not make everything a NotifierProvider?"**
+// In widget - automatic loading/error states!
+ref.watch(programsProvider).when(
+  data: (programs) => ListView.builder(...),
+  loading: () => CircularProgressIndicator(),
+  error: (e, _) => Text('Error: $e'),
+);
+```
 
-Overkill. Services and repositories don't need state management - they're stateless utilities. Using `Provider` for them is simpler and clearer:
+#### `StreamProvider` - Continuous Updates
+
+Use for **real-time data streams**:
+
+```dart
+final connectivityProvider = StreamProvider<bool>((ref) {
+  return connectivityService.onConnectivityChanged;
+});
+```
+
+### Provider vs NotifierProvider: When to Choose
+
+The key question: **"Does the UI need to react to state changes triggered by my code?"**
+
+| Scenario | Provider Type | Why |
+| -------- | ------------- | --- |
+| Repository for CRUD operations | `Provider` | Repository is stateless; UI doesn't watch it directly |
+| API/HTTP client | `Provider` | Client is a utility; no internal state to track |
+| Current workout being edited | `NotifierProvider` | State changes (sets added, exercises modified); UI must update |
+| Theme mode toggle | `NotifierProvider` | User changes it; entire app must rebuild |
+| List of programs (read-only fetch) | `FutureProvider` | One-time load with loading state |
+| Derived value (is workout active?) | `Provider` | Computed from other state; auto-updates when source changes |
+
+#### Why Not Make Everything a NotifierProvider?
+
+Overkill. Services and repositories don't need state management - they're stateless utilities:
 
 ```dart
 // ✅ Simple and correct - repository doesn't change
@@ -310,31 +349,65 @@ final programRepositoryProvider = Provider<ProgramRepository>((ref) => ...);
 final programRepositoryNotifierProvider = NotifierProvider<???, ???>(...);
 ```
 
+#### The Relationship: NotifierProvider Uses Provider
+
+Notifiers typically depend on services/repos exposed via `Provider`:
+
+```dart
+class WorkoutNotifier extends Notifier<WorkoutState> {
+  late WorkoutService _service;
+  
+  @override
+  WorkoutState build() {
+    // Notifier gets service via Provider
+    _service = ref.watch(workoutServiceProvider);  // ← Provider
+    return const WorkoutState();
+  }
+  
+  Future<void> startWorkout(WorkoutSession session) async {
+    state = state.copyWith(isLoading: true);
+    await _service.startWorkout(session);  // ← Delegates to service
+    state = state.copyWith(currentWorkout: session, isLoading: false);
+  }
+}
+```
+
 #### Visual Summary
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Provider (static dependencies)                                 │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
-│  │ ApiService  │  │ Repository  │  │   Config    │             │
-│  └─────────────┘  └─────────────┘  └─────────────┘             │
-│  • Created once, used many times                                │
-│  • No state changes                                             │
-│  • ref.read() to get, call methods directly                     │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  NotifierProvider (mutable state)                               │
-│  ┌─────────────────────────────────────────────────┐           │
-│  │ WorkoutNotifier                                  │           │
-│  │  state: WorkoutState(currentWorkout, isLoading) │           │
-│  │  methods: startWorkout(), saveWorkout(), ...    │           │
-│  └─────────────────────────────────────────────────┘           │
-│  • State changes over time                                      │
-│  • UI rebuilds when state changes                               │
-│  • ref.watch() for state, ref.read().notifier for methods       │
-└─────────────────────────────────────────────────────────────────┘
+```txt
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        ALL ARE PROVIDERS                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  Provider (static dependencies)                                  │   │
+│  │  • Services, repositories, configs, derived values               │   │
+│  │  • Value doesn't change (unless dependencies do)                 │   │
+│  │  • ref.watch() or ref.read() to get the value                    │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                              ▲                                          │
+│                              │ depends on                               │
+│                              │                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  NotifierProvider (mutable state)                                │   │
+│  │  • UI state that changes over time                               │   │
+│  │  • Setting state = ... triggers UI rebuilds                      │   │
+│  │  • ref.watch() for state, ref.read().notifier for methods        │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  FutureProvider (async data)                                     │   │
+│  │  • One-time async fetches                                        │   │
+│  │  • Built-in loading/error states via .when()                     │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  StreamProvider (reactive streams)                               │   │
+│  │  • Continuous data streams                                       │   │
+│  │  • Each emission triggers UI rebuild                             │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
