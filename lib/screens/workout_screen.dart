@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,9 +44,6 @@ class WorkoutScreen extends ConsumerStatefulWidget {
 class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showConfetti = false;
-  bool _isDragging = false;
-  // Notifier used to broadcast dragging state to cards so they can collapse
-  final ValueNotifier<bool> _draggingNotifier = ValueNotifier(false);
   // Per-card keys to allow forcing collapse on drag start
   final Map<String, GlobalKey> _cardKeys = {};
   // Temporarily store expanded state for each card during a reorder
@@ -68,7 +64,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
 
   @override
   void dispose() {
-    _draggingNotifier.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -1224,14 +1219,9 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                         ),
                         itemCount: workoutSession.exercises.length,
                         onReorderStart: (index) {
-                          // Reorder operation started: broadcast and force-collapse
-                          _draggingNotifier.value = true;
-                          setState(() {
-                            _isDragging = true;
-                            LoggingService.logUserAction(
-                              'Started reordering exercises in workout session ${workoutSession.id}',
-                            );
-                          });
+                          LoggingService.logUserAction(
+                            'Started reordering exercises in workout session ${workoutSession.id}',
+                          );
                           // Capture and collapse each card immediately; store previous state
                           _wasExpandedMap.clear();
                           _cardKeys.forEach((id, k) {
@@ -1241,9 +1231,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                       as bool? ??
                                   false;
                               _wasExpandedMap[id] = expanded;
-                              (k.currentState as dynamic)?.setCollapsedByDrag(
-                                true,
-                              );
+                              (k.currentState as dynamic)?.setCollapse();
                             } catch (_) {}
                           });
                         },
@@ -1273,21 +1261,18 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                         },
                         onReorderEnd: (index) {
                           setState(() {
-                            _isDragging = false;
                             LoggingService.logUserAction(
                               'Finished reordering exercises in workout session ${workoutSession.id}',
                             );
                           });
-                          _draggingNotifier.value = false;
                           // Restore each card and re-apply previous expanded state
                           _cardKeys.forEach((id, k) {
                             try {
-                              (k.currentState as dynamic)?.setCollapsedByDrag(
-                                false,
-                              );
                               final wasExpanded = _wasExpandedMap[id] ?? false;
                               if (wasExpanded) {
-                                (k.currentState as dynamic)?.setExpanded(true);
+                                (k.currentState as dynamic)?.setExpanded();
+                              } else {
+                                (k.currentState as dynamic)?.setCollapse();
                               }
                             } catch (_) {}
                           });
@@ -1306,31 +1291,19 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                 exercise: ex,
                                 exerciseIndex: index + 1,
                                 isWorkoutStarted: workoutSession.isInProgress,
-                                forceCollapsed: _isDragging,
                                 onRemove: () =>
                                     _removeExercise(index, workoutSession),
                                 onSwap: () =>
                                     _swapExercise(index, workoutSession),
                                 headerWrapper: (header) => GestureDetector(
                                   onLongPressStart: (_) {
-                                    _draggingNotifier.value = true;
-                                    if (mounted) {
-                                      setState(() => _isDragging = true);
-                                    }
                                     HapticFeedback.mediumImpact();
-                                  },
-                                  onLongPressEnd: (_) {
-                                    _draggingNotifier.value = false;
-                                    if (mounted) {
-                                      setState(() => _isDragging = false);
-                                    }
                                   },
                                   child: ReorderableDelayedDragStartListener(
                                     index: index,
                                     child: header,
                                   ),
                                 ),
-                                draggingNotifier: _draggingNotifier,
                                 key: _cardKeys.putIfAbsent(
                                   ex.id,
                                   () => GlobalKey(),
