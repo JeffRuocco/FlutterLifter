@@ -234,7 +234,25 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
         return;
       }
 
-      // No in-progress session, look for next scheduled workout from programs
+      // Second, check for any planned standalone session (quick workout not yet started)
+      final plannedStandalone = await repository.getPlannedStandaloneSession();
+      if (plannedStandalone != null) {
+        LoggingService.debug(
+          'Found planned standalone session: ${plannedStandalone.id} '
+          '(${plannedStandalone.programName ?? "Quick Workout"})',
+        );
+
+        // Also set it in the service so it stays in sync
+        _workoutService.setCurrentWorkout(plannedStandalone);
+        state = state.copyWith(
+          currentWorkout: plannedStandalone,
+          isLoading: false,
+          clearUserSelection: true,
+        );
+        return;
+      }
+
+      // No in-progress or planned standalone, look for next scheduled workout from programs
       final programs = await repository.getPrograms();
 
       // Find the active program with an active cycle

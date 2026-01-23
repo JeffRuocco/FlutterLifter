@@ -101,6 +101,9 @@ class MockProgramRepository implements ProgramRepository {
   Future<WorkoutSession?> getInProgressSession() async => null;
 
   @override
+  Future<WorkoutSession?> getPlannedStandaloneSession() async => null;
+
+  @override
   // Future<List<WorkoutSession>> getUpcomingWorkouts({int limit = 7}) async => [];
   // @override
   // Future<void> createProgramCycleWithSessions(ProgramCycle cycle) async {}

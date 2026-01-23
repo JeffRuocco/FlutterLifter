@@ -82,6 +82,13 @@ abstract class ProgramRepository {
   /// Returns null if no workout is currently in progress.
   Future<WorkoutSession?> getInProgressSession();
 
+  /// Gets any planned (not started, not completed) standalone workout session.
+  ///
+  /// Returns the most recent planned session that is not part of a program.
+  /// This is used to restore quick workouts that were created but not yet started.
+  /// Returns null if no planned standalone workout exists.
+  Future<WorkoutSession?> getPlannedStandaloneSession();
+
   /// Cancels all in-progress sessions except the one with the specified ID.
   ///
   /// This ensures only one workout can be active at a time.
@@ -853,6 +860,47 @@ class ProgramRepositoryImpl implements ProgramRepository {
       LoggingService.logDataError(
         'get',
         'in_progress_session',
+        e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  @override
+  Future<WorkoutSession?> getPlannedStandaloneSession() async {
+    LoggingService.debug('Checking for planned standalone session');
+    if (localDataSource == null) return null;
+
+    try {
+      final allSessions = await localDataSource!.getAllWorkoutSessions();
+      // Find any standalone session that is planned (not started, not completed)
+      // Standalone sessions have programId == null
+      final planned = allSessions
+          .where(
+            (s) =>
+                s.programId == null && s.startTime == null && s.endTime == null,
+          )
+          .toList();
+
+      if (planned.isEmpty) {
+        LoggingService.debug('No planned standalone session found');
+        return null;
+      }
+
+      // Sort by date (most recent first) and return the first one
+      planned.sort((a, b) {
+        return b.date.compareTo(a.date);
+      });
+
+      LoggingService.debug(
+        'Found planned standalone session: ${planned.first.id}',
+      );
+      return planned.first;
+    } catch (e, stackTrace) {
+      LoggingService.logDataError(
+        'get',
+        'planned_standalone_session',
         e,
         stackTrace: stackTrace,
       );
