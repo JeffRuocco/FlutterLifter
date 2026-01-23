@@ -41,6 +41,10 @@ class ExerciseCard extends ConsumerStatefulWidget {
   /// When true, forces the card to collapse (e.g., during drag reordering)
   final bool forceCollapsed;
 
+  /// Optional notifier to listen for global dragging state so cards can collapse
+  /// immediately when a reorder starts.
+  final ValueNotifier<bool>? draggingNotifier;
+
   const ExerciseCard({
     super.key,
     required this.exercise,
@@ -54,6 +58,7 @@ class ExerciseCard extends ConsumerStatefulWidget {
     this.onRemoveSet,
     this.headerWrapper,
     this.forceCollapsed = false,
+    this.draggingNotifier,
   });
 
   @override
@@ -63,13 +68,13 @@ class ExerciseCard extends ConsumerStatefulWidget {
 class _ExerciseCardState extends ConsumerState<ExerciseCard>
     with SingleTickerProviderStateMixin {
   bool _isExpanded = true;
-  bool? _expandedBeforeForceCollapse;
+  bool _wasExpandedBeforeDrag = false;
+  bool _collapsedByNotifier = false;
   late AnimationController _expandController;
   late Animation<double> _expandAnimation;
   ExerciseSessionRecord? _lastSession;
   double? _allTimePR;
 
-  @override
   @override
   void initState() {
     super.initState();
@@ -84,6 +89,17 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
       curve: Curves.easeInOut,
     );
     _expandController.value = _isExpanded ? 1.0 : 0.0;
+    // If a dragging notifier is provided and it's already active, collapse now
+    if (widget.draggingNotifier?.value == true) {
+      _wasExpandedBeforeDrag = _isExpanded;
+      if (_isExpanded) {
+        _isExpanded = false;
+        _expandController.value = 0.0;
+      }
+      _collapsedByNotifier = true;
+    }
+    // Attach listener if provided
+    widget.draggingNotifier?.addListener(_onDraggingChanged);
     _loadExerciseHistory();
   }
 
@@ -95,23 +111,100 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
     // Handle forceCollapsed changes (for drag reordering)
     if (widget.forceCollapsed && !oldWidget.forceCollapsed) {
       // Starting force collapse - save current state and collapse
-      _expandedBeforeForceCollapse = _isExpanded;
+      _wasExpandedBeforeDrag = _isExpanded;
       if (_isExpanded) {
         _isExpanded = false;
         _expandController.reverse();
       }
     } else if (!widget.forceCollapsed && oldWidget.forceCollapsed) {
       // Ending force collapse - restore previous state
-      if (_expandedBeforeForceCollapse == true && !_isExpanded) {
+      if (_wasExpandedBeforeDrag && !_isExpanded) {
         _isExpanded = true;
         _expandController.forward();
       }
-      _expandedBeforeForceCollapse = null;
+      _wasExpandedBeforeDrag = false;
     }
 
     if (widget.exercise.isCompleted && _isExpanded) {
       // Collapse if exercise is marked completed
       _toggleExpanded();
+    }
+
+    // Handle notifier instance changes
+    if (oldWidget.draggingNotifier != widget.draggingNotifier) {
+      oldWidget.draggingNotifier?.removeListener(_onDraggingChanged);
+      widget.draggingNotifier?.addListener(_onDraggingChanged);
+      // If new notifier is active, apply collapse
+      if (widget.draggingNotifier?.value == true && !_collapsedByNotifier) {
+        _wasExpandedBeforeDrag = _isExpanded;
+        if (_isExpanded) {
+          _isExpanded = false;
+          _expandController.reverse();
+        }
+        _collapsedByNotifier = true;
+      } else if (widget.draggingNotifier?.value == false &&
+          _collapsedByNotifier) {
+        if (_wasExpandedBeforeDrag && !_isExpanded) {
+          _isExpanded = true;
+          _expandController.forward();
+        }
+        _wasExpandedBeforeDrag = false;
+        _collapsedByNotifier = false;
+      }
+    }
+  }
+
+  void _onDraggingChanged() {
+    final dragging = widget.draggingNotifier?.value ?? false;
+    if (dragging && !_collapsedByNotifier) {
+      _wasExpandedBeforeDrag = _isExpanded;
+      if (_isExpanded) {
+        _isExpanded = false;
+        _expandController.reverse();
+      }
+      _collapsedByNotifier = true;
+    } else if (!dragging && _collapsedByNotifier) {
+      if (_wasExpandedBeforeDrag && !_isExpanded) {
+        _isExpanded = true;
+        _expandController.forward();
+      }
+      _wasExpandedBeforeDrag = false;
+      _collapsedByNotifier = false;
+    }
+  }
+
+  /// Force the collapsed state due to a drag starting/ending. Public so
+  /// external callers (screen) can immediately collapse/restore without
+  /// waiting for a rebuild.
+  void setCollapsedByDrag(bool collapse) {
+    if (collapse && !_collapsedByNotifier) {
+      _wasExpandedBeforeDrag = _isExpanded;
+      if (_isExpanded) {
+        _isExpanded = false;
+        _expandController.reverse();
+      }
+      _collapsedByNotifier = true;
+    } else if (!collapse && _collapsedByNotifier) {
+      if (_wasExpandedBeforeDrag && !_isExpanded) {
+        _isExpanded = true;
+        _expandController.forward();
+      }
+      _wasExpandedBeforeDrag = false;
+      _collapsedByNotifier = false;
+    }
+  }
+
+  // Return whether the card is currently expanded.
+  bool isExpandedState() => _isExpanded;
+
+  // Force set expanded state (used by parent to restore pre-drag state).
+  void setExpanded(bool expand) {
+    if (expand && !_isExpanded) {
+      _isExpanded = true;
+      _expandController.forward();
+    } else if (!expand && _isExpanded) {
+      _isExpanded = false;
+      _expandController.reverse();
     }
   }
 
@@ -136,6 +229,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
 
   @override
   void dispose() {
+    widget.draggingNotifier?.removeListener(_onDraggingChanged);
     _expandController.dispose();
     super.dispose();
   }

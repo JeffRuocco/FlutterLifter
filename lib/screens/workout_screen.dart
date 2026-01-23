@@ -46,6 +46,12 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showConfetti = false;
   bool _isDragging = false;
+  // Notifier used to broadcast dragging state to cards so they can collapse
+  final ValueNotifier<bool> _draggingNotifier = ValueNotifier(false);
+  // Per-card keys to allow forcing collapse on drag start
+  final Map<String, GlobalKey> _cardKeys = {};
+  // Temporarily store expanded state for each card during a reorder
+  final Map<String, bool> _wasExpandedMap = {};
 
   @override
   void initState() {
@@ -62,6 +68,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
 
   @override
   void dispose() {
+    _draggingNotifier.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -1216,12 +1223,28 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                           horizontal: AppSpacing.md,
                         ),
                         itemCount: workoutSession.exercises.length,
-                        onReorderEnd: (index) {
+                        onReorderStart: (index) {
+                          // Reorder operation started: broadcast and force-collapse
+                          _draggingNotifier.value = true;
                           setState(() {
-                            _isDragging = false;
+                            _isDragging = true;
                             LoggingService.logUserAction(
-                              'Finished reordering exercises in workout session ${workoutSession.id}',
+                              'Started reordering exercises in workout session ${workoutSession.id}',
                             );
+                          });
+                          // Capture and collapse each card immediately; store previous state
+                          _wasExpandedMap.clear();
+                          _cardKeys.forEach((id, k) {
+                            try {
+                              final expanded =
+                                  (k.currentState as dynamic)?.isExpandedState()
+                                      as bool? ??
+                                  false;
+                              _wasExpandedMap[id] = expanded;
+                              (k.currentState as dynamic)?.setCollapsedByDrag(
+                                true,
+                              );
+                            } catch (_) {}
                           });
                         },
                         onReorder: (oldIndex, newIndex) async {
@@ -1248,6 +1271,28 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                           await notifier.saveWorkoutImmediate();
                           if (mounted) setState(() {});
                         },
+                        onReorderEnd: (index) {
+                          setState(() {
+                            _isDragging = false;
+                            LoggingService.logUserAction(
+                              'Finished reordering exercises in workout session ${workoutSession.id}',
+                            );
+                          });
+                          _draggingNotifier.value = false;
+                          // Restore each card and re-apply previous expanded state
+                          _cardKeys.forEach((id, k) {
+                            try {
+                              (k.currentState as dynamic)?.setCollapsedByDrag(
+                                false,
+                              );
+                              final wasExpanded = _wasExpandedMap[id] ?? false;
+                              if (wasExpanded) {
+                                (k.currentState as dynamic)?.setExpanded(true);
+                              }
+                            } catch (_) {}
+                          });
+                          _wasExpandedMap.clear();
+                        },
                         itemBuilder: (context, index) {
                           final ex = workoutSession.exercises[index];
                           return SlideInWidget(
@@ -1266,26 +1311,30 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                     _removeExercise(index, workoutSession),
                                 onSwap: () =>
                                     _swapExercise(index, workoutSession),
-                                headerWrapper: (header) =>
-                                    ReorderableDelayedDragStartListener(
-                                      index: index,
-                                      child: _HapticFeedbackWrapper(
-                                        onDragStarting: () {
-                                          setState(() {
-                                            _isDragging = true;
-                                            LoggingService.logUserAction(
-                                              'Started reordering exercises in workout session ${workoutSession.id}',
-                                            );
-                                          });
-                                        },
-                                        onDragEnd: () {
-                                          if (mounted) {
-                                            setState(() => _isDragging = false);
-                                          }
-                                        },
-                                        child: header,
-                                      ),
-                                    ),
+                                headerWrapper: (header) => GestureDetector(
+                                  onLongPressStart: (_) {
+                                    _draggingNotifier.value = true;
+                                    if (mounted) {
+                                      setState(() => _isDragging = true);
+                                    }
+                                    HapticFeedback.mediumImpact();
+                                  },
+                                  onLongPressEnd: (_) {
+                                    _draggingNotifier.value = false;
+                                    if (mounted) {
+                                      setState(() => _isDragging = false);
+                                    }
+                                  },
+                                  child: ReorderableDelayedDragStartListener(
+                                    index: index,
+                                    child: header,
+                                  ),
+                                ),
+                                draggingNotifier: _draggingNotifier,
+                                key: _cardKeys.putIfAbsent(
+                                  ex.id,
+                                  () => GlobalKey(),
+                                ),
                                 onToggleSetCompleted: (setIndex) async {
                                   // TODO: start rest timer based on set.restTime
                                   setState(() {
@@ -1425,60 +1474,6 @@ class _WorkoutProgressBar extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Wrapper that triggers haptic feedback after a long press delay,
-/// without intercepting the gesture for reorderable drag.
-class _HapticFeedbackWrapper extends StatefulWidget {
-  final Widget child;
-  final VoidCallback? onDragStarting;
-  final VoidCallback? onDragEnd;
-
-  const _HapticFeedbackWrapper({
-    required this.child,
-    this.onDragStarting,
-    this.onDragEnd,
-  });
-
-  @override
-  State<_HapticFeedbackWrapper> createState() => _HapticFeedbackWrapperState();
-}
-
-class _HapticFeedbackWrapperState extends State<_HapticFeedbackWrapper> {
-  Timer? _hapticTimer;
-
-  void _onPointerDown(PointerDownEvent event) {
-    _hapticTimer = Timer(kLongPressTimeout, () {
-      HapticFeedback.mediumImpact();
-      widget.onDragStarting?.call();
-    });
-  }
-
-  void _onPointerUp(PointerUpEvent event) {
-    _hapticTimer?.cancel();
-    widget.onDragEnd?.call();
-  }
-
-  void _onPointerCancel(PointerCancelEvent event) {
-    _hapticTimer?.cancel();
-    widget.onDragEnd?.call();
-  }
-
-  @override
-  void dispose() {
-    _hapticTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: _onPointerDown,
-      onPointerUp: _onPointerUp,
-      onPointerCancel: _onPointerCancel,
-      child: widget.child,
     );
   }
 }
