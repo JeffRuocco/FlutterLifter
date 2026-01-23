@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1254,9 +1257,11 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                 onSwap: () =>
                                     _swapExercise(index, workoutSession),
                                 headerWrapper: (header) =>
-                                    ReorderableDragStartListener(
+                                    ReorderableDelayedDragStartListener(
                                       index: index,
-                                      child: header,
+                                      child: _HapticFeedbackWrapper(
+                                        child: header,
+                                      ),
                                     ),
                                 onToggleSetCompleted: (setIndex) async {
                                   // TODO: start rest timer based on set.restTime
@@ -1397,6 +1402,52 @@ class _WorkoutProgressBar extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Wrapper that triggers haptic feedback after a long press delay,
+/// without intercepting the gesture for reorderable drag.
+class _HapticFeedbackWrapper extends StatefulWidget {
+  final Widget child;
+
+  const _HapticFeedbackWrapper({required this.child});
+
+  @override
+  State<_HapticFeedbackWrapper> createState() => _HapticFeedbackWrapperState();
+}
+
+class _HapticFeedbackWrapperState extends State<_HapticFeedbackWrapper> {
+  Timer? _hapticTimer;
+
+  void _onPointerDown(PointerDownEvent event) {
+    // Trigger haptic after the same delay as ReorderableDelayedDragStartListener
+    _hapticTimer = Timer(kLongPressTimeout, () {
+      HapticFeedback.mediumImpact();
+    });
+  }
+
+  void _onPointerUp(PointerUpEvent event) {
+    _hapticTimer?.cancel();
+  }
+
+  void _onPointerCancel(PointerCancelEvent event) {
+    _hapticTimer?.cancel();
+  }
+
+  @override
+  void dispose() {
+    _hapticTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: _onPointerDown,
+      onPointerUp: _onPointerUp,
+      onPointerCancel: _onPointerCancel,
+      child: widget.child,
     );
   }
 }
