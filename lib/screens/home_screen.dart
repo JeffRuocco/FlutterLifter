@@ -317,6 +317,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// Create a new quick workout session and navigate to workout screen
   Future<void> _startQuickWorkout() async {
     // Create an empty standalone session
     final session = WorkoutSession.create(
@@ -338,6 +339,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  /// Clone the last workout session as a new session and navigate to workout screen
   Future<void> _repeatLastWorkout() async {
     if (_lastWorkout == null) return;
 
