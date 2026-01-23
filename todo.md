@@ -41,6 +41,7 @@
 
 ## Incremental updates
 
+- [ ] Create cheat sheet for when to use repository, service, provider, notifier, etc. for data management.
 - [ ] QoL
   - [x] Delete session from history
   - [ ] Cancel session (delete without completing)

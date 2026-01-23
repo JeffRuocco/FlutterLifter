@@ -513,6 +513,7 @@ AppCard(child: content)  // Handles contrast automatically
 - Use const constructors when possible for better performance
 - Follow the Flutter file structure conventions
 - Maintain a consistent code style throughout the project
+- Refactor often to improve code quality and readability with a focus on maintainability
 - Create comprehensive unit tests for critical components
 - Ensure compatibility with mobile platforms (iOS and Android) as well as PWA for web support
 - Maintain a consistent theme and styling system across the app

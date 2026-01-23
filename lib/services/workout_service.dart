@@ -77,9 +77,16 @@ class WorkoutService {
   /// Use this to restore an in-progress workout from storage.
   /// This does NOT start auto-save - call startWorkout if the workout
   /// is not already in progress.
-  void setCurrentWorkout(WorkoutSession session) {
+  ///
+  /// Set [markDirty] to true when the session has unsaved changes that
+  /// need to be persisted (e.g., after changing the date). This prevents
+  /// the hash comparison from skipping the next save.
+  void setCurrentWorkout(WorkoutSession session, {bool markDirty = false}) {
     _currentWorkout = session;
-    _lastSavedHash = session.hash;
+    // Only update hash if not marked dirty - dirty sessions need to be saved
+    if (!markDirty) {
+      _lastSavedHash = session.hash;
+    }
 
     // If the session is in progress, start auto-save
     if (session.isInProgress) {

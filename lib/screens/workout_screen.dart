@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/intl.dart';
 
 import '../core/providers/providers.dart';
 import '../core/router/app_router.dart';
@@ -343,6 +344,480 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     }
   }
 
+  /// Allow changing the planned date for the given session.
+  /// Shows a date picker, warns on conflicts, and persists the change.
+  Future<void> _changePlannedDate(WorkoutSession workoutSession) async {
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    final repo = ref.read(programRepositoryProvider);
+
+    final currentDate = workoutSession.date;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(
+        currentDate.year,
+        currentDate.month,
+        currentDate.day,
+      ),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+    );
+
+    if (picked == null) return;
+
+    // If same day (no-op) - compare y/m/d
+    if (workoutSession.date.year == picked.year &&
+        workoutSession.date.month == picked.month &&
+        workoutSession.date.day == picked.day) {
+      if (!mounted) return;
+      showInfoMessage(context, 'Date unchanged.');
+      return;
+    }
+
+    final start = DateTime(picked.year, picked.month, picked.day);
+
+    List<WorkoutSession> existing = [];
+    try {
+      // Check ALL sessions on the target date (not just completed) to detect conflicts
+      final allSessions = await repo.getWorkoutHistory();
+      existing = allSessions.where((s) {
+        final sd = s.date;
+        return sd.year == start.year &&
+            sd.month == start.month &&
+            sd.day == start.day &&
+            s.id != workoutSession.id; // Exclude current session from conflicts
+      }).toList();
+    } catch (_) {
+      // ignore failures - continue as if no conflicts
+      existing = [];
+    }
+
+    if (!mounted) return;
+
+    var shouldProceed = true;
+
+    if (existing.isNotEmpty) {
+      // Show picker to let user open or overwrite existing sessions
+      final overwrite = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (sheetContext) {
+          return Container(
+            decoration: BoxDecoration(
+              color: sheetContext.surfaceColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sessions on ${start.toLocal().toString().split(' ')[0]}',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: sheetContext.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...existing.map((s) {
+                    return Card(
+                      child: ListTile(
+                        title: Text(s.programName ?? 'Custom Program'),
+                        subtitle: Text(
+                          s.date.toLocal().toString().split(' ')[0],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                // Open that session instead
+                                ref
+                                    .read(workoutNotifierProvider.notifier)
+                                    .setCurrentWorkout(s);
+                                Navigator.of(sheetContext).pop(false);
+                                // navigate in case caller expects a route change
+                                if (mounted) context.go(AppRoutes.workout);
+                              },
+                              child: const Text('Open'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                // Overwrite: delete existing then continue
+                                Navigator.of(sheetContext).pop(true);
+                                try {
+                                  await repo.deleteWorkoutSession(s.id);
+                                } catch (e) {
+                                  // ignore deletion error - continue
+                                }
+                              },
+                              child: const Text('Overwrite'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
+      shouldProceed = overwrite ?? false;
+      if (!shouldProceed) return; // user opened existing or cancelled
+    }
+
+    // Confirm change (extra confirmation if in-progress)
+    if (!mounted) return;
+    final confirm =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(
+              workoutSession.isInProgress
+                  ? 'Change Date (In Progress)'
+                  : 'Change Planned Date',
+              style: AppTextStyles.headlineSmall.copyWith(
+                color: dialogContext.textPrimary,
+              ),
+            ),
+            content: Text(
+              workoutSession.isInProgress
+                  ? 'This workout is in progress. Changing the date will reset start/end times and may affect auto-save. Are you sure you want to continue?'
+                  : 'Change this workout to ${picked.toLocal().toString().split(' ')[0]}? This will reset start/end times.',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: dialogContext.textSecondary,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: dialogContext.successColor,
+                  foregroundColor: dialogContext.onSuccessColor,
+                ),
+                child: const Text('Confirm'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!confirm) return;
+
+    // Apply the change: reset start/end times
+    final oldDate = workoutSession.date;
+    final updated = workoutSession.copyWith(
+      date: DateTime(picked.year, picked.month, picked.day),
+      startTime: null,
+      endTime: null,
+    );
+
+    try {
+      // Update state with markDirty to ensure next save persists changes
+      notifier.setCurrentWorkout(updated, markDirty: true);
+
+      // Persist via notifier (proper architecture pattern)
+      await notifier.saveWorkoutImmediate();
+
+      // For program cycle sessions, also reschedule future sessions
+      if (updated.metadata?['cycleId'] != null) {
+        await repo.rescheduleFutureSessions(
+          session: updated,
+          originalDate: oldDate,
+        );
+      }
+
+      LoggingService.logUserAction(
+        'Changed workout date to ${updated.date} for session ${updated.id}',
+      );
+
+      if (!mounted) return;
+      showSuccessMessage(context, 'Workout date updated');
+      setState(() {});
+    } catch (error) {
+      LoggingService.error('Failed to change planned date: $error');
+      if (!mounted) return;
+      showErrorMessage(context, 'Failed to update date: $error');
+    }
+  }
+
+  /// Allow selecting which date to view on this screen.
+  /// Loads an existing session for the date if available, otherwise creates
+  /// a new planned session for that date and persists it so it can be edited.
+  Future<void> _selectViewDate(WorkoutSession currentSession) async {
+    // If in-progress, require confirmation before switching
+    if (currentSession.isInProgress) {
+      final leave = await _confirmLeaveInProgressWorkout();
+      if (!leave) return;
+    }
+
+    // Show date picker
+    final picked = await _pickViewDate(currentSession.date);
+    if (picked == null) return;
+
+    // If same date selected, do nothing
+    if (_isSameDate(currentSession.date, picked)) return;
+
+    // Gather sessions for the selected date
+    final sessions = await _gatherSessionsForDate(picked);
+    if (!mounted) return;
+
+    // Handle based on number of sessions found
+    await _handleDateSelection(picked, sessions);
+  }
+
+  /// Shows confirmation dialog when leaving an in-progress workout.
+  Future<bool> _confirmLeaveInProgressWorkout() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(
+              'Leave In-Progress Workout?',
+              style: AppTextStyles.headlineSmall.copyWith(
+                color: dialogContext.textPrimary,
+              ),
+            ),
+            content: Text(
+              'You have an in-progress workout. Selecting a different date will switch views. Are you sure you want to continue?',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: dialogContext.textSecondary,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: dialogContext.warningColor,
+                  foregroundColor: dialogContext.onWarningColor,
+                ),
+                child: const Text('Switch'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  /// Shows date picker for selecting a view date.
+  Future<DateTime?> _pickViewDate(DateTime initialDate) async {
+    if (!mounted) return null;
+    return showDatePicker(
+      context: context,
+      initialDate: DateTime(
+        initialDate.year,
+        initialDate.month,
+        initialDate.day,
+      ),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+    );
+  }
+
+  /// Checks if two dates are the same (year, month, day).
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  /// Gathers all workout sessions scheduled for a given date.
+  Future<List<WorkoutSession>> _gatherSessionsForDate(DateTime date) async {
+    final repo = ref.read(programRepositoryProvider);
+    final sessions = <WorkoutSession>[];
+
+    try {
+      // Check program cycle sessions
+      final programs = await repo.getPrograms();
+      for (final program in programs) {
+        final cycle = program.activeCycle;
+        if (cycle == null) continue;
+        for (final s in cycle.scheduledSessions) {
+          if (_isSameDate(s.date, date)) {
+            sessions.add(s);
+          }
+        }
+      }
+
+      // Check standalone sessions stored locally
+      final all = await repo.getWorkoutHistory();
+      for (final s in all) {
+        if (_isSameDate(s.date, date) && !sessions.any((e) => e.id == s.id)) {
+          sessions.add(s);
+        }
+      }
+    } catch (e) {
+      // If repository queries fail, proceed with empty list
+    }
+
+    return sessions;
+  }
+
+  /// Handles the date selection based on available sessions.
+  Future<void> _handleDateSelection(
+    DateTime picked,
+    List<WorkoutSession> sessions,
+  ) async {
+    if (sessions.isEmpty) {
+      await _handleNoSessionsForDate(picked);
+    } else if (sessions.length == 1) {
+      await _handleSingleSessionForDate(picked, sessions.first);
+    } else {
+      await _handleMultipleSessionsForDate(picked, sessions);
+    }
+  }
+
+  /// Handles case when no sessions exist for the selected date.
+  Future<void> _handleNoSessionsForDate(DateTime picked) async {
+    final create = await _showCreatePlannedWorkoutDialog(picked);
+    if (!create) return;
+
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    final newSession = WorkoutSession.create(
+      programName: 'Planned Workout',
+      date: DateTime(picked.year, picked.month, picked.day),
+    );
+
+    notifier.setCurrentWorkout(newSession, markDirty: true);
+    try {
+      await notifier.saveWorkoutImmediate();
+      if (!mounted) return;
+      showSuccessMessage(
+        context,
+        'Planned workout created for ${DateFormat.yMMMMd().format(picked)}',
+      );
+      setState(() {});
+    } catch (error) {
+      if (!mounted) return;
+      showErrorMessage(context, 'Failed to create planned workout: $error');
+    }
+  }
+
+  /// Shows dialog to confirm creating a new planned workout.
+  Future<bool> _showCreatePlannedWorkoutDialog(DateTime date) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(
+              'Create Planned Workout?',
+              style: AppTextStyles.headlineSmall.copyWith(
+                color: dialogContext.textPrimary,
+              ),
+            ),
+            content: Text(
+              'No sessions are scheduled for ${DateFormat.yMMMMd().format(date)}.\n\nWould you like to create a planned workout for that date?',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: dialogContext.textSecondary,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: dialogContext.successColor,
+                  foregroundColor: dialogContext.onSuccessColor,
+                ),
+                child: const Text('Create'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  /// Handles case when a single session exists for the selected date.
+  Future<void> _handleSingleSessionForDate(
+    DateTime picked,
+    WorkoutSession session,
+  ) async {
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    notifier.setCurrentWorkout(session);
+    setState(() {});
+  }
+
+  /// Handles case when multiple sessions exist for the selected date.
+  Future<void> _handleMultipleSessionsForDate(
+    DateTime picked,
+    List<WorkoutSession> sessions,
+  ) async {
+    final selected = await _showSessionPickerSheet(picked, sessions);
+    if (selected != null) {
+      final notifier = ref.read(workoutNotifierProvider.notifier);
+      notifier.setCurrentWorkout(selected);
+      setState(() {});
+    }
+  }
+
+  /// Shows bottom sheet to pick from multiple sessions.
+  Future<WorkoutSession?> _showSessionPickerSheet(
+    DateTime date,
+    List<WorkoutSession> sessions,
+  ) async {
+    return showModalBottomSheet<WorkoutSession?>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          decoration: BoxDecoration(
+            color: sheetContext.surfaceColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sessions on ${DateFormat.yMMMMd().format(date)}',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: sheetContext.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...sessions.map(
+                  (s) => Card(
+                    child: ListTile(
+                      title: Text(s.programName ?? 'Custom Workout'),
+                      subtitle: Text(s.notes ?? ''),
+                      onTap: () => Navigator.of(sheetContext).pop(s),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => Navigator.of(sheetContext).pop(null),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   /// Calculate workout completion progress (0.0 to 1.0)
   double _calculateProgress(WorkoutSession workoutSession) {
     if (workoutSession.exercises.isEmpty) return 0.0;
@@ -580,6 +1055,14 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                 onPressed: () => _addExercise(workoutSession),
                 tooltip: 'Add Exercise',
               ),
+              IconButton(
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                  color: context.onSurface,
+                ),
+                onPressed: () => _changePlannedDate(workoutSession),
+                tooltip: 'Change Date',
+              ),
             ],
           ),
           body: Column(
@@ -604,10 +1087,42 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Today\'s Workout',
-                          style: AppTextStyles.titleMedium.copyWith(
-                            color: context.textPrimary,
+                        GestureDetector(
+                          onTap: () => _selectViewDate(workoutSession),
+                          child: Row(
+                            children: [
+                              Builder(
+                                builder: (context) {
+                                  final sessionDate = workoutSession.date;
+                                  final now = DateTime.now();
+                                  final isToday =
+                                      sessionDate.year == now.year &&
+                                      sessionDate.month == now.month &&
+                                      sessionDate.day == now.day;
+                                  final label = isToday
+                                      ? 'Today\'s Workout'
+                                      : DateFormat.yMMMMd().format(sessionDate);
+
+                                  return Row(
+                                    children: [
+                                      Text(
+                                        label,
+                                        style: AppTextStyles.titleMedium
+                                            .copyWith(
+                                              color: context.textPrimary,
+                                            ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.xs),
+                                      HugeIcon(
+                                        icon: HugeIcons.strokeRoundedCalendar01,
+                                        color: context.textSecondary,
+                                        size: AppDimensions.iconSmall,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
                         Container(

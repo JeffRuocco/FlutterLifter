@@ -302,10 +302,16 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   /// This marks the session as explicitly selected by the user, which prevents
   /// [loadNextWorkout] from overriding it until the workout is started,
   /// finished, or cancelled.
-  void setCurrentWorkout(WorkoutSession? session) {
+  ///
+  /// Set [markDirty] to true when the session has unsaved changes that
+  /// need to be persisted on the next save call.
+  void setCurrentWorkout(WorkoutSession? session, {bool markDirty = false}) {
     LoggingService.debug(
       'User selecting workout session: ${session?.id ?? "null"}',
     );
+    if (session != null) {
+      _workoutService.setCurrentWorkout(session, markDirty: markDirty);
+    }
     state = state.copyWith(
       currentWorkout: session,
       userSelectedSessionId: session?.id,
