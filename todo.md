@@ -47,10 +47,11 @@
   - [x] Plan quick workout without "starting"
   - [x] Add/delete sets without starting session
   - [x] Plan quick workouts for future dates
-  - [x] Reorder exercises within a session - bug: don't drag until holding for period of time, messing with scrolling
+  - [x] Reorder exercises within a session
   - [x] Automatically collapse completed exercises within a session
 - [ ] **Bugs**
   - [x] Planned quick workouts don't save unless they are started/completed
+  - [ ] Sets from quick workout sessions don't appear in exercise history/progress
 - [ ] **In-app suggestion submission.** Can be used to log TODOs/ideas during usage.
 - [ ] **Connect Firebase logging**
 - [ ] **Add program creation pages**
