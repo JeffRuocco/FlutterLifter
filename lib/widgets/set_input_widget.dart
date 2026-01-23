@@ -41,6 +41,9 @@ class SetInputWidget extends StatefulWidget {
 class _SetInputWidgetState extends State<SetInputWidget> {
   late TextEditingController _weightController;
   late TextEditingController _repsController;
+  late FocusNode _weightFocusNode;
+  late FocusNode _repsFocusNode;
+  late FocusNode _notesFocusNode;
   bool _showNotes = false;
   final TextEditingController _notesController = TextEditingController();
 
@@ -48,13 +51,32 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   void initState() {
     super.initState();
     _initializeControllers();
+    // Create focus nodes so we can commit edits when a field loses focus
+    _weightFocusNode = FocusNode();
+    _repsFocusNode = FocusNode();
+    _notesFocusNode = FocusNode();
+
+    _weightFocusNode.addListener(() {
+      if (!_weightFocusNode.hasFocus) _onInputFinished();
+    });
+    _repsFocusNode.addListener(() {
+      if (!_repsFocusNode.hasFocus) _onInputFinished();
+    });
+    _notesFocusNode.addListener(() {
+      if (!_notesFocusNode.hasFocus) _onInputFinished();
+    });
   }
 
   @override
   void dispose() {
+    // Ensure any pending edits are committed before controllers are disposed.
+    _commitPendingEdits();
     _weightController.dispose();
     _repsController.dispose();
     _notesController.dispose();
+    _weightFocusNode.dispose();
+    _repsFocusNode.dispose();
+    _notesFocusNode.dispose();
     super.dispose();
   }
 
@@ -84,8 +106,11 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   void didUpdateWidget(SetInputWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // If it's a completely different ExerciseSet object, always update
+    // If switching to a different ExerciseSet instance, first commit any
+    // in-progress edits for the previous set so user input isn't lost when
+    // the parent rebuilds (e.g. tapping a different set without hitting "done").
     if (oldWidget.exerciseSet != widget.exerciseSet) {
+      _commitPendingEdits(oldWidget: oldWidget);
       _updateControllersFromModel();
       return;
     }
@@ -126,6 +151,26 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     }
   }
 
+  /// Commit current controller values by calling the provided onUpdated
+  /// callback. If [oldWidget] is provided, prefer its callback so the
+  /// update is applied to the previous set index before controllers are
+  /// refreshed for the new set.
+  void _commitPendingEdits({SetInputWidget? oldWidget}) {
+    final weight = double.tryParse(_weightController.text.trim());
+    final reps = int.tryParse(_repsController.text.trim());
+    final notes = _notesController.text.trim().isEmpty
+        ? null
+        : _notesController.text.trim();
+
+    final callback = oldWidget?.onUpdated ?? widget.onUpdated;
+    try {
+      callback?.call(weight, reps, notes, false);
+    } catch (_) {
+      // Swallow errors here - parent will validate/update as needed. We do
+      // not want to crash the UI on a best-effort commit.
+    }
+  }
+
   void _updateControllersFromModel() {
     // Update the controllers directly without listeners
     final weightValue = widget.isWorkoutStarted
@@ -142,8 +187,8 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     _notesController.text = widget.exerciseSet.notes ?? '';
   }
 
-  void _onInputFinished() {
-    FocusScope.of(context).unfocus();
+  void _onInputFinished({bool shouldUnfocus = false}) {
+    if (shouldUnfocus) FocusScope.of(context).unfocus();
     final weight = double.tryParse(_weightController.text.trim());
     final reps = int.tryParse(_repsController.text.trim());
     final notes = _notesController.text.trim().isEmpty
@@ -406,15 +451,23 @@ class _SetInputWidgetState extends State<SetInputWidget> {
     String? suffix,
     String? placeholder,
   }) {
+    // Attach the appropriate FocusNode so we can detect focus loss and commit
+    // edits. The calling site (build) passes controllers for weight/reps;
+    // choose the matching focus node here by identity.
+    FocusNode? focusNode;
+    if (controller == _weightController) focusNode = _weightFocusNode;
+    if (controller == _repsController) focusNode = _repsFocusNode;
+
     return AppTextFormField(
       controller: controller,
+      focusNode: focusNode,
       enabled: enabled,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       textAlign: TextAlign.center,
-      onFieldSubmitted: (_) => _onInputFinished(),
-      onEditingComplete: _onInputFinished,
-      onTapOutside: (_) => _onInputFinished(),
+      onFieldSubmitted: (_) => _onInputFinished(shouldUnfocus: true),
+      onEditingComplete: () => _onInputFinished(shouldUnfocus: true),
+      onTapOutside: (_) => _onInputFinished(shouldUnfocus: true),
       hintText: placeholder,
       suffixText: suffix,
       isDense: true,
@@ -424,11 +477,12 @@ class _SetInputWidgetState extends State<SetInputWidget> {
   Widget _buildNotesField() {
     return AppTextFormField(
       controller: _notesController,
+      focusNode: _notesFocusNode,
       enabled: widget.isWorkoutStarted,
       maxLines: 2,
-      onFieldSubmitted: (_) => _onInputFinished(),
-      onEditingComplete: _onInputFinished,
-      onTapOutside: (_) => _onInputFinished(),
+      onFieldSubmitted: (_) => _onInputFinished(shouldUnfocus: true),
+      onEditingComplete: () => _onInputFinished(shouldUnfocus: true),
+      onTapOutside: (_) => _onInputFinished(shouldUnfocus: true),
       hintText: 'Add notes for this set...',
       isDense: true,
       suffixIcon: _showNotes && (widget.exerciseSet.notes?.isEmpty ?? true)
