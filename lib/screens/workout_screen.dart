@@ -45,6 +45,7 @@ class WorkoutScreen extends ConsumerStatefulWidget {
 class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showConfetti = false;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -1215,6 +1216,14 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                           horizontal: AppSpacing.md,
                         ),
                         itemCount: workoutSession.exercises.length,
+                        onReorderEnd: (index) {
+                          setState(() {
+                            _isDragging = false;
+                            LoggingService.logUserAction(
+                              'Finished reordering exercises in workout session ${workoutSession.id}',
+                            );
+                          });
+                        },
                         onReorder: (oldIndex, newIndex) async {
                           final notifier = ref.read(
                             workoutNotifierProvider.notifier,
@@ -1252,6 +1261,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                 exercise: ex,
                                 exerciseIndex: index + 1,
                                 isWorkoutStarted: workoutSession.isInProgress,
+                                forceCollapsed: _isDragging,
                                 onRemove: () =>
                                     _removeExercise(index, workoutSession),
                                 onSwap: () =>
@@ -1260,6 +1270,19 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                     ReorderableDelayedDragStartListener(
                                       index: index,
                                       child: _HapticFeedbackWrapper(
+                                        onDragStarting: () {
+                                          setState(() {
+                                            _isDragging = true;
+                                            LoggingService.logUserAction(
+                                              'Started reordering exercises in workout session ${workoutSession.id}',
+                                            );
+                                          });
+                                        },
+                                        onDragEnd: () {
+                                          if (mounted) {
+                                            setState(() => _isDragging = false);
+                                          }
+                                        },
                                         child: header,
                                       ),
                                     ),
@@ -1410,8 +1433,14 @@ class _WorkoutProgressBar extends StatelessWidget {
 /// without intercepting the gesture for reorderable drag.
 class _HapticFeedbackWrapper extends StatefulWidget {
   final Widget child;
+  final VoidCallback? onDragStarting;
+  final VoidCallback? onDragEnd;
 
-  const _HapticFeedbackWrapper({required this.child});
+  const _HapticFeedbackWrapper({
+    required this.child,
+    this.onDragStarting,
+    this.onDragEnd,
+  });
 
   @override
   State<_HapticFeedbackWrapper> createState() => _HapticFeedbackWrapperState();
@@ -1421,18 +1450,20 @@ class _HapticFeedbackWrapperState extends State<_HapticFeedbackWrapper> {
   Timer? _hapticTimer;
 
   void _onPointerDown(PointerDownEvent event) {
-    // Trigger haptic after the same delay as ReorderableDelayedDragStartListener
     _hapticTimer = Timer(kLongPressTimeout, () {
       HapticFeedback.mediumImpact();
+      widget.onDragStarting?.call();
     });
   }
 
   void _onPointerUp(PointerUpEvent event) {
     _hapticTimer?.cancel();
+    widget.onDragEnd?.call();
   }
 
   void _onPointerCancel(PointerCancelEvent event) {
     _hapticTimer?.cancel();
+    widget.onDragEnd?.call();
   }
 
   @override

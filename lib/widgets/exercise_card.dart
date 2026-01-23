@@ -38,6 +38,9 @@ class ExerciseCard extends ConsumerStatefulWidget {
   // Optional wrapper to modify the header (e.g., make it the drag start area)
   final Widget Function(Widget header)? headerWrapper;
 
+  /// When true, forces the card to collapse (e.g., during drag reordering)
+  final bool forceCollapsed;
+
   const ExerciseCard({
     super.key,
     required this.exercise,
@@ -50,6 +53,7 @@ class ExerciseCard extends ConsumerStatefulWidget {
     required this.onAddSet,
     this.onRemoveSet,
     this.headerWrapper,
+    this.forceCollapsed = false,
   });
 
   @override
@@ -59,15 +63,18 @@ class ExerciseCard extends ConsumerStatefulWidget {
 class _ExerciseCardState extends ConsumerState<ExerciseCard>
     with SingleTickerProviderStateMixin {
   bool _isExpanded = true;
+  bool? _expandedBeforeForceCollapse;
   late AnimationController _expandController;
   late Animation<double> _expandAnimation;
   ExerciseSessionRecord? _lastSession;
   double? _allTimePR;
 
   @override
+  @override
   void initState() {
     super.initState();
-    _isExpanded = !widget.exercise.isCompleted; // Start collapsed if completed
+    // Start collapsed if completed OR if parent forces collapse (e.g., during drag)
+    _isExpanded = !widget.exercise.isCompleted && !widget.forceCollapsed;
     _expandController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -76,9 +83,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
       parent: _expandController,
       curve: Curves.easeInOut,
     );
-    if (_isExpanded) {
-      _expandController.value = 1.0;
-    }
+    _expandController.value = _isExpanded ? 1.0 : 0.0;
     _loadExerciseHistory();
   }
 
@@ -86,6 +91,24 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
   @override
   void didUpdateWidget(covariant ExerciseCard oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    // Handle forceCollapsed changes (for drag reordering)
+    if (widget.forceCollapsed && !oldWidget.forceCollapsed) {
+      // Starting force collapse - save current state and collapse
+      _expandedBeforeForceCollapse = _isExpanded;
+      if (_isExpanded) {
+        _isExpanded = false;
+        _expandController.reverse();
+      }
+    } else if (!widget.forceCollapsed && oldWidget.forceCollapsed) {
+      // Ending force collapse - restore previous state
+      if (_expandedBeforeForceCollapse == true && !_isExpanded) {
+        _isExpanded = true;
+        _expandController.forward();
+      }
+      _expandedBeforeForceCollapse = null;
+    }
+
     if (widget.exercise.isCompleted && _isExpanded) {
       // Collapse if exercise is marked completed
       _toggleExpanded();
