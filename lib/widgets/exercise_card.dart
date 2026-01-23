@@ -64,6 +64,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
   @override
   void initState() {
     super.initState();
+    _isExpanded = !widget.exercise.isCompleted; // Start collapsed if completed
     _expandController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -76,6 +77,16 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
       _expandController.value = 1.0;
     }
     _loadExerciseHistory();
+  }
+
+  /// Handle updates to the widget (e.g., exercise marked completed)
+  @override
+  void didUpdateWidget(covariant ExerciseCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.exercise.isCompleted && _isExpanded) {
+      // Collapse if exercise is marked completed
+      _toggleExpanded();
+    }
   }
 
   /// Load exercise history data (last session and PR)
@@ -103,6 +114,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
     super.dispose();
   }
 
+  /// Toggle the expanded/collapsed state of the exercise card
   void _toggleExpanded() {
     setState(() {
       _isExpanded = !_isExpanded;

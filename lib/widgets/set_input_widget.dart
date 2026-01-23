@@ -7,6 +7,7 @@ import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_extensions.dart';
 import 'common/app_widgets.dart';
 
+/// Widget for inputting data for a single exercise set.
 class SetInputWidget extends StatefulWidget {
   final int setNumber;
   final ExerciseSet exerciseSet;

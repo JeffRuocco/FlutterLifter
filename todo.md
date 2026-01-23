@@ -41,13 +41,15 @@
 
 ## Incremental updates
 
-- [ ] Create cheat sheet for when to use repository, service, provider, notifier, etc. for data management.
 - [ ] QoL
   - [x] Delete session from history
   - [ ] Cancel session (delete without completing)
   - [x] Plan quick workout without "starting"
   - [x] Add/delete sets without starting session
   - [ ] Plan quick workouts for future dates
+  - [ ] Reorder exercises within a session
+  - [x] Automatically collapse completed exercises within a session
+- [ ] **In-app suggestion submission.** Can be used to log TODOs/ideas during usage.
 - [ ] **Connect Firebase logging**
 - [ ] **Add program creation pages**
   - [ ] Add program to local program library
