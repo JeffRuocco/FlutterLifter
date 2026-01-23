@@ -4,6 +4,7 @@ This document explains how Riverpod is used throughout the FlutterLifter applica
 
 ## Table of Contents
 
+- [Data Access Cheatsheet](#data-access-cheatsheet) ← **Start here!**
 - [Overview](#overview)
 - [What is a Provider?](#what-is-a-provider)
 - [Why Riverpod?](#why-riverpod)
@@ -14,6 +15,327 @@ This document explains how Riverpod is used throughout the FlutterLifter applica
 - [Common Usage Examples](#common-usage-examples)
 - [Testing with Riverpod](#testing-with-riverpod)
 - [Best Practices](#best-practices)
+
+---
+
+## Data Access Cheatsheet
+
+> **Quick reference for choosing the right data access pattern.** Use this when you're unsure which layer to use.
+
+### Decision Flowchart
+
+```
+Need data in a widget?
+│
+├─► Need reactive UI updates? ──► ref.watch(provider)
+│
+├─► One-time action (button tap)? ──► ref.read(notifierProvider.notifier).method()
+│
+├─► Need loading/error states? ──► ref.watch(futureProvider).when(...)
+│
+└─► Complex multi-step operation? ──► ref.read(serviceProvider).method()
+                                      └─► Service uses Repository internally
+```
+
+### Layer Responsibilities
+
+| Layer | What It Does | When to Use | Example |
+|-------|--------------|-------------|---------|
+| **Provider** | Exposes dependencies to UI | Always (never instantiate directly) | `ref.watch(workoutNotifierProvider)` |
+| **Notifier** | Manages UI state + coordinates services | UI needs reactive state updates | `notifier.startWorkout(session)` |
+| **Service** | Business logic & orchestration | Complex operations spanning multiple repos | `workoutService.finishWorkout()` |
+| **Repository** | Data access abstraction | CRUD operations, caching | `repo.saveWorkout(session)` |
+| **DataSource** | Raw data I/O | Direct storage/API calls (rarely used directly) | `localDataSource.write(data)` |
+
+### Quick Decision Table
+
+| I want to... | Use this | Code example |
+|--------------|----------|--------------|
+| **Display data reactively** | `ref.watch()` + Provider | `final workout = ref.watch(currentWorkoutProvider);` |
+| **Trigger an action** | `ref.read()` + Notifier | `ref.read(workoutNotifierProvider.notifier).startWorkout(s);` |
+| **Load async data with loading state** | `ref.watch()` + FutureProvider | `ref.watch(programsProvider).when(...)` |
+| **Save/update/delete data** | Notifier method (preferred) | `notifier.saveWorkout();` |
+| **Complex business operation** | Service via Notifier | `notifier.finishWorkout();` → calls service internally |
+| **Direct data query (rare)** | Repository | `final data = await ref.read(repoProvider).getPrograms();` |
+
+### Common Patterns by Use Case
+
+#### Reading Data
+
+```dart
+// ✅ Reactive list (rebuilds on changes)
+final programs = ref.watch(programsProvider);
+
+// ✅ Reactive single value
+final currentWorkout = ref.watch(currentWorkoutProvider);
+
+// ✅ Async data with states
+ref.watch(workoutHistoryProvider).when(
+  data: (history) => ListView(...),
+  loading: () => CircularProgressIndicator(),
+  error: (e, _) => Text('Error: $e'),
+);
+
+// ⚠️ One-time read (use sparingly, only in callbacks)
+final repo = ref.read(programRepositoryProvider);
+```
+
+#### Writing Data
+
+```dart
+// ✅ PREFERRED: Through notifier (manages state + persistence)
+final notifier = ref.read(workoutNotifierProvider.notifier);
+notifier.updateSet(exerciseIndex, setIndex, newSet);
+await notifier.saveWorkout();
+
+// ⚠️ Direct repo access (only when notifier doesn't exist for this data)
+final repo = ref.read(programRepositoryProvider);
+await repo.saveProgram(program);
+```
+
+#### Complex Operations
+
+```dart
+// ✅ Notifier orchestrates the operation
+await ref.read(workoutNotifierProvider.notifier).finishWorkout();
+// Internally: validates → saves → updates history → clears state
+
+// ❌ DON'T: Call service directly from UI
+final service = ref.read(workoutServiceProvider);
+await service.finishWorkout(); // Bypasses state management!
+```
+
+### When to Use Each Layer
+
+#### Use **Notifier** when:
+- UI needs to react to state changes
+- Operation affects displayed data
+- Need loading/error states in UI
+- Coordinating multiple service calls
+
+```dart
+// Notifier handles state + delegates to service
+class WorkoutNotifier extends Notifier<WorkoutState> {
+  Future<void> startWorkout(WorkoutSession session) async {
+    state = state.copyWith(isLoading: true);
+    await _workoutService.startWorkout(session);
+    state = state.copyWith(currentWorkout: session, isLoading: false);
+  }
+}
+```
+
+#### Use **Service** when:
+- Business logic spans multiple repositories
+- Need framework-agnostic code (testable without Flutter)
+- Complex validation or transformation
+- Operation doesn't need immediate UI feedback
+
+```dart
+// Service contains business logic
+class WorkoutService {
+  Future<void> finishWorkout() async {
+    final session = currentWorkout!.copyWith(endTime: DateTime.now());
+    await _repository.saveWorkout(session);
+    await _repository.addToHistory(session);
+  }
+}
+```
+
+#### Use **Repository** when:
+- Simple CRUD operations
+- Need caching layer
+- Abstracting data source (local vs remote)
+- No notifier exists for this data type
+
+```dart
+// Repository handles data access
+final repo = ref.read(programRepositoryProvider);
+final programs = await repo.getPrograms();
+await repo.saveProgram(newProgram);
+```
+
+### Anti-Patterns to Avoid
+
+| ❌ Don't | ✅ Do Instead | Why |
+|----------|---------------|-----|
+| `WorkoutService(repo)` | `ref.read(workoutServiceProvider)` | Breaks DI, creates multiple instances |
+| `ref.watch()` in callbacks | `ref.read()` in callbacks | Watch causes rebuilds |
+| `ref.read()` in build | `ref.watch()` in build | Read won't update UI |
+| Call service from UI | Call notifier from UI | Service bypasses state management |
+| Repository in widget | Notifier/Provider in widget | Repository is too low-level for UI |
+
+### Provider Selection Guide
+
+| Scenario | Provider Type | Example |
+|----------|---------------|---------|
+| Singleton service/repo | `Provider` | `programRepositoryProvider` |
+| Mutable UI state | `NotifierProvider` | `workoutNotifierProvider` |
+| One-time async fetch | `FutureProvider` | `programsProvider` |
+| Continuous updates | `StreamProvider` | `connectivityStreamProvider` |
+| Derived/computed value | `Provider` | `hasActiveWorkoutProvider` |
+| Parameterized query | `Provider.family` | `programByIdProvider(id)` |
+
+### ref.watch() vs ref.read() Summary
+
+```dart
+@override
+Widget build(BuildContext context) {
+  // ✅ WATCH in build() - UI rebuilds when state changes
+  final state = ref.watch(workoutNotifierProvider);
+  final isActive = ref.watch(hasActiveWorkoutProvider);
+  
+  return ElevatedButton(
+    onPressed: () {
+      // ✅ READ in callbacks - one-time access, no rebuild
+      ref.read(workoutNotifierProvider.notifier).startWorkout(session);
+    },
+    child: Text('Start'),
+  );
+}
+
+@override
+void initState() {
+  super.initState();
+  // ✅ READ in initState (wrapped in microtask)
+  Future.microtask(() {
+    ref.read(workoutNotifierProvider.notifier).loadNextWorkout();
+  });
+}
+```
+
+### Provider vs Notifier: Understanding the Difference
+
+These two concepts often cause confusion because both "provide" something to widgets. Here's the key distinction:
+
+| Aspect | `Provider` | `NotifierProvider` |
+|--------|------------|-------------------|
+| **Purpose** | Expose a **static dependency** | Expose **mutable state** + methods to change it |
+| **State changes?** | No - value is fixed once created | Yes - state updates trigger UI rebuilds |
+| **Has methods?** | Only what the object already has | Yes - notifier has methods to mutate state |
+| **Rebuilds UI?** | Only if dependencies change | Yes, whenever `state = ...` is called |
+| **Use for** | Services, repositories, configs | UI state that changes over time |
+
+#### The Mental Model
+
+Think of it this way:
+
+- **`Provider`** = "Here's a **thing** you can use" (a service, a repository, a utility)
+- **`NotifierProvider`** = "Here's some **state** that can change, plus ways to change it"
+
+```dart
+// Provider: "Here's the workout service you can use"
+final workoutServiceProvider = Provider<WorkoutService>((ref) {
+  return WorkoutService(ref.watch(programRepositoryProvider));
+});
+// The service itself doesn't change. It's always the same instance.
+// You call methods on it, but the Provider doesn't track those changes.
+
+// NotifierProvider: "Here's the current workout STATE, and methods to change it"
+final workoutNotifierProvider = NotifierProvider<WorkoutNotifier, WorkoutState>(...);
+// The state (WorkoutState) changes over time.
+// When state changes, widgets watching this provider rebuild.
+```
+
+#### Why Both Exist
+
+```dart
+// Scenario: User taps "Start Workout"
+
+// 1. Widget calls notifier method
+ref.read(workoutNotifierProvider.notifier).startWorkout(session);
+
+// 2. Notifier updates state (triggers UI rebuild) and delegates to service
+class WorkoutNotifier extends Notifier<WorkoutState> {
+  Future<void> startWorkout(WorkoutSession session) async {
+    state = state.copyWith(isLoading: true);  // ← UI shows spinner
+    
+    await _workoutService.startWorkout(session);  // ← Service does the work
+    
+    state = state.copyWith(                    // ← UI updates with new data
+      currentWorkout: _workoutService.currentWorkout,
+      isLoading: false,
+    );
+  }
+}
+
+// 3. Service does business logic (no UI awareness)
+class WorkoutService {
+  Future<void> startWorkout(WorkoutSession session) async {
+    _currentWorkout = session.copyWith(startTime: DateTime.now());
+    await _repository.saveWorkout(_currentWorkout!);
+  }
+}
+```
+
+#### Common Confusion Points
+
+**Q: "Can't I just put methods on a service and use `Provider`?"**
+
+Yes, but the UI won't know when to rebuild:
+
+```dart
+// ❌ This works, but UI won't update automatically
+final service = ref.read(workoutServiceProvider);
+await service.startWorkout(session);
+// UI still shows old state! No rebuild triggered.
+
+// ✅ Notifier triggers rebuilds
+final notifier = ref.read(workoutNotifierProvider.notifier);
+await notifier.startWorkout(session);
+// Notifier sets state = ..., which triggers widgets watching it to rebuild
+```
+
+**Q: "When do I need a Notifier vs just a Provider?"**
+
+Ask: **"Does the UI need to react to changes?"**
+
+| Situation | Use |
+|-----------|-----|
+| Displaying a list that updates | `NotifierProvider` |
+| Theme mode toggle | `NotifierProvider` |
+| API client / HTTP service | `Provider` |
+| Repository for data access | `Provider` |
+| Current workout being edited | `NotifierProvider` |
+| App configuration | `Provider` (or `NotifierProvider` if user can change it) |
+
+**Q: "Why not make everything a NotifierProvider?"**
+
+Overkill. Services and repositories don't need state management - they're stateless utilities. Using `Provider` for them is simpler and clearer:
+
+```dart
+// ✅ Simple and correct - repository doesn't change
+final programRepositoryProvider = Provider<ProgramRepository>((ref) => ...);
+
+// ❌ Unnecessary complexity - what state would this even track?
+final programRepositoryNotifierProvider = NotifierProvider<???, ???>(...);
+```
+
+#### Visual Summary
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Provider (static dependencies)                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │ ApiService  │  │ Repository  │  │   Config    │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│  • Created once, used many times                                │
+│  • No state changes                                             │
+│  • ref.read() to get, call methods directly                     │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  NotifierProvider (mutable state)                               │
+│  ┌─────────────────────────────────────────────────┐           │
+│  │ WorkoutNotifier                                  │           │
+│  │  state: WorkoutState(currentWorkout, isLoading) │           │
+│  │  methods: startWorkout(), saveWorkout(), ...    │           │
+│  └─────────────────────────────────────────────────┘           │
+│  • State changes over time                                      │
+│  • UI rebuilds when state changes                               │
+│  • ref.watch() for state, ref.read().notifier for methods       │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
