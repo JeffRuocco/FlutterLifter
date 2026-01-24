@@ -51,7 +51,7 @@
   - [x] Automatically collapse completed exercises within a session
 - [ ] **Bugs**
   - [x] Planned quick workouts don't save unless they are started/completed
-  - [ ] <mark>Sets from quick workout sessions don't appear in exercise history/progress</mark>
+  - [x] Sets from quick workout sessions don't appear in exercise history/progress
   - [ ] Session exercise card does not stay collapsed after re-render (scroll off screen and back on, exercise expands) (fixed?)
   - [x] Can't expand/collapse completed exercises in session
 - [ ] **In-app suggestion submission.** Can be used to log TODOs/ideas during usage.

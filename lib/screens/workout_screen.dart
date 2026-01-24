@@ -79,10 +79,9 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
 
   Future<void> _startWorkout(WorkoutSession workoutSession) async {
     try {
-      final workoutService = ref.read(workoutServiceProvider);
-      await workoutService.startWorkout(workoutSession);
+      final workoutNotifier = ref.read(workoutNotifierProvider.notifier);
+      await workoutNotifier.startWorkout(workoutSession);
       if (!mounted) return;
-      setState(() {}); // Refresh UI
       showSuccessMessage(context, 'Workout started! Auto-save enabled 💪');
     } catch (error) {
       LoggingService.logAuthError('start workout', error);
@@ -92,13 +91,14 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     }
   }
 
+  /// Finish the current workout session with confirmation and checks.
   Future<void> _finishWorkout(WorkoutSession workoutSession) async {
     if (!workoutSession.isInProgress) return;
 
-    final workoutService = ref.read(workoutServiceProvider);
+    final workoutNotifier = ref.read(workoutNotifierProvider.notifier);
 
     // Check for unfinished sets before finishing
-    if (workoutService.hasUnfinishedExercises()) {
+    if (workoutNotifier.hasUnfinishedExercises) {
       final shouldContinue = await _showUnfinishedSetsDialog();
       if (!shouldContinue || !mounted) return;
     }
@@ -134,7 +134,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
               Navigator.pop(dialogContext); // Close dialog
 
               try {
-                await workoutService.finishWorkout();
+                await workoutNotifier.finishWorkout();
                 if (!mounted) return;
 
                 // Trigger confetti celebration
@@ -165,8 +165,8 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
 
   /// Show dialog for unfinished sets warning
   Future<bool> _showUnfinishedSetsDialog() async {
-    final workoutService = ref.read(workoutServiceProvider);
-    final unfinishedCount = workoutService.getUnfinishedSetsCount();
+    final workoutNotifier = ref.read(workoutNotifierProvider.notifier);
+    final unfinishedCount = workoutNotifier.unfinishedSetsCount;
 
     final result = await showDialog<bool>(
       context: context,
@@ -351,8 +351,8 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   /// Save current workout session state to storage
   Future<void> _saveWorkout() async {
     try {
-      final workoutService = ref.read(workoutServiceProvider);
-      await workoutService.saveWorkout();
+      final workoutNotifier = ref.read(workoutNotifierProvider.notifier);
+      await workoutNotifier.saveWorkout();
     } catch (error) {
       // Silent error - don't interrupt workout flow
       LoggingService.error('Failed to save workout: $error');
@@ -923,10 +923,10 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   Future<void> _onWillPop(bool didPop, Object? result) async {
     if (didPop) return; // Already popped, don't process further
 
-    final workoutService = ref.read(workoutServiceProvider);
+    final workoutNotifier = ref.read(workoutNotifierProvider.notifier);
 
     // Check if user has uncompleted recorded sets
-    if (workoutService.hasUncompletedRecordedSets()) {
+    if (workoutNotifier.hasUncompletedRecordedSets) {
       final shouldLeave =
           await showDialog<bool>(
             context: context,
@@ -974,7 +974,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   }
 
   Widget _buildWorkoutScreen(WorkoutSession workoutSession) {
-    final workoutService = ref.read(workoutServiceProvider);
+    final workoutNotifier = ref.read(workoutNotifierProvider.notifier);
     final progress = _calculateProgress(workoutSession);
 
     return SuccessConfetti(
@@ -1002,7 +1002,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                       color: context.successColor,
                     ),
                   ),
-                  if (workoutService.hasActiveWorkout)
+                  if (workoutNotifier.hasActiveWorkout)
                     Text(
                       'Auto-saving every 30s',
                       style: AppTextStyles.labelSmall.copyWith(
@@ -1033,7 +1033,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                   onPressed: () async {
                     final scaffoldMessenger = ScaffoldMessenger.of(context);
                     try {
-                      await workoutService.saveWorkoutImmediate();
+                      await workoutNotifier.saveWorkoutImmediate();
                       if (!mounted) return;
                       scaffoldMessenger.showSnackBar(
                         const SnackBar(

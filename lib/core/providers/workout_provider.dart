@@ -507,6 +507,9 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
 
   /// Get count of unfinished sets
   int get unfinishedSetsCount => _workoutService.getUnfinishedSetsCount();
+
+  /// Whether there is an active workout in progress
+  bool get hasActiveWorkout => _workoutService.hasActiveWorkout;
 }
 
 /// Immutable state class representing the current workout UI state.
