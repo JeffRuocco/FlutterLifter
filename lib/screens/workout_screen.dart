@@ -563,7 +563,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
 
       if (!mounted) return;
       showSuccessMessage(context, 'Workout date updated');
-      setState(() {});
     } catch (error) {
       LoggingService.error('Failed to change planned date: $error');
       if (!mounted) return;
@@ -717,7 +716,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
         context,
         'Planned workout created for ${DateFormat.yMMMMd().format(picked)}',
       );
-      setState(() {});
     } catch (error) {
       if (!mounted) return;
       showErrorMessage(context, 'Failed to create planned workout: $error');
@@ -767,7 +765,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   ) async {
     final notifier = ref.read(workoutNotifierProvider.notifier);
     notifier.setCurrentWorkout(session);
-    setState(() {});
   }
 
   /// Handles case when multiple sessions exist for the selected date.
@@ -779,7 +776,6 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     if (selected != null) {
       final notifier = ref.read(workoutNotifierProvider.notifier);
       notifier.setCurrentWorkout(selected);
-      setState(() {});
     }
   }
 
@@ -1266,14 +1262,12 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                           // Update state and persist immediately
                           notifier.setCurrentWorkout(updated, markDirty: true);
                           await notifier.saveWorkoutImmediate();
-                          if (mounted) setState(() {});
                         },
                         onReorderEnd: (index) {
-                          setState(() {
-                            LoggingService.logUserAction(
-                              'Finished reordering exercises in workout session ${workoutSession.id}',
-                            );
-                          });
+                          LoggingService.logUserAction(
+                            'Finished reordering exercises in workout session ${workoutSession.id}',
+                          );
+
                           // Restore each card and re-apply previous expanded state
                           _cardKeys.forEach((id, k) {
                             try {
@@ -1319,32 +1313,30 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                 ),
                                 onToggleSetCompleted: (setIndex) async {
                                   // TODO: start rest timer based on set.restTime
-                                  setState(() {
-                                    final exercise =
-                                        workoutSession.exercises[index];
-                                    final result = exercise.sets[setIndex]
-                                        .toggleCompleted();
-                                    OperationUIHandler.handleResult(
-                                      context,
-                                      result,
+                                  final exercise =
+                                      workoutSession.exercises[index];
+                                  final result = exercise.sets[setIndex]
+                                      .toggleCompleted();
+                                  OperationUIHandler.handleResult(
+                                    context,
+                                    result,
+                                  );
+
+                                  if (result is OperationSuccess) {
+                                    LoggingService.logSetComplete(
+                                      exercise.name,
+                                      setIndex + 1,
+                                      exercise.sets[setIndex].actualWeight,
+                                      exercise.sets[setIndex].actualReps,
                                     );
+                                  }
 
-                                    if (result is OperationSuccess) {
-                                      LoggingService.logSetComplete(
-                                        exercise.name,
-                                        setIndex + 1,
-                                        exercise.sets[setIndex].actualWeight,
-                                        exercise.sets[setIndex].actualReps,
-                                      );
-                                    }
-
-                                    // Collapse the card after marking set complete
-                                    if (exercise.isCompleted) {
-                                      (_cardKeys[exercise.id]?.currentState
-                                              as dynamic)
-                                          ?.setCollapse();
-                                    }
-                                  });
+                                  // Collapse the card after marking set complete
+                                  if (exercise.isCompleted) {
+                                    (_cardKeys[exercise.id]?.currentState
+                                            as dynamic)
+                                        ?.setCollapse();
+                                  }
 
                                   // Auto-save the change
                                   await _saveWorkout();
@@ -1357,55 +1349,46 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                       notes,
                                       markAsCompleted,
                                     ) async {
-                                      setState(() {
-                                        final set = workoutSession
-                                            .exercises[index]
-                                            .sets[setIndex];
+                                      final set = workoutSession
+                                          .exercises[index]
+                                          .sets[setIndex];
 
-                                        if (workoutSession.isInProgress) {
-                                          // Workout started -> update actuals
-                                          set.updateSetData(
-                                            weight: weight,
-                                            reps: reps,
-                                            notes: notes,
-                                            markAsCompleted: markAsCompleted,
-                                          );
-                                        } else {
-                                          // Planning mode -> update targets
-                                          if (weight != null) {
-                                            set.targetWeight = weight;
-                                          }
-                                          if (reps != null) {
-                                            set.targetReps = reps;
-                                          }
-                                          if (notes != null) set.notes = notes;
-
-                                          // If user explicitly marked as completed while planning,
-                                          // convert targets to actuals and mark completed.
-                                          if (markAsCompleted == true) {
-                                            set.actualWeight ??=
-                                                set.targetWeight;
-                                            set.actualReps ??= set.targetReps;
-                                            set.markCompleted();
-                                          }
+                                      if (workoutSession.isInProgress) {
+                                        // Workout started -> update actuals
+                                        set.updateSetData(
+                                          weight: weight,
+                                          reps: reps,
+                                          notes: notes,
+                                          markAsCompleted: markAsCompleted,
+                                        );
+                                      } else {
+                                        // Planning mode -> update targets
+                                        if (weight != null) {
+                                          set.targetWeight = weight;
                                         }
-                                      });
+                                        if (reps != null) {
+                                          set.targetReps = reps;
+                                        }
+                                        if (notes != null) set.notes = notes;
+
+                                        // If user explicitly marked as completed while planning,
+                                        // convert targets to actuals and mark completed.
+                                        if (markAsCompleted == true) {
+                                          set.actualWeight ??= set.targetWeight;
+                                          set.actualReps ??= set.targetReps;
+                                          set.markCompleted();
+                                        }
+                                      }
 
                                       await _saveWorkout();
                                     },
                                 onAddSet: () async {
-                                  setState(() {
-                                    workoutSession.exercises[index].addSet();
-                                  });
-
+                                  workoutSession.exercises[index].addSet();
                                   await _saveWorkout();
                                 },
                                 onRemoveSet: (setIndex) async {
-                                  var removed = false;
-                                  setState(() {
-                                    removed = workoutSession.exercises[index]
-                                        .removeSet(setIndex);
-                                  });
+                                  var removed = workoutSession.exercises[index]
+                                      .removeSet(setIndex);
 
                                   if (!removed) {
                                     ScaffoldMessenger.of(context).showSnackBar(

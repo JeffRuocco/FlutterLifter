@@ -54,9 +54,9 @@ class _AppShellState extends ConsumerState<AppShell> {
     // If leaving the workout tab, check for uncompleted recorded sets
     if (currentIndex == ShellTab.workout.tabIndex &&
         index != ShellTab.workout.tabIndex) {
-      final workoutService = ref.read(workoutServiceProvider);
+      final workoutNotifier = ref.read(workoutNotifierProvider.notifier);
 
-      if (workoutService.hasUncompletedRecordedSets()) {
+      if (workoutNotifier.hasUncompletedRecordedSets) {
         final shouldLeave = await _showLeaveWorkoutDialog();
         if (!shouldLeave) return; // User chose to stay
       }
