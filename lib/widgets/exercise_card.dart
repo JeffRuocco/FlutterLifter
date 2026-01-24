@@ -82,17 +82,6 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
     _loadExerciseHistory();
   }
 
-  /// Handle updates to the widget (e.g., exercise marked completed)
-  @override
-  void didUpdateWidget(covariant ExerciseCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (widget.exercise.isCompleted && _isExpanded) {
-      // Collapse if exercise is marked completed
-      _toggleExpanded();
-    }
-  }
-
   // Return whether the card is currently expanded.
   bool isExpandedState() => _isExpanded;
 

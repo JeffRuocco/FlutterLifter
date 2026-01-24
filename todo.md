@@ -53,7 +53,7 @@
   - [x] Planned quick workouts don't save unless they are started/completed
   - [ ] <mark>Sets from quick workout sessions don't appear in exercise history/progress</mark>
   - [ ] Session exercise card does not stay collapsed after re-render (scroll off screen and back on, exercise expands) (fixed?)
-  - [ ] Can't expand/collapse completed exercises in session
+  - [x] Can't expand/collapse completed exercises in session
 - [ ] **In-app suggestion submission.** Can be used to log TODOs/ideas during usage.
 - [ ] **Connect Firebase logging**
 - [ ] **Add program creation pages**

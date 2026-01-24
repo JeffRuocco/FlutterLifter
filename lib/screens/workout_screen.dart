@@ -44,9 +44,18 @@ class WorkoutScreen extends ConsumerStatefulWidget {
 class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showConfetti = false;
-  // Per-card keys to allow forcing collapse on drag start
+
+  /// Per-card keys to allow forcing collapse on drag start. Mapped to exercise IDs.
+  ///
+  /// Can be used to access the state and call functions of individual ExerciseCard widgets.
+  ///
+  /// **Example:** To collapse a specific card by its exercise ID:
+  /// ```
+  /// (_cardKeys[exercise.id]?.currentState as dynamic)?.setCollapse();
+  /// ```
   final Map<String, GlobalKey> _cardKeys = {};
-  // Temporarily store expanded state for each card during a reorder
+
+  /// Temporarily store expanded state for each card during a reorder Mapped to exercise IDs.
   final Map<String, bool> _wasExpandedMap = {};
 
   @override
@@ -1311,9 +1320,9 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                 onToggleSetCompleted: (setIndex) async {
                                   // TODO: start rest timer based on set.restTime
                                   setState(() {
-                                    final result = workoutSession
-                                        .exercises[index]
-                                        .sets[setIndex]
+                                    final exercise =
+                                        workoutSession.exercises[index];
+                                    final result = exercise.sets[setIndex]
                                         .toggleCompleted();
                                     OperationUIHandler.handleResult(
                                       context,
@@ -1322,17 +1331,18 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
 
                                     if (result is OperationSuccess) {
                                       LoggingService.logSetComplete(
-                                        workoutSession.exercises[index].name,
+                                        exercise.name,
                                         setIndex + 1,
-                                        workoutSession
-                                            .exercises[index]
-                                            .sets[setIndex]
-                                            .actualWeight,
-                                        workoutSession
-                                            .exercises[index]
-                                            .sets[setIndex]
-                                            .actualReps,
+                                        exercise.sets[setIndex].actualWeight,
+                                        exercise.sets[setIndex].actualReps,
                                       );
+                                    }
+
+                                    // Collapse the card after marking set complete
+                                    if (exercise.isCompleted) {
+                                      (_cardKeys[exercise.id]?.currentState
+                                              as dynamic)
+                                          ?.setCollapse();
                                     }
                                   });
 
