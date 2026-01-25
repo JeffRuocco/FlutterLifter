@@ -849,6 +849,13 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     return completedSets / totalSets;
   }
 
+  /// Create a new quick workout session.
+  Future<void> _startQuickWorkout() async {
+    final notifier = ref.read(workoutNotifierProvider.notifier);
+    await notifier.startQuickWorkout();
+  }
+
+  /// Builds the main widget tree for the workout screen.
   @override
   Widget build(BuildContext context) {
     // Watch the workout state for reactive updates
@@ -905,9 +912,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                   ref.read(workoutNotifierProvider.notifier).loadNextWorkout();
                 },
               )
-            : EmptyState.noWorkouts(
-                onCreateWorkout: () => context.go(AppRoutes.programs),
-              ),
+            : EmptyState.noWorkouts(onCreateWorkout: _startQuickWorkout),
       );
     }
 
@@ -969,6 +974,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     }
   }
 
+  /// Builds the main workout screen UI.
   Widget _buildWorkoutScreen(WorkoutSession workoutSession) {
     final workoutNotifier = ref.read(workoutNotifierProvider.notifier);
     final progress = _calculateProgress(workoutSession);

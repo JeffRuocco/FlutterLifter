@@ -49,7 +49,7 @@
   - [x] Plan quick workouts for future dates
   - [x] Reorder exercises within a session
   - [x] Automatically collapse completed exercises within a session
-  - [ ] Add create quick workout button to workout page
+  - [x] Add create quick workout button to workout page
 - [ ] **Bugs**
   - [x] Planned quick workouts don't save unless they are started/completed
   - [x] Sets from quick workout sessions don't appear in exercise history/progress - was using workoutService instead of workoutNotifier
