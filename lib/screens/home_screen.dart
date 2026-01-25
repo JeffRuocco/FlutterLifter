@@ -319,18 +319,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// Create a new quick workout session and navigate to workout screen
   Future<void> _startQuickWorkout() async {
-    // Create an empty standalone session
-    final session = WorkoutSession.create(
-      programName: 'Quick Workout',
-      date: DateTime.now(),
-    );
     final notifier = ref.read(workoutNotifierProvider.notifier);
-
-    // Set session but do NOT start it.
-    notifier.setCurrentWorkout(session);
-
-    // Persist the newly created session so it's available in storage.
-    await notifier.saveWorkoutImmediate();
+    await notifier.startQuickWorkout();
 
     if (mounted) {
       context.go(AppRoutes.workout);

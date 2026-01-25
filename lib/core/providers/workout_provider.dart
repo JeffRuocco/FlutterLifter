@@ -180,6 +180,19 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     return const WorkoutState();
   }
 
+  /// Create a new quick workout session.
+  Future<void> startQuickWorkout() async {
+    // Create an empty standalone session
+    final session = WorkoutSession.create(
+      programName: 'Quick Workout',
+      date: DateTime.now(),
+    );
+    setCurrentWorkout(session);
+
+    // Persist the newly created session so it's available in storage.
+    await saveWorkoutImmediate();
+  }
+
   /// Load the next available workout session from the active program cycle
   ///
   /// This should be called at app startup or when returning to the home screen
