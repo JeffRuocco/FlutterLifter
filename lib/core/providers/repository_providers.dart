@@ -146,7 +146,11 @@ final exerciseRepositoryProvider = Provider<ExerciseRepository>((ref) {
 final exerciseHistoryRepositoryProvider = Provider<ExerciseHistoryRepository>((
   ref,
 ) {
-  return DevExerciseHistoryRepository();
+  if (AppConfig.useMockProgramData) {
+    return ExerciseHistoryRepositoryImpl.development();
+  } else {
+    return ExerciseHistoryRepositoryImpl.production();
+  }
 });
 
 // ============================================

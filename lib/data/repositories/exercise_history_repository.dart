@@ -59,13 +59,30 @@ class ExerciseLeaderboardEntry {
 }
 
 /// Development implementation with mock data for testing
-class DevExerciseHistoryRepository implements ExerciseHistoryRepository {
+class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
   // In-memory storage for development
   final Map<String, List<ExerciseSessionRecord>> _sessionsByExercise = {};
   final Map<String, double> _prByExercise = {};
 
-  DevExerciseHistoryRepository() {
-    _initializeMockData();
+  /// Private constructor
+  ///
+  /// [useMockData] indicates whether to populate with mock data.
+  ExerciseHistoryRepositoryImpl._(bool useMockData) {
+    if (useMockData) {
+      _initializeMockData();
+    }
+  }
+
+  /// Factory constructor for development instance.
+  ///
+  /// Populates with mock data.
+  factory ExerciseHistoryRepositoryImpl.development() {
+    return ExerciseHistoryRepositoryImpl._(true);
+  }
+
+  /// Factory constructor for production instance.
+  factory ExerciseHistoryRepositoryImpl.production() {
+    return ExerciseHistoryRepositoryImpl._(false);
   }
 
   void _initializeMockData() {
