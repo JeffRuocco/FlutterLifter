@@ -50,6 +50,7 @@
   - [x] Reorder exercises within a session
   - [x] Automatically collapse completed exercises within a session
   - [x] Add create quick workout button to workout page
+  - [ ] Update default exercises (remove old and add new)
 - [ ] **Bugs**
   - [x] Planned quick workouts don't save unless they are started/completed
   - [x] Sets from quick workout sessions don't appear in exercise history/progress - was using workoutService instead of workoutNotifier
@@ -58,6 +59,8 @@
   - [ ] Session exercise card does not stay collapsed after re-render (scroll off screen and back on, exercise expands) (fixed?)
   - [x] Can't expand/collapse completed exercises in session
   - [ ] Duplicate notes fields when creating vs. using exercise (notes when creating are a different note field than when using)
+  - [ ] Exercise history updates not persisting
+  - [ ] Delete exercise history if you delete session? (Not sure if this works or not, need to test)
 - [ ] **In-app suggestion submission.** Can be used to log TODOs/ideas during usage.
 - [ ] **Connect Firebase logging**
 - [ ] **Add program creation pages**
