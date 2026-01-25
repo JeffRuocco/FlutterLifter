@@ -3,6 +3,7 @@ import 'package:flutter_lifter/models/exercise/exercise_session_record.dart';
 import 'package:flutter_lifter/models/exercise/exercise_set_record.dart';
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/utils/utils.dart';
+import 'package:hive/hive.dart';
 
 /// Repository interface for exercise history data access.
 ///
@@ -63,14 +64,64 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
   // In-memory storage for development
   final Map<String, List<ExerciseSessionRecord>> _sessionsByExercise = {};
   final Map<String, double> _prByExercise = {};
+  static const _boxName = 'exercise_history';
+  final Box<dynamic>? _box;
 
   /// Private constructor
   ///
   /// [useMockData] indicates whether to populate with mock data.
-  ExerciseHistoryRepositoryImpl._(bool useMockData) {
-    if (useMockData) {
-      _initializeMockData();
+  ExerciseHistoryRepositoryImpl._(bool useMockData)
+    : _box = Hive.isBoxOpen(_boxName) ? Hive.box(_boxName) : null {
+    // If a Hive box is open, try to load persisted state (JSON maps).
+    if (_box != null) {
+      try {
+        final storedSessions =
+            _box.get('sessionsByExercise') as Map<dynamic, dynamic>?;
+        if (storedSessions != null) {
+          storedSessions.forEach((k, v) {
+            final key = k as String;
+            final list = (v as List).cast<Map<dynamic, dynamic>>();
+            _sessionsByExercise[key] = list
+                .map(
+                  (e) => ExerciseSessionRecord.fromJson(
+                    Map<String, dynamic>.from(e),
+                  ),
+                )
+                .toList();
+          });
+        }
+
+        final storedPRs = _box.get('prByExercise') as Map<dynamic, dynamic>?;
+        if (storedPRs != null) {
+          storedPRs.forEach((k, v) {
+            _prByExercise[k as String] = (v as num).toDouble();
+          });
+        }
+      } catch (_) {
+        // If persisted data is malformed, fall back to in-memory/mock initialization below.
+      }
     }
+
+    if (_sessionsByExercise.isEmpty && useMockData) {
+      _initializeMockData();
+      // Persist initial mock data if box is available
+      // _persist();
+    }
+  }
+
+  Future<void> _persist() async {
+    if (_box == null) return;
+
+    final sessionsJson = <String, List<Map<String, dynamic>>>{};
+    _sessionsByExercise.forEach((k, v) {
+      sessionsJson[k] = v.map((s) => s.toJson()).toList();
+    });
+
+    final prJson = <String, double>{};
+    _prByExercise.forEach((k, v) => prJson[k] = v);
+
+    await _box.put('sessionsByExercise', sessionsJson);
+    await _box.put('prByExercise', prJson);
   }
 
   /// Factory constructor for development instance.
@@ -550,8 +601,6 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
   Future<ExerciseSessionRecord> recordSession(
     ExerciseSessionRecord session,
   ) async {
-    // await Future<void>.delayed(const Duration(milliseconds: 100));
-
     // Add to storage
     if (!_sessionsByExercise.containsKey(session.exerciseId)) {
       _sessionsByExercise[session.exerciseId] = [];
@@ -566,6 +615,9 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
         _prByExercise[session.exerciseId] = sessionPR;
       }
     }
+
+    // Persist changes if Hive box is available
+    await _persist();
 
     return session;
   }

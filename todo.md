@@ -59,7 +59,7 @@
   - [ ] Session exercise card does not stay collapsed after re-render (scroll off screen and back on, exercise expands) (fixed?)
   - [x] Can't expand/collapse completed exercises in session
   - [ ] Duplicate notes fields when creating vs. using exercise (notes when creating are a different note field than when using)
-  - [ ] Exercise history updates not persisting
+  - [x] Exercise history updates not persisting
   - [ ] Delete exercise history if you delete session? (Not sure if this works or not, need to test)
 - [ ] **In-app suggestion submission.** Can be used to log TODOs/ideas during usage.
 - [ ] **Connect Firebase logging**
