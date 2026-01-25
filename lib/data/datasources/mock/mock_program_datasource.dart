@@ -41,7 +41,7 @@ class MockProgramDataSource implements ProgramDataSource {
   @override
   Future<List<Program>> getPrograms() async {
     // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
+    // await Future.delayed(const Duration(milliseconds: 500));
     return List.from(_programs)..sort((a, b) {
       final aDate = a.lastCompletedWorkoutSession?.date;
       final bDate = b.lastCompletedWorkoutSession?.date;
@@ -58,7 +58,7 @@ class MockProgramDataSource implements ProgramDataSource {
 
   @override
   Future<Program?> getProgramById(String id) async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    // await Future.delayed(const Duration(milliseconds: 200));
     try {
       return _programs.firstWhere((program) => program.id == id);
     } catch (e) {
@@ -68,13 +68,13 @@ class MockProgramDataSource implements ProgramDataSource {
 
   @override
   Future<void> createProgram(Program program) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    // await Future.delayed(const Duration(milliseconds: 300));
     _programs.add(program);
   }
 
   @override
   Future<void> updateProgram(Program program) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    // await Future.delayed(const Duration(milliseconds: 300));
     final index = _programs.indexWhere((p) => p.id == program.id);
     if (index != -1) {
       _programs[index] = program;
@@ -83,13 +83,13 @@ class MockProgramDataSource implements ProgramDataSource {
 
   @override
   Future<void> deleteProgram(String id) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    // await Future.delayed(const Duration(milliseconds: 300));
     _programs.removeWhere((program) => program.id == id);
   }
 
   @override
   Future<List<Program>> searchPrograms(String query) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    // await Future.delayed(const Duration(milliseconds: 300));
     final lowercaseQuery = query.toLowerCase();
     return _programs.where((program) {
       return program.name.toLowerCase().contains(lowercaseQuery) ||
@@ -103,7 +103,7 @@ class MockProgramDataSource implements ProgramDataSource {
   Future<List<Program>> getProgramsByDifficulty(
     ProgramDifficulty difficulty,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    // await Future.delayed(const Duration(milliseconds: 200));
     return _programs
         .where((program) => program.difficulty == difficulty)
         .toList();
@@ -111,19 +111,19 @@ class MockProgramDataSource implements ProgramDataSource {
 
   /// Get programs by type
   Future<List<Program>> getProgramsByType(ProgramType type) async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    // await Future.delayed(const Duration(milliseconds: 200));
     return _programs.where((program) => program.type == type).toList();
   }
 
   /// Get active programs only
   Future<List<Program>> getActivePrograms() async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    // await Future.delayed(const Duration(milliseconds: 200));
     return _programs.where((program) => program.activeCycle != null).toList();
   }
 
   /// Get programs with periodicity
   Future<List<Program>> getProgramsWithScheduling() async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    // await Future.delayed(const Duration(milliseconds: 200));
     return _programs
         .where((program) => program.hasSchedulingPeriodicity)
         .toList();

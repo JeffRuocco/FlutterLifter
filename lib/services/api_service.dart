@@ -73,9 +73,9 @@ class MockApiService implements ApiService {
 
   @override
   Future<Map<String, dynamic>> get(String endpoint) async {
-    await Future.delayed(
-      const Duration(milliseconds: 500),
-    ); // Simulate network delay
+    // await Future.delayed(
+    //   const Duration(milliseconds: 500),
+    // ); // Simulate network delay
     return {'message': 'Mock GET response', 'endpoint': endpoint};
   }
 
@@ -84,7 +84,7 @@ class MockApiService implements ApiService {
     String endpoint,
     Map<String, dynamic> data,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 800));
+    // await Future.delayed(const Duration(milliseconds: 800));
     return {
       'message': 'Mock POST response',
       'endpoint': endpoint,
@@ -97,13 +97,13 @@ class MockApiService implements ApiService {
     String endpoint,
     Map<String, dynamic> data,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    // await Future.delayed(const Duration(milliseconds: 600));
     return {'message': 'Mock PUT response', 'endpoint': endpoint, 'data': data};
   }
 
   @override
   Future<void> delete(String endpoint) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    // await Future.delayed(const Duration(milliseconds: 400));
     // No return for delete
   }
 }
