@@ -498,7 +498,7 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
 
   @override
   Future<ExerciseHistory> getExerciseHistory(Exercise exercise) async {
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    // await Future<void>.delayed(const Duration(milliseconds: 100));
 
     final sessions = _sessionsByExercise[exercise.id] ?? [];
 
@@ -510,7 +510,7 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
     String exerciseId, {
     int limit = 10,
   }) async {
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // await Future<void>.delayed(const Duration(milliseconds: 50));
 
     final sessions = _sessionsByExercise[exerciseId] ?? [];
     final sorted = List<ExerciseSessionRecord>.from(sessions)
@@ -525,7 +525,7 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
     DateTime start,
     DateTime end,
   ) async {
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // await Future<void>.delayed(const Duration(milliseconds: 50));
 
     final sessions = _sessionsByExercise[exerciseId] ?? [];
     return sessions.where((s) {
@@ -535,7 +535,7 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
 
   @override
   Future<double?> getAllTimePR(String exerciseId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 20));
+    // await Future<void>.delayed(const Duration(milliseconds: 20));
     return _prByExercise[exerciseId];
   }
 
@@ -550,7 +550,7 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
   Future<ExerciseSessionRecord> recordSession(
     ExerciseSessionRecord session,
   ) async {
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    // await Future<void>.delayed(const Duration(milliseconds: 100));
 
     // Add to storage
     if (!_sessionsByExercise.containsKey(session.exerciseId)) {
@@ -572,13 +572,13 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
 
   @override
   Future<List<String>> getExerciseIdsWithHistory() async {
-    await Future<void>.delayed(const Duration(milliseconds: 20));
+    // await Future<void>.delayed(const Duration(milliseconds: 20));
     return _sessionsByExercise.keys.toList();
   }
 
   @override
   Future<List<ExerciseLeaderboardEntry>> getExerciseLeaderboard() async {
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    // await Future<void>.delayed(const Duration(milliseconds: 100));
 
     final entries = <ExerciseLeaderboardEntry>[];
 
