@@ -355,13 +355,13 @@ class _WorkoutHistoryScreenState extends ConsumerState<WorkoutHistoryScreen> {
     );
   }
 
+  /// Repeat a completed workout session.
   Future<void> _repeatSession(WorkoutSession session) async {
     try {
       final notifier = ref.read(workoutNotifierProvider.notifier);
       final newSession = session.cloneAsNewSession(newDate: DateTime.now());
-
-      // Start the new session as a standalone workout
-      await notifier.startWorkout(newSession);
+      notifier.setCurrentWorkout(newSession);
+      await notifier.saveWorkoutImmediate();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
