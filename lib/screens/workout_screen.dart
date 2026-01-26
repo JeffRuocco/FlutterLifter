@@ -849,6 +849,48 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     return completedSets / totalSets;
   }
 
+  /// Handle updates to a specific set within an exercise.
+  Future<void> _handleSetUpdate(
+    WorkoutSession workoutSession,
+    int exerciseIndex,
+    int setIndex,
+    double? weight,
+    int? reps,
+    String? notes,
+    bool? markAsCompleted,
+  ) async {
+    final set = workoutSession.exercises[exerciseIndex].sets[setIndex];
+
+    if (workoutSession.isInProgress) {
+      // Workout started -> update actuals
+      set.updateSetData(
+        weight: weight,
+        reps: reps,
+        notes: notes,
+        markAsCompleted: markAsCompleted,
+      );
+    } else {
+      // Planning mode -> update targets
+      if (weight != null) {
+        set.targetWeight = weight;
+      }
+      if (reps != null) {
+        set.targetReps = reps;
+      }
+      if (notes != null) set.notes = notes;
+
+      // If user explicitly marked as completed while planning,
+      // convert targets to actuals and mark completed.
+      if (markAsCompleted == true) {
+        set.actualWeight ??= set.targetWeight;
+        set.actualReps ??= set.targetReps;
+        set.markCompleted();
+      }
+    }
+
+    await _saveWorkout();
+  }
+
   /// Create a new quick workout session.
   Future<void> _startQuickWorkout() async {
     final notifier = ref.read(workoutNotifierProvider.notifier);
@@ -1355,38 +1397,15 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                                       notes,
                                       markAsCompleted,
                                     ) async {
-                                      final set = workoutSession
-                                          .exercises[index]
-                                          .sets[setIndex];
-
-                                      if (workoutSession.isInProgress) {
-                                        // Workout started -> update actuals
-                                        set.updateSetData(
-                                          weight: weight,
-                                          reps: reps,
-                                          notes: notes,
-                                          markAsCompleted: markAsCompleted,
-                                        );
-                                      } else {
-                                        // Planning mode -> update targets
-                                        if (weight != null) {
-                                          set.targetWeight = weight;
-                                        }
-                                        if (reps != null) {
-                                          set.targetReps = reps;
-                                        }
-                                        if (notes != null) set.notes = notes;
-
-                                        // If user explicitly marked as completed while planning,
-                                        // convert targets to actuals and mark completed.
-                                        if (markAsCompleted == true) {
-                                          set.actualWeight ??= set.targetWeight;
-                                          set.actualReps ??= set.targetReps;
-                                          set.markCompleted();
-                                        }
-                                      }
-
-                                      await _saveWorkout();
+                                      await _handleSetUpdate(
+                                        workoutSession,
+                                        index,
+                                        setIndex,
+                                        weight,
+                                        reps,
+                                        notes,
+                                        markAsCompleted,
+                                      );
                                     },
                                 onAddSet: () async {
                                   workoutSession.exercises[index].addSet();
