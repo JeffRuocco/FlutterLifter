@@ -108,14 +108,57 @@ class HiveStorageService implements StorageService {
   static Future<void> initializeBoxes() async {
     if (_isInitialized) return;
 
-    _programsBox = await Hive.openBox<String>(programsBoxName);
-    _customExercisesBox = await Hive.openBox<String>(customExercisesBoxName);
-    _userPreferencesBox = await Hive.openBox<String>(userPreferencesBoxName);
-    _exerciseHistoryBox = await Hive.openBox<String>(exerciseHistoryBoxName);
-    _syncMetadataBox = await Hive.openBox<String>(syncMetadataBoxName);
-    _generalBox = await Hive.openBox(generalBoxName);
-    _photoStorageBox = await Hive.openBox<String>(photoStorageBoxName);
-    _workoutSessionsBox = await Hive.openBox<String>(workoutSessionsBoxName);
+    // Open boxes if not already opened. Use Hive.isBoxOpen to avoid
+    // attempting to re-open boxes (which can throw if opened with a
+    // different generic type elsewhere). If a box is already open,
+    // obtain a reference via `Hive.box`.
+    if (Hive.isBoxOpen(programsBoxName)) {
+      _programsBox = Hive.box<String>(programsBoxName);
+    } else {
+      _programsBox = await Hive.openBox<String>(programsBoxName);
+    }
+
+    if (Hive.isBoxOpen(customExercisesBoxName)) {
+      _customExercisesBox = Hive.box<String>(customExercisesBoxName);
+    } else {
+      _customExercisesBox = await Hive.openBox<String>(customExercisesBoxName);
+    }
+
+    if (Hive.isBoxOpen(userPreferencesBoxName)) {
+      _userPreferencesBox = Hive.box<String>(userPreferencesBoxName);
+    } else {
+      _userPreferencesBox = await Hive.openBox<String>(userPreferencesBoxName);
+    }
+
+    if (Hive.isBoxOpen(exerciseHistoryBoxName)) {
+      _exerciseHistoryBox = Hive.box<String>(exerciseHistoryBoxName);
+    } else {
+      _exerciseHistoryBox = await Hive.openBox<String>(exerciseHistoryBoxName);
+    }
+
+    if (Hive.isBoxOpen(syncMetadataBoxName)) {
+      _syncMetadataBox = Hive.box<String>(syncMetadataBoxName);
+    } else {
+      _syncMetadataBox = await Hive.openBox<String>(syncMetadataBoxName);
+    }
+
+    if (Hive.isBoxOpen(generalBoxName)) {
+      _generalBox = Hive.box(generalBoxName);
+    } else {
+      _generalBox = await Hive.openBox(generalBoxName);
+    }
+
+    if (Hive.isBoxOpen(photoStorageBoxName)) {
+      _photoStorageBox = Hive.box<String>(photoStorageBoxName);
+    } else {
+      _photoStorageBox = await Hive.openBox<String>(photoStorageBoxName);
+    }
+
+    if (Hive.isBoxOpen(workoutSessionsBoxName)) {
+      _workoutSessionsBox = Hive.box<String>(workoutSessionsBoxName);
+    } else {
+      _workoutSessionsBox = await Hive.openBox<String>(workoutSessionsBoxName);
+    }
 
     _isInitialized = true;
   }

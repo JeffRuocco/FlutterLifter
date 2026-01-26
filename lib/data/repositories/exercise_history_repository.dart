@@ -3,6 +3,7 @@ import 'package:flutter_lifter/models/exercise/exercise_session_record.dart';
 import 'package:flutter_lifter/models/exercise/exercise_set_record.dart';
 import 'package:flutter_lifter/models/exercise_models.dart';
 import 'package:flutter_lifter/utils/utils.dart';
+import 'dart:convert';
 import 'package:hive/hive.dart';
 
 /// Repository interface for exercise history data access.
@@ -65,19 +66,21 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
   final Map<String, List<ExerciseSessionRecord>> _sessionsByExercise = {};
   final Map<String, double> _prByExercise = {};
   static const _boxName = 'exercise_history';
-  final Box<dynamic>? _box;
+  final Box<String>? _box;
 
   /// Private constructor
   ///
   /// [useMockData] indicates whether to populate with mock data.
   ExerciseHistoryRepositoryImpl._(bool useMockData)
-    : _box = Hive.isBoxOpen(_boxName) ? Hive.box(_boxName) : null {
+    : _box = Hive.isBoxOpen(_boxName) ? Hive.box<String>(_boxName) : null {
     // If a Hive box is open, try to load persisted state (JSON maps).
     if (_box != null) {
       try {
-        final storedSessions =
-            _box.get('sessionsByExercise') as Map<dynamic, dynamic>?;
-        if (storedSessions != null) {
+        // Stored data is encoded as JSON strings in the Box<String>.
+        final rawSessions = _box.get('sessionsByExercise');
+        if (rawSessions != null && rawSessions.isNotEmpty) {
+          final storedSessions =
+              jsonDecode(rawSessions) as Map<dynamic, dynamic>;
           storedSessions.forEach((k, v) {
             final key = k as String;
             final list = (v as List).cast<Map<dynamic, dynamic>>();
@@ -91,8 +94,9 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
           });
         }
 
-        final storedPRs = _box.get('prByExercise') as Map<dynamic, dynamic>?;
-        if (storedPRs != null) {
+        final rawPRs = _box.get('prByExercise');
+        if (rawPRs != null && rawPRs.isNotEmpty) {
+          final storedPRs = jsonDecode(rawPRs) as Map<dynamic, dynamic>;
           storedPRs.forEach((k, v) {
             _prByExercise[k as String] = (v as num).toDouble();
           });
@@ -120,8 +124,9 @@ class ExerciseHistoryRepositoryImpl implements ExerciseHistoryRepository {
     final prJson = <String, double>{};
     _prByExercise.forEach((k, v) => prJson[k] = v);
 
-    await _box.put('sessionsByExercise', sessionsJson);
-    await _box.put('prByExercise', prJson);
+    // Store as JSON strings to match Box<String>.
+    await _box.put('sessionsByExercise', jsonEncode(sessionsJson));
+    await _box.put('prByExercise', jsonEncode(prJson));
   }
 
   /// Factory constructor for development instance.

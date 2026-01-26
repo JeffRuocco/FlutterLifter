@@ -167,6 +167,10 @@ class WorkoutService {
   Future<void> finishWorkout() async {
     if (_currentWorkout != null) {
       _currentWorkout!.endTime = DateTime.now();
+      // Ensure the final state (with endTime) is always persisted.
+      // Resetting the last saved hash forces _saveWorkout to write the
+      // completed session even if the service thinks nothing changed.
+      _lastSavedHash = null;
       LoggingService.logWorkoutComplete(
         _currentWorkout!.programName ?? 'Unknown Program',
         _currentWorkout!.duration ?? Duration.zero,
