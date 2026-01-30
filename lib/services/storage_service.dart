@@ -727,6 +727,155 @@ class HiveStorageService implements StorageService {
     }
   }
 
+  /// Export a single box's contents as a mapping of key -> decoded value.
+  /// For string-backed boxes that store JSON strings, values are JSON-decoded
+  /// where possible so exported files contain plain objects.
+  static Map<String, dynamic> exportBox(String boxName) {
+    _ensureInitialized();
+    final result = <String, dynamic>{};
+    switch (boxName) {
+      case programsBoxName:
+        for (final key in _programsBox.keys) {
+          final v = _programsBox.get(key);
+          if (v != null) {
+            try {
+              result[key as String] = jsonDecode(v);
+            } catch (_) {
+              result[key as String] = v;
+            }
+          }
+        }
+        return result;
+      case customExercisesBoxName:
+        for (final key in _customExercisesBox.keys) {
+          final v = _customExercisesBox.get(key);
+          if (v != null) {
+            try {
+              result[key as String] = jsonDecode(v);
+            } catch (_) {
+              result[key as String] = v;
+            }
+          }
+        }
+        return result;
+      case userPreferencesBoxName:
+        for (final key in _userPreferencesBox.keys) {
+          final v = _userPreferencesBox.get(key);
+          if (v != null) {
+            try {
+              result[key as String] = jsonDecode(v);
+            } catch (_) {
+              result[key as String] = v;
+            }
+          }
+        }
+        return result;
+      case exerciseHistoryBoxName:
+        for (final key in _exerciseHistoryBox.keys) {
+          final v = _exerciseHistoryBox.get(key);
+          if (v != null) {
+            try {
+              result[key as String] = jsonDecode(v);
+            } catch (_) {
+              result[key as String] = v;
+            }
+          }
+        }
+        return result;
+      case syncMetadataBoxName:
+        for (final key in _syncMetadataBox.keys) {
+          final v = _syncMetadataBox.get(key);
+          if (v != null) {
+            try {
+              result[key as String] = jsonDecode(v);
+            } catch (_) {
+              result[key as String] = v;
+            }
+          }
+        }
+        return result;
+      case photoStorageBoxName:
+        for (final key in _photoStorageBox.keys) {
+          final v = _photoStorageBox.get(key);
+          if (v != null) result[key as String] = v;
+        }
+        return result;
+      case workoutSessionsBoxName:
+        for (final key in _workoutSessionsBox.keys) {
+          final v = _workoutSessionsBox.get(key);
+          if (v != null) {
+            try {
+              result[key as String] = jsonDecode(v);
+            } catch (_) {
+              result[key as String] = v;
+            }
+          }
+        }
+        return result;
+      default:
+        for (final key in _generalBox.keys) {
+          final v = _generalBox.get(key);
+          result[key as String] = v;
+        }
+        return result;
+    }
+  }
+
+  /// Put a value into a named box. Values that are maps/lists become JSON strings
+  /// when placed into string-backed boxes to preserve existing typing.
+  static Future<void> putBoxValue(
+    String boxName,
+    String key,
+    dynamic value,
+  ) async {
+    _ensureInitialized();
+    switch (boxName) {
+      case programsBoxName:
+        await _programsBox.put(
+          key,
+          value is String ? value : jsonEncode(value),
+        );
+        return;
+      case customExercisesBoxName:
+        await _customExercisesBox.put(
+          key.toLowerCase(),
+          value is String ? value : jsonEncode(value),
+        );
+        return;
+      case userPreferencesBoxName:
+        await _userPreferencesBox.put(
+          key.toLowerCase(),
+          value is String ? value : jsonEncode(value),
+        );
+        return;
+      case exerciseHistoryBoxName:
+        await _exerciseHistoryBox.put(
+          key,
+          value is String ? value : jsonEncode(value),
+        );
+        return;
+      case syncMetadataBoxName:
+        await _syncMetadataBox.put(
+          key,
+          value is String ? value : jsonEncode(value),
+        );
+        return;
+      case photoStorageBoxName:
+        // photo storage expects base64 strings
+        await _photoStorageBox.put(key, value as String);
+        return;
+      case workoutSessionsBoxName:
+        await _workoutSessionsBox.put(
+          key,
+          value is String ? value : jsonEncode(value),
+        );
+        return;
+      default:
+        await _generalBox.put(key, value);
+        return;
+    }
+  }
+
   /// Get the count of items in a box
   static int boxLength(String boxName) {
     _ensureInitialized();
