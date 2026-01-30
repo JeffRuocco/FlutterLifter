@@ -15,6 +15,15 @@ import '../core/theme/theme_provider.dart';
 import '../core/theme/theme_extensions.dart';
 import '../widgets/common/app_widgets.dart';
 import '../services/logging_service.dart';
+import '../services/backup_service.dart';
+import 'dart:io';
+import 'package:flutter/services.dart';
+// dart:typed_data not needed after switching to file_selector
+
+import 'package:file_selector/file_selector.dart';
+import '../utils/web_file_utils.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:path_provider/path_provider.dart';
 import '../widgets/common/theme_preview_card.dart';
 import '../widgets/common/theme_selection_sheet.dart';
 
@@ -214,27 +223,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ]),
 
                   VSpace.lg(),
+                  VSpace.lg(),
 
-                  // Privacy & Security Section
-                  _buildSectionTitle(context, 'Privacy & Security'),
+                  // Import / Export Section
+                  _buildSectionTitle(context, 'Import & Export'),
                   _buildSettingsCard(context, [
                     _buildSettingsTile(
                       context,
-                      icon: HugeIcons.strokeRoundedSecurityCheck,
-                      title: 'Privacy Policy',
-                      subtitle: 'View our privacy policy',
-                      onTap: () {
-                        showInfoMessage(context, 'Privacy policy coming soon');
+                      icon: HugeIcons.strokeRoundedFileExport,
+                      title: 'Export Data',
+                      subtitle: 'Export your local data to a ZIP file',
+                      onTap: () async {
+                        await _handleExport();
                       },
                     ),
                     Divider(height: 1, color: context.outlineColor),
                     _buildSettingsTile(
                       context,
-                      icon: HugeIcons.strokeRoundedFileExport,
-                      title: 'Data Export',
-                      subtitle: 'Export your workout data',
-                      onTap: () {
-                        showInfoMessage(context, 'Data export coming soon');
+                      icon: HugeIcons.strokeRoundedFolderOpen,
+                      title: 'Import Data',
+                      subtitle: 'Import a previously exported ZIP backup',
+                      onTap: () async {
+                        await _handleImport();
                       },
                     ),
                   ]),
@@ -514,5 +524,91 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _resetToDefaultTheme(WidgetRef ref) async {
     await ref.read(customThemeNotifierProvider.notifier).resetToDefault();
+  }
+
+  Future<void> _handleExport() async {
+    try {
+      final bytes = await BackupService.exportBackup();
+      final suggestedName =
+          'flutterlifter_backup_${DateTime.now().toIso8601String()}.zip'
+              .replaceAll(':', '-');
+
+      String? savePath;
+      try {
+        // Ask user to pick a directory and save file there. Some versions of
+        // `file_selector` may not provide a direct save dialog, so we pick a
+        // directory and write the suggested filename into it.
+        final dirPath = await getDirectoryPath();
+        if (dirPath != null && dirPath.isNotEmpty) {
+          savePath = '$dirPath/$suggestedName';
+        } else {
+          savePath = null;
+        }
+      } on MissingPluginException {
+        // Desktop or test environment may not have a registered file selector;
+        // fall back to saving in the application documents directory or temp.
+        try {
+          final dir = await getApplicationDocumentsDirectory();
+          savePath = '${dir.path}/$suggestedName';
+        } on MissingPluginException {
+          final dir = Directory.systemTemp.createTempSync(
+            'flutterlifter_export_',
+          );
+          savePath = '${dir.path}/$suggestedName';
+        }
+      }
+
+      if (kIsWeb) {
+        // If a path was somehow provided on web, still trigger browser download.
+        await downloadFileInBrowser(bytes, suggestedName);
+        if (mounted) showSuccessMessage(context, 'Download started');
+        return;
+      } else if (savePath == null || savePath.isEmpty) {
+        if (mounted) showInfoMessage(context, 'Export cancelled');
+        return;
+      }
+
+      final file = File(savePath);
+      await file.writeAsBytes(bytes);
+      LoggingService.logUserAction('Exported backup to ${file.path}');
+      if (mounted) showSuccessMessage(context, 'Export saved to ${file.path}');
+    } catch (e, st) {
+      LoggingService.logDataError('ui', 'export', e, stackTrace: st);
+      if (mounted) showErrorMessage(context, 'Failed to export data');
+    }
+  }
+
+  Future<void> _handleImport() async {
+    try {
+      final typeGroup = XTypeGroup(label: 'zip', extensions: ['zip']);
+      final XFile? picked = await openFile(acceptedTypeGroups: [typeGroup]);
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+
+      final result = await BackupService.importBackup(bytes);
+      if (result.containsKey('error')) {
+        if (mounted) {
+          showErrorMessage(context, 'Import failed: ${result['error']}');
+        }
+        return;
+      }
+
+      final errors = (result['errors'] as List<dynamic>?) ?? [];
+      if (errors.isEmpty) {
+        if (mounted) {
+          showSuccessMessage(context, 'Import completed successfully');
+        }
+      } else {
+        if (mounted) {
+          showWarningMessage(
+            context,
+            'Import completed with ${errors.length} errors',
+          );
+        }
+      }
+    } catch (e, st) {
+      LoggingService.logDataError('ui', 'import', e, stackTrace: st);
+      if (mounted) showErrorMessage(context, 'Failed to import backup');
+    }
   }
 }
