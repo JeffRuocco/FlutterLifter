@@ -171,8 +171,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
       if (mounted) {
         setState(() {
           _preferences = prefs;
-          _userNotesController.text =
-              prefs?.userNotes ?? widget.exercise.notes ?? '';
+          _userNotesController.text = prefs?.userNotes ?? '';
           _isLoadingPreferences = false;
         });
       }
