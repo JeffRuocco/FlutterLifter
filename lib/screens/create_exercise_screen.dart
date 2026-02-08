@@ -114,6 +114,13 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
 
       _populateFormFromExercise(exercise);
 
+      // Load user preferences to populate notes from userNotes if available
+      // (the unified notes field may have been edited from the detail view)
+      final prefs = await repository.getPreferenceForExercise(exercise.id);
+      if (prefs?.userNotes != null && prefs!.userNotes!.isNotEmpty) {
+        _notesController.text = prefs.userNotes!;
+      }
+
       setState(() {
         _isLoading = false;
       });
@@ -186,16 +193,26 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
 
       if (widget.isEditMode) {
         await repository.updateCustomExercise(exercise);
-        if (mounted) {
-          showSuccessMessage(context, 'Exercise updated successfully!');
-          context.pop();
-        }
       } else {
         await repository.createCustomExercise(exercise);
-        if (mounted) {
-          showSuccessMessage(context, 'Exercise created successfully!');
-          context.pop();
-        }
+      }
+
+      // Sync notes to user preferences so they appear in the unified
+      // "Notes" section when viewing the exercise detail.
+      final notesText = _notesController.text.trim();
+      await repository.updateExerciseUserNotes(
+        exercise.id,
+        notesText.isEmpty ? null : notesText,
+      );
+
+      if (mounted) {
+        showSuccessMessage(
+          context,
+          widget.isEditMode
+              ? 'Exercise updated successfully!'
+              : 'Exercise created successfully!',
+        );
+        context.pop();
       }
     } catch (e) {
       if (mounted) {

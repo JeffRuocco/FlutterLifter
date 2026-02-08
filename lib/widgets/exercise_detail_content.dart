@@ -171,7 +171,8 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
       if (mounted) {
         setState(() {
           _preferences = prefs;
-          _userNotesController.text = prefs?.userNotes ?? '';
+          _userNotesController.text =
+              prefs?.userNotes ?? widget.exercise.notes ?? '';
           _isLoadingPreferences = false;
         });
       }
@@ -384,14 +385,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
         // Instructions Section
         _buildInstructionsSection(),
 
-        // Notes Section (quick tips from exercise)
-        if (widget.exercise.notes != null &&
-            widget.exercise.notes!.isNotEmpty) ...[
-          const VSpace.xl(),
-          _buildNotesSection(),
-        ],
-
-        // User Notes Section (always shown for editing)
+        // Notes Section (always shown for editing)
         const VSpace.xl(),
         _buildUserNotesSection(),
 
@@ -988,7 +982,11 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
     );
   }
 
-  Widget _buildNotesSection() {
+  Widget _buildUserNotesSection() {
+    final hasNotes =
+        (_preferences?.userNotes?.isNotEmpty ?? false) ||
+        (widget.exercise.notes?.isNotEmpty ?? false);
+
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1001,50 +999,9 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
                 size: AppDimensions.iconMedium,
               ),
               const HSpace.sm(),
-              Text(
-                'Exercise Tips',
-                style: AppTextStyles.titleSmall.copyWith(
-                  color: context.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const VSpace.md(),
-          MarkdownBody(
-            data: widget.exercise.notes!,
-            selectable: true,
-            styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
-                .copyWith(
-                  p: AppTextStyles.bodyMedium.copyWith(
-                    color: context.textSecondary,
-                    height: 1.6,
-                  ),
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUserNotesSection() {
-    final hasNotes = _preferences?.userNotes?.isNotEmpty ?? false;
-
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedEdit01,
-                color: context.warningColor,
-                size: AppDimensions.iconMedium,
-              ),
-              const HSpace.sm(),
               Expanded(
                 child: Text(
-                  'My Notes',
+                  'Notes',
                   style: AppTextStyles.titleSmall.copyWith(
                     color: context.textPrimary,
                     fontWeight: FontWeight.w600,
@@ -1104,7 +1061,8 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
             if (_isEditingNotes) ...[
               TextButton(
                 onPressed: () {
-                  _userNotesController.text = _preferences?.userNotes ?? '';
+                  _userNotesController.text =
+                      _preferences?.userNotes ?? widget.exercise.notes ?? '';
                   setState(() => _isEditingNotes = false);
                   _notesFocusNode.unfocus();
                 },
@@ -1142,7 +1100,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
         ),
         child: MarkdownBody(
-          data: _preferences?.userNotes ?? '',
+          data: _preferences?.userNotes ?? widget.exercise.notes ?? '',
           selectable: true,
           styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
             p: AppTextStyles.bodyMedium.copyWith(

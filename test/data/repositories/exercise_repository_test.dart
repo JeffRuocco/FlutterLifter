@@ -588,7 +588,7 @@ void main() {
           preferredReps: 5,
           preferredWeight: 225.0,
           preferredRestTimeSeconds: 180,
-          notes: 'Focus on form',
+          userNotes: 'Focus on form',
         );
       });
 
@@ -662,7 +662,6 @@ void main() {
             preferredSets: 5,
             preferredReps: 3,
             preferredWeight: 315.0,
-            notes: 'Heavy day',
           ),
         );
       });
@@ -675,7 +674,6 @@ void main() {
         expect(bench.defaultSets, equals(5));
         expect(bench.defaultReps, equals(3));
         expect(bench.defaultWeight, equals(315.0));
-        expect(bench.notes, equals('Heavy day'));
       });
 
       test(

@@ -5,7 +5,7 @@ import 'package:flutter_lifter/utils/utils.dart';
 /// Used to customize default exercises without modifying the immutable originals.
 ///
 /// Supports user notes and photos with cloud sync preparation:
-/// - [userNotes]: Rich personal notes (separate from quick tips in [notes])
+/// - [userNotes]: Rich personal notes
 /// - [localPhotoPaths]: Paths to locally stored photos
 /// - [cloudPhotoUrls]: URLs of photos synced to cloud storage
 /// - [pendingPhotoUploads]: Local paths awaiting cloud upload
@@ -26,9 +26,6 @@ class UserExercisePreferences {
 
   /// User's preferred rest time in seconds (overrides exercise.defaultRestTimeSeconds)
   final int? preferredRestTimeSeconds;
-
-  /// User's personal notes for this exercise (quick tips)
-  final String? notes;
 
   /// User's detailed personal notes for this exercise (form cues, tips, etc.)
   final String? userNotes;
@@ -56,7 +53,6 @@ class UserExercisePreferences {
     this.preferredReps,
     this.preferredWeight,
     this.preferredRestTimeSeconds,
-    this.notes,
     this.userNotes,
     List<String>? localPhotoPaths,
     List<String>? cloudPhotoUrls,
@@ -74,7 +70,6 @@ class UserExercisePreferences {
     int? preferredReps,
     double? preferredWeight,
     int? preferredRestTimeSeconds,
-    String? notes,
     String? userNotes,
     List<String>? localPhotoPaths,
     List<String>? cloudPhotoUrls,
@@ -88,7 +83,6 @@ class UserExercisePreferences {
       preferredReps: preferredReps,
       preferredWeight: preferredWeight,
       preferredRestTimeSeconds: preferredRestTimeSeconds,
-      notes: notes,
       userNotes: userNotes,
       localPhotoPaths: localPhotoPaths,
       cloudPhotoUrls: cloudPhotoUrls,
@@ -104,7 +98,6 @@ class UserExercisePreferences {
       preferredReps != null ||
       preferredWeight != null ||
       preferredRestTimeSeconds != null ||
-      notes != null ||
       userNotes != null ||
       localPhotoPaths.isNotEmpty ||
       cloudPhotoUrls.isNotEmpty;
@@ -132,7 +125,6 @@ class UserExercisePreferences {
       defaultWeight: preferredWeight ?? exercise.defaultWeight,
       defaultRestTimeSeconds:
           preferredRestTimeSeconds ?? exercise.defaultRestTimeSeconds,
-      notes: notes ?? exercise.notes,
     );
   }
 
@@ -150,7 +142,6 @@ class UserExercisePreferences {
     int? preferredReps,
     double? preferredWeight,
     int? preferredRestTimeSeconds,
-    String? notes,
     String? userNotes,
     List<String>? localPhotoPaths,
     List<String>? cloudPhotoUrls,
@@ -166,7 +157,6 @@ class UserExercisePreferences {
       preferredWeight: preferredWeight ?? this.preferredWeight,
       preferredRestTimeSeconds:
           preferredRestTimeSeconds ?? this.preferredRestTimeSeconds,
-      notes: notes ?? this.notes,
       userNotes: userNotes ?? this.userNotes,
       localPhotoPaths: localPhotoPaths ?? this.localPhotoPaths,
       cloudPhotoUrls: cloudPhotoUrls ?? this.cloudPhotoUrls,
@@ -218,7 +208,6 @@ class UserExercisePreferences {
       preferredReps: json['preferredReps'],
       preferredWeight: json['preferredWeight']?.toDouble(),
       preferredRestTimeSeconds: json['preferredRestTimeSeconds'],
-      notes: json['notes'],
       userNotes: json['userNotes'],
       localPhotoPaths:
           (json['localPhotoPaths'] as List<dynamic>?)
@@ -253,7 +242,6 @@ class UserExercisePreferences {
       'preferredReps': preferredReps,
       'preferredWeight': preferredWeight,
       'preferredRestTimeSeconds': preferredRestTimeSeconds,
-      'notes': notes,
       'userNotes': userNotes,
       'localPhotoPaths': localPhotoPaths,
       'cloudPhotoUrls': cloudPhotoUrls,
