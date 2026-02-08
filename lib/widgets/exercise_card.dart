@@ -108,11 +108,19 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
   /// Load user notes from preferences
   Future<void> _loadUserNotes() async {
     final repo = ref.read(exerciseRepositoryProvider);
-    var notes = (await repo.getPreferenceForExercise(
-      widget.exercise.exercise.id,
-    ))?.userNotes;
-    if (mounted && notes != null) {
-      setState(() => _userNotes = notes);
+    try {
+      final preference = await repo.getPreferenceForExercise(
+        widget.exercise.exercise.id,
+      );
+      if (!mounted) return;
+      setState(() {
+        _userNotes = preference?.userNotes;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _userNotes = null;
+      });
     }
   }
 
