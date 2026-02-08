@@ -63,6 +63,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
   late Animation<double> _expandAnimation;
   ExerciseSessionRecord? _lastSession;
   double? _allTimePR;
+  String? _userNotes;
 
   @override
   void initState() {
@@ -80,6 +81,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
     _expandController.value = _isExpanded ? 1.0 : 0.0;
 
     _loadExerciseHistory();
+    _loadUserNotes();
   }
 
   // Return whether the card is currently expanded.
@@ -101,6 +103,25 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
       _isExpanded = false;
       _expandController.reverse();
     });
+  }
+
+  /// Load user notes from preferences
+  Future<void> _loadUserNotes() async {
+    final repo = ref.read(exerciseRepositoryProvider);
+    try {
+      final preference = await repo.getPreferenceForExercise(
+        widget.exercise.exercise.id,
+      );
+      if (!mounted) return;
+      setState(() {
+        _userNotes = preference?.userNotes;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _userNotes = null;
+      });
+    }
   }
 
   /// Load exercise history data (last session and PR)
@@ -557,8 +578,9 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Exercise Notes (if any)
-          if (widget.exercise.notes?.isNotEmpty == true) ...[
+          // Exercise Notes — prefer user notes, fall back to exercise notes
+          if ((_userNotes?.isNotEmpty ?? false) ||
+              (widget.exercise.notes?.isNotEmpty == true)) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(AppSpacing.sm),
@@ -569,7 +591,9 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
                 ),
               ),
               child: MarkdownBody(
-                data: widget.exercise.notes!,
+                data: _userNotes?.isNotEmpty == true
+                    ? _userNotes!
+                    : widget.exercise.notes!,
                 selectable: true,
                 styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
                     .copyWith(
@@ -776,7 +800,8 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard>
   }
 
   /// Shows a modal bottom sheet with detailed information about the exercise.
-  void _showExerciseDetails(BuildContext context) {
-    ExerciseDetailBottomSheet.show(context, widget.exercise.exercise);
+  Future<void> _showExerciseDetails(BuildContext context) async {
+    await ExerciseDetailBottomSheet.show(context, widget.exercise.exercise);
+    _loadUserNotes();
   }
 }

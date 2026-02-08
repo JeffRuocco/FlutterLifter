@@ -36,7 +36,7 @@ void main() {
         expect(pref.preferredReps, isNull);
         expect(pref.preferredWeight, isNull);
         expect(pref.preferredRestTimeSeconds, isNull);
-        expect(pref.notes, isNull);
+        expect(pref.userNotes, isNull);
       });
 
       test('should create with all optional fields', () {
@@ -47,7 +47,7 @@ void main() {
           preferredReps: 5,
           preferredWeight: 225.0,
           preferredRestTimeSeconds: 180,
-          notes: 'Heavy day',
+          userNotes: 'Heavy day',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
@@ -56,7 +56,7 @@ void main() {
         expect(pref.preferredReps, equals(5));
         expect(pref.preferredWeight, equals(225.0));
         expect(pref.preferredRestTimeSeconds, equals(180));
-        expect(pref.notes, equals('Heavy day'));
+        expect(pref.userNotes, equals('Heavy day'));
       });
     });
 
@@ -99,7 +99,7 @@ void main() {
         expect(pref.preferredReps, isNull);
         expect(pref.preferredWeight, isNull);
         expect(pref.preferredRestTimeSeconds, isNull);
-        expect(pref.notes, isNull);
+        expect(pref.userNotes, isNull);
       });
     });
 
@@ -146,10 +146,10 @@ void main() {
         expect(pref.hasPreferences, isTrue);
       });
 
-      test('should return true when notes is set', () {
+      test('should return true when userNotes is set', () {
         final pref = UserExercisePreferences.create(
           exerciseId: 'bench',
-          notes: 'Some notes',
+          userNotes: 'Some notes',
         );
 
         expect(pref.hasPreferences, isTrue);
@@ -215,15 +215,16 @@ void main() {
         expect(modified.defaultRestTimeSeconds, equals(180));
       });
 
-      test('should apply notes to exercise', () {
+      test('should not apply userNotes to exercise notes', () {
         final pref = UserExercisePreferences.create(
           exerciseId: 'bench',
-          notes: 'Focus on form',
+          userNotes: 'Focus on form',
         );
 
         final modified = pref.applyToExercise(testExercise);
 
-        expect(modified.notes, equals('Focus on form'));
+        // userNotes are stored separately in preferences, not on the exercise
+        expect(modified.notes, equals(testExercise.notes));
       });
 
       test('should apply all preferences at once', () {
@@ -233,7 +234,7 @@ void main() {
           preferredReps: 5,
           preferredWeight: 315.0,
           preferredRestTimeSeconds: 240,
-          notes: 'Heavy day',
+          userNotes: 'Heavy day',
         );
 
         final modified = pref.applyToExercise(testExercise);
@@ -242,7 +243,8 @@ void main() {
         expect(modified.defaultReps, equals(5));
         expect(modified.defaultWeight, equals(315.0));
         expect(modified.defaultRestTimeSeconds, equals(240));
-        expect(modified.notes, equals('Heavy day'));
+        // userNotes are stored separately in preferences, not on the exercise
+        expect(modified.notes, equals(testExercise.notes));
       });
 
       test('should not modify original exercise', () {
@@ -298,7 +300,7 @@ void main() {
           preferredReps: 5,
           preferredWeight: 225.0,
           preferredRestTimeSeconds: 120,
-          notes: 'Original notes',
+          userNotes: 'Original notes',
         );
       });
 
@@ -330,9 +332,9 @@ void main() {
       });
 
       test('should create copy with updated notes', () {
-        final copy = originalPref.copyWith(notes: 'Updated notes');
+        final copy = originalPref.copyWith(userNotes: 'Updated notes');
 
-        expect(copy.notes, equals('Updated notes'));
+        expect(copy.userNotes, equals('Updated notes'));
       });
 
       test('should preserve id when copying', () {
@@ -386,7 +388,7 @@ void main() {
           preferredReps: 5,
           preferredWeight: 225.0,
           preferredRestTimeSeconds: 120,
-          notes: 'Test notes',
+          userNotes: 'Test notes',
           createdAt: DateTime.utc(2025, 1, 1, 12, 0, 0),
           updatedAt: DateTime.utc(2025, 1, 2, 12, 0, 0),
         );
@@ -399,7 +401,7 @@ void main() {
         expect(json['preferredReps'], equals(5));
         expect(json['preferredWeight'], equals(225.0));
         expect(json['preferredRestTimeSeconds'], equals(120));
-        expect(json['notes'], equals('Test notes'));
+        expect(json['userNotes'], equals('Test notes'));
         expect(json['createdAt'], isNotNull);
         expect(json['updatedAt'], isNotNull);
       });
@@ -412,7 +414,7 @@ void main() {
           'preferredReps': 5,
           'preferredWeight': 225.0,
           'preferredRestTimeSeconds': 120,
-          'notes': 'Test notes',
+          'userNotes': 'Test notes',
           'createdAt': '2025-01-01T12:00:00.000Z',
           'updatedAt': '2025-01-02T12:00:00.000Z',
         };
@@ -425,7 +427,7 @@ void main() {
         expect(pref.preferredReps, equals(5));
         expect(pref.preferredWeight, equals(225.0));
         expect(pref.preferredRestTimeSeconds, equals(120));
-        expect(pref.notes, equals('Test notes'));
+        expect(pref.userNotes, equals('Test notes'));
       });
 
       test('fromJson should handle null optional fields', () {
@@ -442,7 +444,7 @@ void main() {
         expect(pref.preferredReps, isNull);
         expect(pref.preferredWeight, isNull);
         expect(pref.preferredRestTimeSeconds, isNull);
-        expect(pref.notes, isNull);
+        expect(pref.userNotes, isNull);
       });
 
       test('round-trip serialization should preserve data', () {
@@ -450,7 +452,7 @@ void main() {
           exerciseId: 'bench',
           preferredSets: 5,
           preferredWeight: 225.0,
-          notes: 'Round trip test',
+          userNotes: 'Round trip test',
         );
 
         final json = original.toJson();
@@ -460,7 +462,7 @@ void main() {
         expect(restored.exerciseId, equals(original.exerciseId));
         expect(restored.preferredSets, equals(original.preferredSets));
         expect(restored.preferredWeight, equals(original.preferredWeight));
-        expect(restored.notes, equals(original.notes));
+        expect(restored.userNotes, equals(original.userNotes));
       });
     });
   });
