@@ -117,6 +117,8 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
       // Load user preferences to populate notes from userNotes if available
       // (the unified notes field may have been edited from the detail view)
       final prefs = await repository.getPreferenceForExercise(exercise.id);
+      if (!mounted) return;
+
       if (prefs?.userNotes != null && prefs!.userNotes!.isNotEmpty) {
         _notesController.text = prefs.userNotes!;
       }
