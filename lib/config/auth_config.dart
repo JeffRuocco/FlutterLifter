@@ -1,9 +1,13 @@
 // Authentication related constants and configurations
 class AuthConfig {
-  // TODO: Replace with your actual configuration values
-  static const String googleClientId =
-      '220385560976-cs64kol9jij6ldruri35170bimuv6cle.apps.googleusercontent.com';
-  static const String facebookAppId = 'your-facebook-app-id';
+  /// Google OAuth Client ID, injected at build time via:
+  ///   flutter build web --dart-define=GOOGLE_CLIENT_ID=<value>
+  ///
+  /// In CI, set the GOOGLE_CLIENT_ID GitHub Actions secret.
+  /// For local development, pass it directly or use a launch configuration.
+  static const String googleClientId = String.fromEnvironment(
+    'GOOGLE_CLIENT_ID',
+  );
 
   // Password validation rules
   static const int minPasswordLength = 6;
@@ -13,8 +17,21 @@ class AuthConfig {
   static const int sessionTimeout = 60;
 }
 
-// Authentication result types
-enum AuthResult { success, failed, cancelled, networkError, invalidCredentials }
+/// Authentication method used to sign in
+enum AuthProvider { email, google, guest }
 
-// User authentication state
+/// Result of an authentication operation
+enum AuthResult {
+  success,
+  failed,
+  cancelled,
+  networkError,
+  invalidCredentials,
+  emailAlreadyInUse,
+  weakPassword,
+  userNotFound,
+  tooManyRequests,
+}
+
+/// User authentication state
 enum AuthState { unknown, authenticated, unauthenticated, loading }

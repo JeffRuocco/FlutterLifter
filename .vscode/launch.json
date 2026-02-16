@@ -22,7 +22,8 @@
             "name": "FlutterLifter (Web - Chrome)",
             "request": "launch",
             "type": "dart",
-            "deviceId": "chrome"
+            "deviceId": "chrome",
+            "args": ["--dart-define=GOOGLE_CLIENT_ID=220385560976-cs64kol9jij6ldruri35170bimuv6cle.apps.googleusercontent.com"]
         }
     ]
 }

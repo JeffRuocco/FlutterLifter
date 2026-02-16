@@ -76,7 +76,7 @@ jobs:
 
       - name: Build web app
         run: |
-          flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+          flutter build web --release --base-href "/${{ github.event.repository.name }}/" --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
 
       - name: Add .nojekyll file
         run: touch build/web/.nojekyll
@@ -131,11 +131,11 @@ jobs:
 
       - name: Build Android APK
         run: |
-          flutter build apk --release --split-per-abi
+          flutter build apk --release --split-per-abi --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
 
       - name: Build Android App Bundle
         run: |
-          flutter build appbundle --release
+          flutter build appbundle --release --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
 
       # Note: APK signing requires Android signing secrets to be configured
       # Uncomment and configure secrets for production releases
@@ -195,7 +195,7 @@ jobs:
 
       - name: Build Windows app
         run: |
-          flutter build windows --release
+          flutter build windows --release --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
 
       - name: Create Windows installer
         run: |
