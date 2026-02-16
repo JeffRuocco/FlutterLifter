@@ -3,6 +3,7 @@
 library;
 
 // Core models
+export 'app_user.dart';
 export 'shared_enums.dart';
 export 'exercise_models.dart';
 export 'user_exercise_preferences.dart';

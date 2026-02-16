@@ -4,6 +4,7 @@
 /// Import this file to access any provider.
 library;
 
+export 'auth_providers.dart';
 export 'storage_provider.dart';
 export 'api_provider.dart';
 export 'network_provider.dart';

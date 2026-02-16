@@ -10,9 +10,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter_lifter/config/auth_config.dart';
+import 'package:flutter_lifter/core/providers/auth_providers.dart';
 import 'package:flutter_lifter/core/theme/app_theme.dart';
 import 'package:flutter_lifter/core/theme/theme_provider.dart';
 import 'package:flutter_lifter/screens/login_screen.dart';
+
+/// A test AuthNotifier that starts in unauthenticated state
+/// without needing Firebase.
+class _TestAuthNotifier extends AuthNotifier {
+  @override
+  AuthState build() => AuthState.unauthenticated;
+}
 
 void main() {
   testWidgets('Login page loads correctly', (WidgetTester tester) async {
@@ -23,7 +32,10 @@ void main() {
     // Build our app with ProviderScope and trigger a frame.
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [createThemeModeProviderOverride(prefs)],
+        overrides: [
+          createThemeModeProviderOverride(prefs),
+          authNotifierProvider.overrideWith(_TestAuthNotifier.new),
+        ],
         child: MaterialApp(
           theme: AppTheme.lightTheme,
           home: const LoginScreen(),
@@ -43,9 +55,11 @@ void main() {
     expect(find.text('Password'), findsOneWidget);
     expect(find.text('Sign In'), findsOneWidget);
 
-    // Verify social login buttons are present
+    // Verify Google sign-in button is present
     expect(find.text('Google'), findsOneWidget);
-    expect(find.text('Facebook'), findsOneWidget);
-    expect(find.text('Apple'), findsOneWidget);
+
+    // Verify guest mode and sign-up options
+    expect(find.text('Continue as Guest'), findsOneWidget);
+    expect(find.text('Sign Up'), findsOneWidget);
   });
 }

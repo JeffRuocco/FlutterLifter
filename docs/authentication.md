@@ -2,81 +2,110 @@
 
 ## Overview
 The FlutterLifter app includes a comprehensive authentication system supporting:
-- ✅ Email/Password authentication
+- ✅ Email/Password authentication (Firebase Auth)
 - ✅ Google Sign-In
-- ✅ Facebook Login  
-- ✅ Apple Sign-In
+- ✅ Guest mode (local-only usage, no Firebase account required)
 - ✅ Form validation
 - ✅ Loading states and error handling
+- ✅ Auth-guarded routing (GoRouter redirect)
 
 ## Current Implementation Status
 
 ### ✅ Completed Features
-- **Login UI**: Beautiful, responsive login interface
-- **Form Validation**: Email format and password requirements
-- **Social Login Buttons**: Google, Facebook, and Apple UI components
-- **Loading States**: Visual feedback during authentication
-- **Error Handling**: User-friendly error messages
-- **Responsive Design**: Works on mobile and web
+- **AuthService**: Firebase Auth wrapper (`lib/services/auth_service.dart`)
+  - Email/password sign-in and registration
+  - Google Sign-In flow
+  - Password reset via email
+  - Error code → `AuthResult` mapping
+- **AppUser Model**: Domain user model with guest factory (`lib/models/app_user.dart`)
+- **Auth Providers**: Riverpod Notifier API (`lib/core/providers/auth_providers.dart`)
+  - `authNotifierProvider` — auth state machine (loading, authenticated, unauthenticated)
+  - `currentUserProvider` — derived `AppUser` from Firebase or guest state
+  - `isGuestProvider` — convenience boolean
+  - `authServiceProvider` — injectable `AuthService`
+- **Router Auth Guards**: GoRouter redirect + `refreshListenable` (`lib/core/router/app_router.dart`)
+  - Unauthenticated users redirected to `/login`
+  - Authenticated users redirected away from auth routes
+- **Login Screen**: Real auth wiring, Google Sign-In, guest mode, forgot password dialog
+- **Signup Screen**: Separate registration with name, email, password, confirm password
+- **Settings Account Section**: User info display, sign-out with confirmation, guest account creation
+- **Tests**: Widget tests for login, signup, and auth model unit tests
 
-### 🔧 To Implement (Backend Integration)
+### 🚧 Deferred (Out of Scope)
+- Facebook Login — requires `flutter_facebook_auth` and Facebook Developer Console setup
+- Apple Sign-In — required by App Store policy if shipping with social logins on iOS
+- Per-user storage key migration (Hive keys remain global; single-device assumption)
+- Guest-to-account cloud data migration
+- Email verification enforcement
 
-#### 1. Firebase Authentication Setup
-```bash
-# Add Firebase dependencies
-flutter pub add firebase_core firebase_auth
-flutter pub add google_sign_in
-flutter pub add flutter_facebook_auth
-flutter pub add sign_in_with_apple
+## Architecture
+
+### Auth Flow
+```
+App Start → Firebase.initializeApp()
+         → GoRouter checks authNotifierProvider
+         → Unauthenticated? → /login
+         → Authenticated?   → / (home)
+
+Login Screen → signInWithEmail() / signInWithGoogle() / continueAsGuest()
+            → AuthNotifier updates state
+            → GoRouter redirect fires → navigates to home
+
+Settings → signOut() → AuthNotifier → unauthenticated → redirect to /login
 ```
 
-#### 2. Google Sign-In Configuration
-1. Create project in [Google Cloud Console](https://console.cloud.google.com/)
-2. Enable Google Sign-In API
-3. Configure OAuth consent screen
-4. Add client IDs to `lib/config/auth_config.dart`
-
-#### 3. Facebook Login Configuration  
-1. Create app in [Facebook Developers](https://developers.facebook.com/)
-2. Configure Facebook Login product
-3. Add App ID to configuration
-
-#### 4. Apple Sign-In Configuration
-1. Enable Sign In with Apple in Apple Developer Console
-2. Configure service ID and key
-3. Add configuration for iOS/macOS
-
-## File Structure
+### File Structure
 ```
 lib/
 ├── config/
-│   └── auth_config.dart          # Authentication configuration
+│   └── auth_config.dart          # AuthProvider, AuthResult, AuthState enums
 ├── services/
-│   └── auth_service.dart         # Authentication business logic
+│   └── auth_service.dart         # Firebase Auth wrapper
 ├── models/
-│   └── user_model.dart          # User data model
+│   └── app_user.dart             # Domain user model with guest factory
+├── core/
+│   ├── providers/
+│   │   └── auth_providers.dart   # Riverpod auth state management
+│   └── router/
+│       └── app_router.dart       # Auth guards and signup route
 └── screens/
-    ├── login_page.dart          # Login interface
-    ├── signup_page.dart         # Registration interface
-    └── home_page.dart           # Main app interface
+    ├── login_screen.dart         # Login with email, Google, guest
+    ├── signup_screen.dart        # Registration screen
+    └── settings_screen.dart      # Account section with sign-out
 ```
 
+## Firebase Configuration
+
+### Required Setup
+1. Firebase project created at [Firebase Console](https://console.firebase.google.com/)
+2. Email/Password and Google sign-in methods enabled
+3. `lib/firebase_options.dart` generated by FlutterFire CLI
+
+### Platform-Specific Notes
+- **Web**: Google Sign-In works automatically via Firebase config
+- **Android**: Requires `google-services.json` and SHA fingerprints
+- **iOS**: Requires `GoogleService-Info.plist` and URL scheme in `Info.plist`
+
 ## Testing
-- ✅ Widget tests for login page components
-- ✅ Form validation testing
-- 🔧 Integration tests for authentication flows (to implement)
+- ✅ Widget tests for login page components and form validation
+- ✅ Widget tests for signup page components and form validation
+- ✅ Unit tests for AppUser model (serialization, equality, guest factory)
+- ✅ Auth providers testable via `overrideWith` pattern (no Firebase in tests)
 
 ## Security Considerations
-- Password minimum length: 6 characters
-- Email format validation
-- Secure token storage (implement with flutter_secure_storage)
-- Session management
-- Logout functionality
+- Password minimum length: 6 characters (via `AuthConfig.minPasswordLength`)
+- Email format validation with regex
+- Firebase Auth handles token storage and refresh internally
+- Guest data persists locally; no cloud upload until account creation
+- Session timeout configurable via `AuthConfig.sessionTimeout`
 
-## Next Steps
-1. Set up Firebase project
-2. Implement authentication service layer
-3. Add secure token storage
-4. Create user profile management
-5. Add password reset functionality
-6. Implement biometric authentication (optional)
+## Troubleshooting
+
+### Common Issues
+| Issue | Solution |
+|-------|----------|
+| `demo-api-key` in firebase_options.dart | Run `flutterfire configure --project=your-project-id` |
+| Google Sign-In fails on Android | Add SHA-1 fingerprint to Firebase Console |
+| `PlatformException(sign_in_failed)` | Check OAuth consent screen is configured |
+| Auth state not updating UI | Ensure `ref.watch(authNotifierProvider)` is used |
+| Redirect loop on login | Check `AuthNotifierListenable` is set as `refreshListenable` |

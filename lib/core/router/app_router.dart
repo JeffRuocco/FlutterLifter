@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:hugeicons/styles/stroke_rounded.dart';
 
+import '../../config/auth_config.dart';
+import '../providers/auth_providers.dart';
 import '../../screens/home_screen.dart';
 import '../../screens/login_screen.dart';
+import '../../screens/signup_screen.dart';
 import '../../screens/programs_screen.dart';
 import '../../screens/create_program_screen.dart';
 import '../../screens/program_library_screen.dart';
@@ -29,6 +32,7 @@ import '../theme/app_dimensions.dart';
 class AppRoutes {
   // Auth routes
   static const String login = '/login';
+  static const String signup = '/signup';
 
   // Main shell routes (with bottom navigation)
   static const String home = '/';
@@ -57,6 +61,14 @@ class AppRoutes {
   AppRoutes._();
 }
 
+/// Adapts the Riverpod [authNotifierProvider] to a [Listenable] so GoRouter
+/// can re-evaluate its redirect whenever auth state changes.
+class AuthNotifierListenable extends ChangeNotifier {
+  AuthNotifierListenable(Ref ref) {
+    ref.listen(authNotifierProvider, (_, _) => notifyListeners());
+  }
+}
+
 /// Global navigator keys for nested navigation
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -67,6 +79,21 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.login,
     debugLogDiagnostics: true,
+    refreshListenable: AuthNotifierListenable(ref),
+    redirect: (context, state) {
+      final authState = ref.read(authNotifierProvider);
+      final isAuthRoute =
+          state.matchedLocation == AppRoutes.login ||
+          state.matchedLocation == AppRoutes.signup;
+
+      if (authState == AuthState.unauthenticated && !isAuthRoute) {
+        return AppRoutes.login;
+      }
+      if (authState == AuthState.authenticated && isAuthRoute) {
+        return AppRoutes.home;
+      }
+      return null;
+    },
     routes: [
       // Login route (outside shell)
       GoRoute(
@@ -75,6 +102,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
           child: const LoginScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: AppDurations.medium,
+        ),
+      ),
+
+      // Signup route (outside shell)
+      GoRoute(
+        path: AppRoutes.signup,
+        name: 'signup',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const SignupScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -618,6 +659,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 extension AppRouterExtension on BuildContext {
   /// Navigate to login screen
   void goToLogin() => go(AppRoutes.login);
+  void goToSignup() => go(AppRoutes.signup);
+  void pushSignup() => push(AppRoutes.signup);
 
   /// Navigate to home screen
   void goToHome() => go(AppRoutes.home);

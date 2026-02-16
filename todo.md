@@ -35,9 +35,21 @@
   - [x] Implement HiveStorageService
   - [x] Test storage persistence in PWA
 - [x] **Ensure usablity of quick workouts**
-- [ ] **Implement user authentication**
-  - [ ] Migrate custom exercise storage to per-user keys when auth is implemented
+- [x] **Implement user authentication**
+  - [x] AuthService wrapping Firebase Auth (email, Google, password reset)
+  - [x] AppUser model with guest factory
+  - [x] Riverpod auth providers (AuthNotifier, currentUser, isGuest)
+  - [x] GoRouter auth guards (redirect + refreshListenable)
+  - [x] Login screen wired to real auth + guest mode
+  - [x] Signup screen with name, email, password, confirm
+  - [x] Settings account section with sign-out
+  - [x] Updated tests for auth changes
+  - [ ] Migrate custom exercise storage to per-user keys when multi-user needed
+  - [ ] Guest-to-account cloud data migration
+  - [ ] Apple Sign-In (required for iOS App Store with social logins)
+  - [ ] Facebook Sign-In
 - [ ] **Implement cloud storage and syncing** (see `storage-implementation-plan.md`)
+- [ ] **Remove firebse API keys from public repo?**
 
 ## Incremental updates
 

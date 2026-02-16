@@ -67,8 +67,10 @@ class DefaultFirebaseOptions {
     projectId: 'lifter-f7b2e',
     databaseURL: 'https://lifter-f7b2e.firebaseio.com',
     storageBucket: 'lifter-f7b2e.firebasestorage.app',
-    androidClientId: '220385560976-jqh860bu109llv0poschet3g1uaqeq2d.apps.googleusercontent.com',
-    iosClientId: '220385560976-4u32e3voh1lgkhvhhtfnt5kqmchi4nro.apps.googleusercontent.com',
+    androidClientId:
+        '220385560976-jqh860bu109llv0poschet3g1uaqeq2d.apps.googleusercontent.com',
+    iosClientId:
+        '220385560976-4u32e3voh1lgkhvhhtfnt5kqmchi4nro.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterLifter',
   );
 
@@ -91,5 +93,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'lifter-f7b2e.firebasestorage.app',
     measurementId: 'G-JSZG6CLHVT',
   );
-
 }

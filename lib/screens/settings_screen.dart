@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../core/providers/auth_providers.dart';
 import '../core/providers/custom_theme_provider.dart';
 import '../core/providers/settings_provider.dart';
 import '../core/router/app_router.dart';
@@ -121,6 +122,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Account Section
+                  _buildSectionTitle(context, 'Account'),
+                  _buildAccountSection(context, ref),
+
+                  VSpace.lg(),
+
                   // Appearance Section
                   _buildSectionTitle(context, 'Appearance'),
                   AppCard(
@@ -406,6 +413,183 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             )
           : null,
       onTap: onTap,
+    );
+  }
+
+  Widget _buildAccountSection(BuildContext context, WidgetRef ref) {
+    final currentUser = ref.watch(currentUserProvider);
+    final isGuest = currentUser?.isGuest ?? true;
+
+    if (isGuest) {
+      return AppCard(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: context.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.borderRadiusSmall,
+                      ),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedUser,
+                      color: context.primaryColor,
+                      size: AppDimensions.iconMedium,
+                    ),
+                  ),
+                  HSpace.md(),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Guest Mode', style: AppTextStyles.titleMedium),
+                        Text(
+                          'Your data is stored locally on this device',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: context.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              VSpace.md(),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => context.go(AppRoutes.signup),
+                  child: const Text('Create Account'),
+                ),
+              ),
+              VSpace.xs(),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => context.go(AppRoutes.login),
+                  child: const Text('Sign In'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Authenticated user
+    return AppCard(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: context.primaryColor.withValues(alpha: 0.1),
+                  backgroundImage: currentUser?.photoURL != null
+                      ? NetworkImage(currentUser!.photoURL!)
+                      : null,
+                  child: currentUser?.photoURL == null
+                      ? HugeIcon(
+                          icon: HugeIcons.strokeRoundedUser,
+                          color: context.primaryColor,
+                          size: AppDimensions.iconMedium,
+                        )
+                      : null,
+                ),
+                HSpace.md(),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentUser?.displayName ?? 'User',
+                        style: AppTextStyles.titleMedium,
+                      ),
+                      if (currentUser?.email != null)
+                        Text(
+                          currentUser!.email!,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: context.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.borderRadiusSmall,
+                    ),
+                  ),
+                  child: Text(
+                    currentUser!.authProvider.name.toUpperCase(),
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: context.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            VSpace.md(),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _confirmSignOut(context, ref),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedLogout01,
+                  color: context.errorColor,
+                  size: 18,
+                ),
+                label: Text(
+                  'Sign Out',
+                  style: TextStyle(color: context.errorColor),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmSignOut(BuildContext context, WidgetRef ref) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Sign Out'),
+          content: const Text('Are you sure you want to sign out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                ref.read(authNotifierProvider.notifier).signOut();
+                // Navigation handled by router redirect
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.errorColor,
+              ),
+              child: const Text('Sign Out'),
+            ),
+          ],
+        );
+      },
     );
   }
 

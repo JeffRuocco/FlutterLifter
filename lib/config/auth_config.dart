@@ -1,7 +1,7 @@
 // Authentication related constants and configurations
 class AuthConfig {
   /// Google OAuth Client ID, injected at build time via:
-  ///   flutter build web --dart-define=GOOGLE_CLIENT_ID=<value>
+  ///   `flutter build web --dart-define=GOOGLE_CLIENT_ID=<value>`
   ///
   /// In CI, set the GOOGLE_CLIENT_ID GitHub Actions secret.
   /// For local development, pass it directly or use a launch configuration.

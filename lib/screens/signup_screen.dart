@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lifter/core/theme/color_utils.dart';
-import 'package:flutter_lifter/utils/icon_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -9,31 +8,31 @@ import 'package:hugeicons/hugeicons.dart';
 import '../config/auth_config.dart';
 import '../core/providers/auth_providers.dart';
 import '../core/router/app_router.dart';
-import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../core/theme/app_dimensions.dart';
 import '../core/theme/theme_extensions.dart';
 import '../widgets/common/app_widgets.dart';
 import '../widgets/animations/animate_on_load.dart';
+import 'login_screen.dart' show emailRegex;
 
-const emailRegex =
-    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$'; // Regex for email validation
-
-/// The main screen for user login.
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+/// Registration screen for new users.
+class SignupScreen extends ConsumerStatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen>
+class _SignupScreenState extends ConsumerState<SignupScreen>
     with SingleTickerProviderStateMixin {
-  final _emailPasswordFormKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _obscureConfirm = true;
   String? _errorMessage;
 
   late AnimationController _logoAnimationController;
@@ -62,20 +61,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       ),
     );
 
-    // Start logo animation
     _logoAnimationController.forward();
   }
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _logoAnimationController.dispose();
     super.dispose();
   }
 
-  Future<void> _signInWithEmail() async {
-    if (!_emailPasswordFormKey.currentState!.validate()) return;
+  Future<void> _signUp() async {
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -85,9 +85,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
     final result = await ref
         .read(authNotifierProvider.notifier)
-        .signInWithEmail(
+        .signUpWithEmail(
           _emailController.text.trim(),
           _passwordController.text,
+          displayName: _nameController.text.trim(),
         );
 
     if (!mounted) return;
@@ -96,96 +97,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     if (result != AuthResult.success) {
       setState(() => _errorMessage = _getErrorMessage(result));
     }
-    // Navigation is handled automatically by the router redirect
-  }
-
-  Future<void> _signInWithGoogle() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-    HapticFeedback.mediumImpact();
-
-    final result = await ref
-        .read(authNotifierProvider.notifier)
-        .signInWithGoogle();
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    if (result == AuthResult.cancelled) return;
-    if (result != AuthResult.success) {
-      setState(() => _errorMessage = _getErrorMessage(result));
-    }
-  }
-
-  void _continueAsGuest() {
-    HapticFeedback.mediumImpact();
-    ref.read(authNotifierProvider.notifier).continueAsGuest();
-    // Navigation is handled automatically by the router redirect
-  }
-
-  void _showForgotPasswordDialog() {
-    final resetEmailController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Reset Password'),
-          content: Form(
-            key: formKey,
-            child: AppTextFormField(
-              controller: resetEmailController,
-              labelText: 'Email',
-              keyboardType: TextInputType.emailAddress,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your email';
-                }
-                if (!RegExp(emailRegex).hasMatch(value)) {
-                  return 'Please enter a valid email';
-                }
-                return null;
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                Navigator.of(dialogContext).pop();
-
-                final result = await ref
-                    .read(authServiceProvider)
-                    .sendPasswordResetEmail(resetEmailController.text.trim());
-
-                if (!mounted) return;
-                if (result == AuthResult.success) {
-                  showSuccessMessage(context, 'Password reset email sent');
-                } else {
-                  showErrorMessage(context, _getErrorMessage(result));
-                }
-              },
-              child: const Text('Send Reset Email'),
-            ),
-          ],
-        );
-      },
-    );
+    // Navigation handled automatically by router redirect
   }
 
   String _getErrorMessage(AuthResult result) {
     switch (result) {
-      case AuthResult.invalidCredentials:
-        return 'Invalid email or password';
-      case AuthResult.userNotFound:
-        return 'No account found with this email';
       case AuthResult.emailAlreadyInUse:
         return 'An account with this email already exists';
       case AuthResult.weakPassword:
@@ -194,12 +110,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         return 'No internet connection. Please try again';
       case AuthResult.tooManyRequests:
         return 'Too many attempts. Please try again later';
+      case AuthResult.invalidCredentials:
+        return 'Invalid credentials';
+      case AuthResult.userNotFound:
+        return 'User not found';
       case AuthResult.cancelled:
-        return 'Sign-in was cancelled';
+        return 'Sign-up was cancelled';
       case AuthResult.success:
         return '';
       case AuthResult.failed:
-        return 'Sign-in failed. Please try again';
+        return 'Registration failed. Please try again';
     }
   }
 
@@ -225,9 +145,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: AppSpacing.xl),
 
-                // Animated App Logo and Title
+                // Logo and title
                 AnimatedBuilder(
                   animation: _logoAnimationController,
                   builder: (context, child) {
@@ -241,17 +161,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   },
                   child: Column(
                     children: [
-                      _AnimatedLogo(),
+                      Container(
+                        width: AppDimensions.avatarLarge,
+                        height: AppDimensions.avatarLarge,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: context.primaryGradient,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.borderRadiusXLarge,
+                          ),
+                        ),
+                        child: Center(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedDumbbell01,
+                            color: ColorUtils.getContrastingTextColor(
+                              context.primaryColor,
+                            ),
+                            size: AppDimensions.iconLarge,
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: AppSpacing.md),
                       Text(
-                        'FlutterLifter',
+                        'Create Account',
                         style: AppTextStyles.appTitle.copyWith(
                           color: context.primaryColor,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        'Your Personal Fitness Journey',
+                        'Start your fitness journey today',
                         style: AppTextStyles.subtitle.copyWith(
                           color: context.textSecondary,
                         ),
@@ -260,7 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   ),
                 ),
 
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Error message
                 if (_errorMessage != null) ...[
@@ -300,11 +242,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   const SizedBox(height: AppSpacing.md),
                 ],
 
-                // Email/Password Form with staggered animations
+                // Registration form
                 Form(
-                  key: _emailPasswordFormKey,
+                  key: _formKey,
                   child: Column(
                     children: [
+                      // Display Name
+                      SlideInWidget(
+                        delay: const Duration(milliseconds: 300),
+                        child: AppTextFormField(
+                          controller: _nameController,
+                          labelText: 'Display Name',
+                          keyboardType: TextInputType.name,
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(
+                              AppDimensions.borderRadiusMedium,
+                            ),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedUser,
+                              color: context.onSurface,
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter your name';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: AppSpacing.md),
+
+                      // Email
                       SlideInWidget(
                         delay: const Duration(milliseconds: 400),
                         child: AppTextFormField(
@@ -334,6 +304,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                       const SizedBox(height: AppSpacing.md),
 
+                      // Password
                       SlideInWidget(
                         delay: const Duration(milliseconds: 500),
                         child: AppTextFormField(
@@ -365,7 +336,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
+                              return 'Please enter a password';
                             }
                             if (value.length < 6) {
                               return 'Password must be at least 6 characters';
@@ -375,32 +346,61 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         ),
                       ),
 
-                      const SizedBox(height: AppSpacing.xs),
+                      const SizedBox(height: AppSpacing.md),
 
-                      // Forgot Password
+                      // Confirm Password
                       SlideInWidget(
                         delay: const Duration(milliseconds: 600),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: AppButton(
-                            text: 'Forgot Password?',
-                            type: AppButtonType.text,
-                            onPressed: _showForgotPasswordDialog,
+                        child: AppTextFormField(
+                          controller: _confirmPasswordController,
+                          labelText: 'Confirm Password',
+                          obscureText: _obscureConfirm,
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(
+                              AppDimensions.borderRadiusMedium,
+                            ),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedLockPassword,
+                              color: context.onSurface,
+                            ),
                           ),
+                          suffixIcon: IconButton(
+                            icon: HugeIcon(
+                              icon: _obscureConfirm
+                                  ? HugeIcons.strokeRoundedView
+                                  : HugeIcons.strokeRoundedViewOff,
+                              color: context.onSurface,
+                              size: AppDimensions.iconSmall,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirm = !_obscureConfirm;
+                              });
+                            },
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please confirm your password';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Passwords do not match';
+                            }
+                            return null;
+                          },
                         ),
                       ),
 
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.xl),
 
-                      // Sign In Button with gradient
+                      // Create Account button
                       SlideInWidget(
                         delay: const Duration(milliseconds: 700),
                         child: SizedBox(
                           width: double.infinity,
                           height: AppDimensions.buttonHeightLarge,
                           child: AppButton.gradient(
-                            text: 'Sign In',
-                            onPressed: _signInWithEmail,
+                            text: 'Create Account',
+                            onPressed: _signUp,
                             isLoading: _isLoading,
                             gradientColors: context.primaryGradient,
                           ),
@@ -412,89 +412,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                 const SizedBox(height: AppSpacing.xl),
 
-                // Divider
+                // Sign In link
                 FadeInWidget(
                   delay: const Duration(milliseconds: 800),
-                  child: Row(
-                    children: [
-                      Expanded(child: Divider(color: context.outlineColor)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                        ),
-                        child: Text(
-                          'Or continue with',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: context.outlineColor,
-                          ),
-                        ),
-                      ),
-                      Expanded(child: Divider(color: context.outlineColor)),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: AppSpacing.lg),
-
-                // Google Sign-In button
-                SlideInWidget(
-                  delay: const Duration(milliseconds: 900),
-                  child: _SocialLoginButton(
-                    onPressed: _isLoading ? null : _signInWithGoogle,
-                    icon: HugeIcons.strokeRoundedGoogle,
-                    label: 'Google',
-                    backgroundColor: AppColors.google,
-                    textColor: ColorUtils.getContrastingTextColor(
-                      AppColors.google,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: AppSpacing.lg),
-
-                // Continue as Guest
-                FadeInWidget(
-                  delay: const Duration(milliseconds: 1000),
-                  child: Column(
-                    children: [
-                      TextButton(
-                        onPressed: _isLoading ? null : _continueAsGuest,
-                        child: Text(
-                          'Continue as Guest',
-                          style: AppTextStyles.buttonText.copyWith(
-                            color: context.primaryColor,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        'Your data stays on this device',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: context.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: AppSpacing.xl),
-
-                // Sign Up Link
-                FadeInWidget(
-                  delay: const Duration(milliseconds: 1100),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account? ",
+                        'Already have an account? ',
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: context.outlineColor,
                         ),
                       ),
                       AppButton(
-                        text: 'Sign Up',
+                        text: 'Sign In',
                         type: AppButtonType.text,
-                        onPressed: () => context.go(AppRoutes.signup),
+                        onPressed: () => context.go(AppRoutes.login),
                       ),
                     ],
                   ),
@@ -503,121 +436,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Animated logo with pulsing glow effect
-class _AnimatedLogo extends StatefulWidget {
-  @override
-  State<_AnimatedLogo> createState() => _AnimatedLogoState();
-}
-
-class _AnimatedLogoState extends State<_AnimatedLogo>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    );
-
-    _pulseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
-    _pulseController.repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _pulseAnimation,
-      builder: (context, child) {
-        return Container(
-          width: AppDimensions.avatarXLarge,
-          height: AppDimensions.avatarXLarge,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: context.primaryGradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(
-              AppDimensions.borderRadiusXLarge,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: context.primaryColor.withValues(
-                  alpha: 0.3 + (_pulseAnimation.value * 0.2),
-                ),
-                blurRadius: 20 + (_pulseAnimation.value * 10),
-                spreadRadius: _pulseAnimation.value * 2,
-              ),
-            ],
-          ),
-          child: Center(
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedDumbbell01,
-              color: ColorUtils.getContrastingTextColor(context.primaryColor),
-              size: AppDimensions.iconXLarge,
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SocialLoginButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final HugeIconData icon;
-  final String label;
-  final Color backgroundColor;
-  final Color textColor;
-
-  const _SocialLoginButton({
-    required this.onPressed,
-    required this.icon,
-    required this.label,
-    required this.backgroundColor,
-    required this.textColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: AppDimensions.buttonHeightLarge,
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          foregroundColor: textColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              AppDimensions.borderRadiusLarge,
-            ),
-          ),
-          elevation: 2,
-        ),
-        icon: HugeIcon(
-          icon: icon,
-          size: AppDimensions.iconMedium * 0.8,
-          color: textColor,
-        ),
-        label: Text(label, style: AppTextStyles.buttonText),
       ),
     );
   }
