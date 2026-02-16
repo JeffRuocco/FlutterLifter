@@ -1,7 +1,8 @@
 // Authentication related constants and configurations
 class AuthConfig {
   // TODO: Replace with your actual configuration values
-  static const String googleClientId = 'your-google-client-id';
+  static const String googleClientId =
+      '220385560976-cs64kol9jij6ldruri35170bimuv6cle.apps.googleusercontent.com';
   static const String facebookAppId = 'your-facebook-app-id';
 
   // Password validation rules

@@ -27,10 +27,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -44,28 +41,34 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'demo-api-key',
-    appId: '1:123456789:web:abcdef',
-    messagingSenderId: '123456789',
-    projectId: 'flutter-lifter-demo',
-    authDomain: 'flutter-lifter-demo.firebaseapp.com',
-    storageBucket: 'flutter-lifter-demo.appspot.com',
+    apiKey: 'AIzaSyBAs48erDUkw5kHWiU7KOdMfv9ubCiqRPE',
+    appId: '1:220385560976:web:a3b1458637554285f58b15',
+    messagingSenderId: '220385560976',
+    projectId: 'lifter-f7b2e',
+    authDomain: 'lifter-f7b2e.firebaseapp.com',
+    databaseURL: 'https://lifter-f7b2e.firebaseio.com',
+    storageBucket: 'lifter-f7b2e.firebasestorage.app',
+    measurementId: 'G-K89T5TKDY5',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'demo-api-key',
-    appId: '1:123456789:android:abcdef',
-    messagingSenderId: '123456789',
-    projectId: 'flutter-lifter-demo',
-    storageBucket: 'flutter-lifter-demo.appspot.com',
+    apiKey: 'AIzaSyBIVVfgthFhtp9O0le6L_nSHBZHqSsNnQI',
+    appId: '1:220385560976:android:910a0878b65b0942f58b15',
+    messagingSenderId: '220385560976',
+    projectId: 'lifter-f7b2e',
+    databaseURL: 'https://lifter-f7b2e.firebaseio.com',
+    storageBucket: 'lifter-f7b2e.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'demo-api-key',
-    appId: '1:123456789:ios:abcdef',
-    messagingSenderId: '123456789',
-    projectId: 'flutter-lifter-demo',
-    storageBucket: 'flutter-lifter-demo.appspot.com',
+    apiKey: 'AIzaSyBfUAJJY1ZzYM4tcPCWBNPvt5HCvyzekB0',
+    appId: '1:220385560976:ios:f3fcfdacdc8d50a1f58b15',
+    messagingSenderId: '220385560976',
+    projectId: 'lifter-f7b2e',
+    databaseURL: 'https://lifter-f7b2e.firebaseio.com',
+    storageBucket: 'lifter-f7b2e.firebasestorage.app',
+    androidClientId: '220385560976-jqh860bu109llv0poschet3g1uaqeq2d.apps.googleusercontent.com',
+    iosClientId: '220385560976-4u32e3voh1lgkhvhhtfnt5kqmchi4nro.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterLifter',
   );
 
@@ -77,4 +80,16 @@ class DefaultFirebaseOptions {
     storageBucket: 'flutter-lifter-demo.appspot.com',
     iosBundleId: 'com.example.flutterLifter',
   );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyBAs48erDUkw5kHWiU7KOdMfv9ubCiqRPE',
+    appId: '1:220385560976:web:987b054a8f8731d2f58b15',
+    messagingSenderId: '220385560976',
+    projectId: 'lifter-f7b2e',
+    authDomain: 'lifter-f7b2e.firebaseapp.com',
+    databaseURL: 'https://lifter-f7b2e.firebaseio.com',
+    storageBucket: 'lifter-f7b2e.firebasestorage.app',
+    measurementId: 'G-JSZG6CLHVT',
+  );
+
 }

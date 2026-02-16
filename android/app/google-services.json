@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "220385560976",
+    "firebase_url": "https://lifter-f7b2e.firebaseio.com",
+    "project_id": "lifter-f7b2e",
+    "storage_bucket": "lifter-f7b2e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:220385560976:android:910a0878b65b0942f58b15",
+        "android_client_info": {
+          "package_name": "com.example.flutter_lifter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "220385560976-cs64kol9jij6ldruri35170bimuv6cle.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIVVfgthFhtp9O0le6L_nSHBZHqSsNnQI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "220385560976-cs64kol9jij6ldruri35170bimuv6cle.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
